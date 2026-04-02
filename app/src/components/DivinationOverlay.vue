@@ -1,100 +1,128 @@
 <template>
-  <view class="divination-overlay" ref="overlayRef">
-    <view class="overlay-bg glass" ref="overlayBgRef" />
+  <view class="divination-overlay" :class="{ 'show-results': showResults, 'is-wide': isWide }" ref="overlayRef">
+    <view class="overlay-bg" ref="overlayBgRef" />
 
-    <view class="progress-header" ref="headerRef">
-      <view class="stars">
-        <image
-          class="star"
-          :class="{ active: isS1Active, blink: isS1Blink }"
-          :src="isS1Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
-        />
-        <view class="star-line" />
-        <image
-          class="star"
-          :class="{ active: isS2Active, blink: isS2Blink }"
-          :src="isS2Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
-        />
-        <view class="star-line" />
-        <image
-          class="star"
-          :class="{ active: isS3Active, blink: isS3Blink }"
-          :src="isS3Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
-        />
-      </view>
-      <text class="phase-prompt font-display">{{ phasePrompt }}</text>
-    </view>
-
-    <view class="stage" ref="stageRef">
-      <view class="deck-layer">
-        <image
-          v-for="i in 12"
-          :key="`m${i}`"
-          class="tarot-card stack-card initial-deck"
-          :ref="(el) => setRef(el, initialDeckRefs, i - 1)"
-          :src="cardBack"
-          :style="{ transform: `translateY(${-i * 1.2}px)` }"
-        />
-
-        <image
-          v-for="i in 6"
-          :key="`l${i}`"
-          class="tarot-card stack-card hidden-element"
-          :ref="(el) => setRef(el, leftDeckRefs, i - 1)"
-          :src="cardBack"
-        />
-        <image
-          v-for="i in 6"
-          :key="`r${i}`"
-          class="tarot-card stack-card hidden-element"
-          :ref="(el) => setRef(el, rightDeckRefs, i - 1)"
-          :src="cardBack"
-        />
+    <!-- 动画区：始终存在，结果展示后收缩到上方/左侧 -->
+    <view class="stage-container">
+      <view class="progress-header" ref="headerRef">
+        <view class="stars">
+          <image
+            class="star"
+            :class="{ active: isS1Active, blink: isS1Blink }"
+            :src="isS1Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
+          />
+          <view class="star-line" />
+          <image
+            class="star"
+            :class="{ active: isS2Active, blink: isS2Blink }"
+            :src="isS2Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
+          />
+          <view class="star-line" />
+          <image
+            class="star"
+            :class="{ active: isS3Active, blink: isS3Blink }"
+            :src="isS3Active ? '/static/themes/golden_dawn/ui/star_active.svg' : '/static/themes/golden_dawn/ui/star_inactive.svg'"
+          />
+        </view>
+        <text class="phase-prompt font-display">{{ phasePrompt }}</text>
       </view>
 
-      <image class="tarot-card hidden-element stage-center cut-t" ref="cutTopRef" :src="cardBack" />
-      <image class="tarot-card hidden-element stage-center cut-m" ref="cutMidRef" :src="cardBack" />
-      <image class="tarot-card hidden-element stage-center cut-b" ref="cutBotRef" :src="cardBack" />
+      <view class="stage" ref="stageRef">
+        <view class="deck-layer">
+          <image
+            v-for="i in 6"
+            :key="`m${i}`"
+            class="tarot-card stack-card initial-deck"
+            :ref="(el) => setRef(el, initialDeckRefs, i - 1)"
+            :src="cardBack"
+            :style="{ transform: `translateY(${-i * 1.2}px)` }"
+          />
 
-      <view class="draw-container" ref="drawStageRef">
-        <view
-          v-for="idx in [0, 1, 2]"
-          :key="idx"
-          class="draw-wrapper hidden-element stage-center"
-          :ref="(el) => setRef(el, drawRefs, idx)"
-        >
-          <view class="card-3d-inner" :ref="(el) => setRef(el, innerRefs, idx)">
-            <image class="tarot-card face-back" :src="cardBack" />
-            <view class="tarot-card face-front">
-              <image class="front-img" :src="getCardImg(idx)" />
+          <image
+            v-for="i in 2"
+            :key="`l${i}`"
+            class="tarot-card stack-card hidden-element"
+            :ref="(el) => setRef(el, leftDeckRefs, i - 1)"
+            :src="cardBack"
+          />
+          <image
+            v-for="i in 2"
+            :key="`r${i}`"
+            class="tarot-card stack-card hidden-element"
+            :ref="(el) => setRef(el, rightDeckRefs, i - 1)"
+            :src="cardBack"
+          />
+        </view>
+
+        <image class="tarot-card hidden-element stage-center cut-t" ref="cutTopRef" :src="cardBack" />
+        <image class="tarot-card hidden-element stage-center cut-m" ref="cutMidRef" :src="cardBack" />
+        <image class="tarot-card hidden-element stage-center cut-b" ref="cutBotRef" :src="cardBack" />
+
+        <view class="draw-container" ref="drawStageRef">
+          <view
+            v-for="idx in [0, 1, 2]"
+            :key="idx"
+            class="draw-wrapper hidden-element stage-center"
+            :ref="(el) => setRef(el, drawRefs, idx)"
+          >
+            <view class="card-3d-inner" :ref="(el) => setRef(el, innerRefs, idx)">
+              <image class="tarot-card face-back" :src="cardBack" />
+              <view class="tarot-card face-front">
+                <image class="front-img" :src="getCardImg(idx)" />
+              </view>
+            </view>
+
+            <!-- 正位/逆位徽章，翻牌后淡入 -->
+            <view
+              v-if="showResults"
+              class="position-badge"
+              :class="tarotStore.drawnCards[idx]?.position ?? 'upright'"
+            >
+              <text class="badge-label font-display">
+                {{ tarotStore.drawnCards[idx]?.position === 'reversed' ? '逆' : '正' }}
+              </text>
             </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <view class="action-footer" ref="footerRef">
-      <view class="actions">
-        <template v-if="phase === 'shuffling'">
-          <view v-if="!actionDone" class="btn btn-primary" @click="playShuffle">开始洗牌</view>
-          <template v-else>
-            <view class="btn" @click="playShuffle">再洗一次</view>
-            <view class="btn btn-primary" @click="playCut">开始切牌</view>
+      <view class="action-footer" ref="footerRef" v-show="!showResults">
+        <view class="actions">
+          <template v-if="phase === 'shuffling'">
+            <view v-if="!actionDone" class="btn btn-primary" @click="playShuffle">开始洗牌</view>
+            <template v-else>
+              <view class="btn" @click="playShuffle">再洗一次</view>
+              <view class="btn btn-primary" @click="playCut">开始切牌</view>
+            </template>
           </template>
-        </template>
 
-        <template v-else-if="phase === 'cutting'">
-          <template v-if="actionDone">
-            <view class="btn" @click="playCut">再切一次</view>
-            <view class="btn btn-primary" @click="playDraw">抽取牌阵</view>
+          <template v-else-if="phase === 'cutting'">
+            <template v-if="actionDone">
+              <view class="btn" @click="playCut">再切一次</view>
+              <view class="btn btn-primary" @click="playDraw">抽取牌阵</view>
+            </template>
           </template>
-        </template>
 
-        <template v-else-if="phase === 'revealing'">
-          <view class="reveal-status font-display">神谕显现中</view>
-        </template>
+          <template v-else-if="phase === 'revealing'">
+            <view class="reveal-status font-display">神谕显现中</view>
+          </template>
+        </view>
       </view>
     </view>
+
+    <!-- 结果区：结果显示后从底部/右侧滑入 -->
+    <scroll-view
+      v-if="showResults"
+      class="result-zone"
+      scroll-y
+      enable-flex
+    >
+      <ResultPanel
+        :reading-result="tarotStore.readingResult!"
+        :question="tarotStore.currentQuestion"
+        @restart="handleRestart"
+      />
+    </scroll-view>
   </view>
 </template>
 
@@ -103,9 +131,11 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import gsap from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import { useUserStore } from '../stores/user'
+import ResultPanel from './ResultPanel.vue'
 
 const emit = defineEmits<{
   (event: 'complete'): void
+  (event: 'restart'): void
 }>()
 
 const tarotStore = useTarotStore()
@@ -116,6 +146,7 @@ const cardBack = computed(() => userStore.cardBackImage || '/static/themes/golde
 const phase = ref<'shuffling' | 'cutting' | 'drawing' | 'revealing'>('shuffling')
 const actionDone = ref(false)
 const phasePrompt = ref('流程：请洗牌')
+const showResults = ref(false)
 
 const isS1Active = computed(() => ['shuffling', 'cutting', 'drawing', 'revealing'].includes(phase.value))
 const isS2Active = computed(() => ['cutting', 'drawing', 'revealing'].includes(phase.value))
@@ -224,8 +255,8 @@ onMounted(() => {
 
     gsap.fromTo(
       getElement(overlayBgRef.value),
-      { backdropFilter: 'blur(0px)', opacity: 0 },
-      { backdropFilter: 'blur(20px)', opacity: 1, duration: 1 }
+      { backgroundColor: 'rgba(245, 230, 200, 0)', opacity: 0 },
+      { backgroundColor: 'rgba(245, 230, 200, 0.65)', opacity: 1, duration: 1 }
     )
 
     gsap.fromTo(
@@ -319,7 +350,8 @@ function playCut() {
     .to(cutTop, { x: leftX, y: leftY, rotation: -4, duration: 0.6, ease: 'power3.out' }, '<')
     .to(cutMid, { x: 0, y: 0, rotation: 0, duration: 0.6, ease: 'power3.out' }, '<')
     .to(cutBot, { x: rightX, y: rightY, rotation: 4, duration: 0.6, ease: 'power3.out' }, '<')
-    .to([cutTop, cutMid, cutBot], { scale: 1.08, boxShadow: '0 20px 30px rgba(0,0,0,0.4)', duration: 0.4, ease: 'power1.out' })
+    .to([cutTop, cutMid, cutBot], { scale: 1.08, duration: 0.4, ease: 'power1.out' })
+    .to(cutBot, { boxShadow: '0 20px 30px rgba(0,0,0,0.4)', duration: 0.4, ease: 'power1.out' }, '<')
     .to(cutTop, { x: rightX, y: rightY, rotation: 2, duration: 0.8, ease: 'back.inOut(1.2)', zIndex: 12 }, '+=0.1')
     .to(cutBot, { x: leftX, y: leftY, rotation: -2, duration: 0.8, ease: 'back.inOut(1.2)' }, '<')
     .to([cutTop, cutMid, cutBot], {
@@ -327,11 +359,11 @@ function playCut() {
       y: 0,
       rotation: 0,
       scale: 1,
-      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
       duration: 0.5,
       stagger: 0.1,
       ease: 'power3.out'
     })
+    .to(cutBot, { boxShadow: 'none', duration: 0.5, ease: 'power3.out' }, '<')
     .set([cutTop, cutMid, cutBot], { autoAlpha: 0 })
     .to(initialCards, { autoAlpha: 1, duration: 0.1 })
 }
@@ -368,8 +400,7 @@ function playDraw() {
     .to(initialCards, { autoAlpha: 0, y: -card_height * 0.4, scale: 0.8, duration: 0.6, ease: 'power1.in' }, '<0.2')
 
   wrappers.forEach((card, index) => {
-    const cardTimeline = gsap.timeline()
-    cardTimeline
+    timeline
       .set(card, {
         display: 'block',
         autoAlpha: 1,
@@ -378,20 +409,14 @@ function playDraw() {
         rotation: (Math.random() - 0.5) * 15,
         scale: 1,
         zIndex: 10 + index
-      })
-      .to(card, { x: targetX[index], y: targetY[index] + card_height * 0.4, duration: 0.7, ease: 'power2.in' })
-      .to(card, { y: targetY[index] + card_height * 0.56, duration: 0.4, ease: 'power1.out' })
-      .to(card, { y: targetY[index], duration: 1.5, ease: 'power3.out' })
-      .to(card, { y: targetY[index] - 5, duration: 1.2, ease: 'sine.inOut', yoyo: true, repeat: -1 }, '-=0.5')
-
-    timeline.add(cardTimeline, 1 + index * 0.9)
+      }, 1 + index * 0.3)
+      .to(card, { x: targetX[index], y: targetY[index] + card_height * 0.4, duration: 0.7, ease: 'power2.in' }, '>')
+      .to(card, { y: targetY[index] + card_height * 0.56, duration: 0.4, ease: 'power1.out' }, '>')
+      .to(card, { y: targetY[index], duration: 1.5, ease: 'power3.out' }, '>')
   })
 
-  const alignTime = 6
-
-  timeline.add(() => {
-    gsap.killTweensOf(wrappers, 'y')
-  }, alignTime)
+  // 三张牌均落定后，对齐到最终位置，再翻牌
+  const alignTime = 1 + 2 * 0.3 + 0.7 + 0.4 + 1.5 + 0.5
 
   timeline
     .to(wrappers, {
@@ -403,6 +428,10 @@ function playDraw() {
     }, alignTime + 0.1)
     .to(wrappers, {
       scale: 0.92,
+      duration: 0.5,
+      ease: 'power1.out'
+    }, alignTime + 0.9)
+    .to(wrappers[0], {
       boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
       duration: 0.5,
       ease: 'power1.out'
@@ -416,7 +445,7 @@ function playDraw() {
     .add(() => {
       phase.value = 'revealing'
       tarotStore.setPhase('revealing')
-      phasePrompt.value = '流程：神谕正在显现'
+      phasePrompt.value = '神谕已经显现'
     }, alignTime + 2.7)
     .add(() => {
       finish()
@@ -424,16 +453,15 @@ function playDraw() {
 }
 
 function finish() {
-  gsap.to(getElement(overlayRef.value), {
-    opacity: 0,
-    scale: 1.04,
-    duration: 0.65,
-    ease: 'power2.inOut',
-    onComplete: () => {
-      tarotStore.revealResult()
-      emit('complete')
-    }
-  })
+  // 不渐隐整个浮层，改为触发结果展示状态
+  tarotStore.revealResult()
+  showResults.value = true
+  phasePrompt.value = '解读结果'
+}
+
+function handleRestart() {
+  showResults.value = false
+  emit('restart')
 }
 </script>
 
@@ -448,6 +476,8 @@ function finish() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 布局切换的过渡 */
+  transition: flex-direction 0.4s ease;
 }
 
 .overlay-bg {
@@ -456,12 +486,86 @@ function finish() {
   z-index: -1;
 }
 
+/* 结果展示后的容器变形 */
+.stage-container {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: flex 0.6s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 默认占满全部纵向空间 */
+  flex: 1 0 100%;
+  height: 100vh;
+}
+
+/* 窄屏：结果展示后，动画区缩至上半 */
+.show-results .stage-container {
+  flex: 0 0 42vh;
+  height: 42vh;
+  min-height: 260px;
+}
+
+/* 宽屏：结果展示后，动画区变为左侧列 */
+.is-wide.show-results {
+  flex-direction: row;
+}
+
+.is-wide.show-results .stage-container {
+  flex: 0 0 44%;
+  height: 100vh;
+  width: 44%;
+}
+
+.result-zone {
+  flex: 1;
+  overflow-y: auto;
+  animation: result-slide-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  background: rgba(254, 250, 243, 0.6);
+  border-top: 1px solid rgba(184, 148, 62, 0.2);
+}
+
+.is-wide .result-zone {
+  border-top: none;
+  border-left: 1px solid rgba(184, 148, 62, 0.2);
+}
+
+@keyframes result-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.is-wide .result-zone {
+  animation-name: result-slide-in-right;
+}
+
+@keyframes result-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .progress-header {
   margin-top: calc(env(safe-area-inset-top, 0px) + 60rpx);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 20;
+}
+
+.show-results .progress-header {
+  margin-top: calc(env(safe-area-inset-top, 0px) + 20rpx);
 }
 
 .stars {
@@ -507,6 +611,8 @@ function finish() {
   justify-content: center;
   padding: 6vh 0;
   isolation: isolate;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .tarot-card,
@@ -589,6 +695,48 @@ function finish() {
   height: 100%;
   border-radius: 12rpx;
   object-fit: cover;
+}
+
+/* 正位/逆位徽章 */
+.position-badge {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 30;
+  animation: badge-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.position-badge.upright {
+  background: linear-gradient(145deg, var(--color-accent-light, #f0d080), var(--color-accent, #b8943e));
+}
+
+.position-badge.reversed {
+  background: linear-gradient(145deg, #8b6f5e, #5c3d2e);
+}
+
+.badge-label {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+@keyframes badge-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .action-footer {

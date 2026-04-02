@@ -1,8 +1,0 @@
-{
-  "api_key": "",
-  "base_url": "",
-  "model_name": "",
-  "max_tokens": 2048,
-  "temperature": 0.8,
-  "stream": true
-}

@@ -124,13 +124,3 @@ export function generateReading(drawn_cards: DrawnResult[]): ReadingResult {
   }
 }
 
-export function getSuitElement(suit: string): string {
-  const element_map: Record<string, string> = {
-    wands: '火元素（行动力）',
-    cups: '水元素（情感）',
-    swords: '风元素（思维）',
-    pentacles: '土元素（物质）'
-  }
-
-  return element_map[suit] ?? ''
-}

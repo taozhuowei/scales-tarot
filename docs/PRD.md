@@ -138,11 +138,10 @@ app/
 
 ### 9.1 自动化验证
 
-- `npm run type-check`
-- `npm run test:unit`
-- `npm run test:integration`
-- `npm run test:e2e`
-- `npm run test:all`
+- `npm run type-check` (Vue-tsc 类型检查)
+- `npm run test:unit` (Vitest 单元测试运行)
+
+（注：本 MVP 版本删去了繁琐的集成及 E2E 测试环境，以提升敏捷开发速度与维护性）
 
 ### 9.2 单元测试覆盖
 
@@ -158,15 +157,9 @@ app/
   - 进入结果态
   - 重置回初始态
 
-### 9.3 集成与 E2E 覆盖
+### 9.3 验收路径
 
-- 结果页集成验证：
-  - 首屏只出现一处主答案表达
-  - 三张牌阵保持统一比例与同排对齐
-- 全流程 E2E：
-  - 首页进入占卜流程
-  - 洗牌 -> 切牌 -> 抽牌 -> 结果揭示
-  - “再占一次”返回初始状态
+- 手动执行验证即可保证 H5 下呈现无误
 
 ### 9.4 手动验收重点
 

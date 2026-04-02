@@ -1,5 +1,6 @@
 <template>
-  <view class="index-page parchment-bg" :class="{ 'is-result-view': isResultVisible }">
+  <view class="index-page parchment-bg">
+    <!-- 空白占位页面，占卜流程完整由 DivinationOverlay 接管 -->
     <view v-if="isIdle" class="idle-view">
       <view class="header">
         <text class="title font-display text-4xl">AI Tarot</text>
@@ -26,13 +27,6 @@
       </view>
     </view>
 
-    <ResultPanel
-      v-else-if="readingResult && isResultVisible"
-      :reading-result="readingResult"
-      :question="tarotStore.currentQuestion"
-      @restart="restartDivination"
-    />
-
     <view class="corner-decoration corner-tl"></view>
     <view class="corner-decoration corner-tr"></view>
     <view class="corner-decoration corner-bl"></view>
@@ -40,9 +34,10 @@
     <view class="mystic-orb orb-tl"></view>
     <view class="mystic-orb orb-br"></view>
 
+    <!-- DivinationOverlay 全程接管：洗牌 -> 切牌 -> 抽牌 -> 翻转 -> 结果展示 -->
     <DivinationOverlay
-      v-if="tarotStore.isAnimating"
-      @complete="onDivinationComplete"
+      v-if="tarotStore.isAnimating || tarotStore.isResultVisible"
+      @restart="restartDivination"
     />
   </view>
 </template>
@@ -50,26 +45,14 @@
 <script setup lang="ts">
 import { computed, nextTick } from 'vue'
 import DivinationOverlay from '../../components/DivinationOverlay.vue'
-import ResultPanel from '../../components/ResultPanel.vue'
 import { useTarotStore } from '../../stores/tarot'
 
 const tarotStore = useTarotStore()
 
 const isIdle = computed(() => tarotStore.isIdle)
-const isResultVisible = computed(() => tarotStore.isResultVisible)
-const readingResult = computed(() => tarotStore.getReadingResult())
 
 function startDivination() {
   tarotStore.startDivination('')
-}
-
-function onDivinationComplete() {
-  nextTick(() => {
-    uni.pageScrollTo({
-      scrollTop: 0,
-      duration: 0
-    })
-  })
 }
 
 function restartDivination() {

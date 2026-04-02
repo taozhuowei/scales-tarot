@@ -21,7 +21,6 @@ export const useTarotStore = defineStore('tarot', () => {
   const isIdle = computed(() => phase.value === 'idle')
   const isAnimating = computed(() => ['shuffling', 'cutting', 'drawing', 'revealing'].includes(phase.value))
   const isResultVisible = computed(() => phase.value === 'result' && readingResult.value !== null)
-  const isActive = computed(() => isAnimating.value)
 
   function startDivination(question: string) {
     currentQuestion.value = question
@@ -65,7 +64,6 @@ export const useTarotStore = defineStore('tarot', () => {
     drawnCards,
     allCards,
     currentQuestion,
-    isActive,
     isAnimating,
     isIdle,
     isResultVisible,

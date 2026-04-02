@@ -1,4 +1,0 @@
-{
-  "role": "user",
-  "template": "用户的核心问题是：「{{question}}」\n\n抽取的三张塔罗牌为：\n1. {{card1_name}}（{{card1_name_en}}）- {{card1_position}}\n2. {{card2_name}}（{{card2_name_en}}）- {{card2_position}}\n3. {{card3_name}}（{{card3_name_en}}）- {{card3_position}}\n\n请对以上牌面进行专业解读，并针对用户的核心问题给出明确的「是」或「否」的答案。"
-}

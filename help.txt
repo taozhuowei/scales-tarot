@@ -1,0 +1,277 @@
+                                          
+ Usage: kimi [OPTIONS] COMMAND [ARGS]...  
+                                          
+ Kimi, your next CLI agent.               
+                                          
++- Options ------------------------------+
+| --ver¡­  -V                     Show    |
+|                                version |
+|                                and     |
+|                                exit.   |
+| --ver¡­                         Print   |
+|                                verbose |
+|                                inform¡­ |
+|                                Defaul¡­ |
+|                                no.     |
+| --deb¡­                         Log     |
+|                                debug   |
+|                                inform¡­ |
+|                                Defaul¡­ |
+|                                no.     |
+| --wor¡­  -w              DIREC  Working |
+|                         TORY   direct¡­ |
+|                                for the |
+|                                agent.  |
+|                                Defaul¡­ |
+|                                current |
+|                                direct¡­ |
+| --add¡­                  DIREC  Add an  |
+|                         TORY   additi¡­ |
+|                                direct¡­ |
+|                                to the  |
+|                                worksp¡­ |
+|                                scope.  |
+|                                Can be  |
+|                                specif¡­ |
+|                                multip¡­ |
+|                                times.  |
+| --ses¡­  -S              TEXT   Session |
+|                                ID to   |
+|                                resume  |
+|                                for the |
+|                                working |
+|                                direct¡­ |
+|                                Defaul¡­ |
+|                                new     |
+|                                sessio¡­ |
+| --con¡­  -C                     Contin¡­ |
+|                                the     |
+|                                previo¡­ |
+|                                session |
+|                                for the |
+|                                working |
+|                                direct¡­ |
+|                                Defaul¡­ |
+|                                no.     |
+| --con¡­                  TEXT   Config  |
+|                                TOML/J¡­ |
+|                                string  |
+|                                to      |
+|                                load.   |
+|                                Defaul¡­ |
+|                                none.   |
+| --con¡­                  FILE   Config  |
+|                                TOML/J¡­ |
+|                                file to |
+|                                load.   |
+|                                Defaul¡­ |
+|                                ~/.kim¡­ |
+| --mod¡­  -m              TEXT   LLM     |
+|                                model   |
+|                                to use. |
+|                                Defaul¡­ |
+|                                default |
+|                                model   |
+|                                set in  |
+|                                config  |
+|                                file.   |
+| --thi¡­         --no¡­           Enable  |
+|                                thinki¡­ |
+|                                mode.   |
+|                                Defaul¡­ |
+|                                default |
+|                                thinki¡­ |
+|                                mode    |
+|                                set in  |
+|                                config  |
+|                                file.   |
+| --yol¡­  -y                     Automa¡­ |
+|                                approve |
+|                                all     |
+|                                action¡­ |
+|                                Defaul¡­ |
+|                                no.     |
+| --pro¡­  -p,-c           TEXT   User    |
+|                                prompt  |
+|                                to the  |
+|                                agent.  |
+|                                Defaul¡­ |
+|                                prompt  |
+|                                intera¡­ |
+| --pri¡­                         Run in  |
+|                                print   |
+|                                mode    |
+|                                (non-i¡­ |
+|                                Note:   |
+|                                print   |
+|                                mode    |
+|                                implic¡­ |
+|                                adds    |
+|                                `--yol¡­ |
+| --acp                          (Depre¡­ |
+|                                use     |
+|                                `kimi   |
+|                                acp`    |
+|                                instea¡­ |
+|                                Run as  |
+|                                ACP     |
+|                                server. |
+| --wire                         Run as  |
+|                                Wire    |
+|                                server  |
+|                                (exper¡­ |
+| --inp¡­                  [text  Input   |
+|                         |stre  format  |
+|                         am-js  to use. |
+|                         on]    Must be |
+|                                used    |
+|                                with    |
+|                                `--pri¡­ |
+|                                and the |
+|                                input   |
+|                                must be |
+|                                piped   |
+|                                in via  |
+|                                stdin.  |
+|                                Defaul¡­ |
+|                                text.   |
+| --out¡­                  [text  Output  |
+|                         |stre  format  |
+|                         am-js  to use. |
+|                         on]    Must be |
+|                                used    |
+|                                with    |
+|                                `--pri¡­ |
+|                                Defaul¡­ |
+|                                text.   |
+| --fin¡­                         Only    |
+|                                print   |
+|                                the     |
+|                                final   |
+|                                assist¡­ |
+|                                message |
+|                                (print  |
+|                                UI).    |
+| --qui¡­                         Alias   |
+|                                for     |
+|                                `--pri¡­ |
+|                                --outp¡­ |
+|                                text    |
+|                                --fina¡­ |
+| --age¡­                  [defa  Builtin |
+|                         ult|o  agent   |
+|                         kabe]  specif¡­ |
+|                                to use. |
+|                                Defaul¡­ |
+|                                builtin |
+|                                default |
+|                                agent.  |
+| --age¡­                  FILE   Custom  |
+|                                agent   |
+|                                specif¡­ |
+|                                file.   |
+|                                Defaul¡­ |
+|                                builtin |
+|                                default |
+|                                agent.  |
+| --mcp¡­                  FILE   MCP     |
+|                                config  |
+|                                file to |
+|                                load.   |
+|                                Add     |
+|                                this    |
+|                                option  |
+|                                multip¡­ |
+|                                times   |
+|                                to      |
+|                                specify |
+|                                multip¡­ |
+|                                MCP     |
+|                                config¡­ |
+|                                Defaul¡­ |
+|                                none.   |
+| --mcp¡­                  TEXT   MCP     |
+|                                config  |
+|                                JSON to |
+|                                load.   |
+|                                Add     |
+|                                this    |
+|                                option  |
+|                                multip¡­ |
+|                                times   |
+|                                to      |
+|                                specify |
+|                                multip¡­ |
+|                                MCP     |
+|                                config¡­ |
+|                                Defaul¡­ |
+|                                none.   |
+| --ski¡­                  DIREC  Path to |
+|                         TORY   the     |
+|                                skills  |
+|                                direct¡­ |
+|                                Overri¡­ |
+|                                discov¡­ |
+| --max¡­                  INTEG  Maximum |
+|                         ER     number  |
+|                         RANGE  of      |
+|                         [x>=1  steps   |
+|                         ]      in one  |
+|                                turn.   |
+|                                Defaul¡­ |
+|                                from    |
+|                                config. |
+| --max¡­                  INTEG  Maximum |
+|                         ER     number  |
+|                         RANGE  of      |
+|                         [x>=1  retries |
+|                         ]      in one  |
+|                                step.   |
+|                                Defaul¡­ |
+|                                from    |
+|                                config. |
+| --max¡­                  INTEG  Extra   |
+|                         ER     iterat¡­ |
+|                         RANGE  after   |
+|                         [x>=-  the     |
+|                         1]     first   |
+|                                turn in |
+|                                Ralph   |
+|                                mode.   |
+|                                Use -1  |
+|                                for     |
+|                                unlimi¡­ |
+|                                Defaul¡­ |
+|                                from    |
+|                                config. |
+| --help  -h                     Show    |
+|                                this    |
+|                                message |
+|                                and     |
+|                                exit.   |
++----------------------------------------+
++- Commands -----------------------------+
+| login    Login to your Kimi account.   |
+| logout   Logout from your Kimi         |
+|          account.                      |
+| term     Run Toad TUI backed by Kimi   |
+|          Code CLI ACP server.          |
+| acp      Run Kimi Code CLI ACP server. |
+| info     Show version and protocol     |
+|          information.                  |
+| export   Export session data.          |
+| mcp      Manage MCP server             |
+|          configurations.               |
+| vis      Run Kimi Agent Tracing        |
+|          Visualizer.                   |
+| web      Run Kimi Code CLI web         |
+|          interface.                    |
++----------------------------------------+
+                                          
+ Documentation:                           
+ https://moonshotai.github.io/kimi-cli/   
+ LLM friendly version:                    
+ https://moonshotai.github.io/kimi-cli/ll 
+ ms.txt                                   
+                                          
+
