@@ -28,12 +28,7 @@ AI Tarot Yes or No 是一款聚焦 Yes / No 决策场景的塔罗占卜工具。
 │   └── package.json
 ├── docs/
 │   ├── PRD.md
-│   ├── Prompt.md
 │   └── README.md
-├── tools/
-│   ├── run_browser_tests.mjs
-│   └── run_unit_tests.mjs
-└── .impeccable.md
 ```
 
 ## 启动方式
@@ -59,20 +54,7 @@ npm run type-check
 npm run test:unit
 ```
 
-### 结果页集成测试
-```bash
-npm run test:integration
-```
 
-### 全流程 E2E
-```bash
-npm run test:e2e
-```
-
-### 全量测试
-```bash
-npm run test:all
-```
 
 ## 使用流程
 1. 打开首页，看到标题和中心神秘圆环。
@@ -90,7 +72,4 @@ npm run test:all
 
 ## 验证说明
 - `npm run type-check` 用于校验 Vue + TypeScript 代码结构
-- `npm run test:unit` 会编译 `tarot.ts`、`tarotReading.ts` 与结果页文案工具的测试副本，并运行 Node 单元测试
-- `npm run test:integration` 会启动 H5 环境，验证结果页结果陈述、去徽章/去置信度与牌阵比例布局
-- `npm run test:e2e` 会启动 H5 环境，自动执行首页到结果页再到重置的完整流程
-- `npm run test:all` 顺序执行类型检查、单元测试、集成测试与 E2E
+- `npm run test:unit` 会编译核心逻辑文件并运行单元测试

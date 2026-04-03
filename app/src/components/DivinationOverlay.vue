@@ -30,7 +30,7 @@
       <view class="stage" ref="stageRef">
         <view class="deck-layer">
           <image
-            v-for="i in 22"
+            v-for="i in 12"
             :key="`m${i}`"
             class="tarot-card stack-card initial-deck"
             :ref="(el) => setRef(el, initialDeckRefs, i - 1)"
@@ -39,14 +39,14 @@
           />
 
           <image
-            v-for="i in 11"
+            v-for="i in 6"
             :key="`l${i}`"
             class="tarot-card stack-card hidden-element"
             :ref="(el) => setRef(el, leftDeckRefs, i - 1)"
             :src="cardBack"
           />
           <image
-            v-for="i in 11"
+            v-for="i in 6"
             :key="`r${i}`"
             class="tarot-card stack-card hidden-element"
             :ref="(el) => setRef(el, rightDeckRefs, i - 1)"
@@ -380,16 +380,16 @@ function playShuffle() {
   timeline
     .set(initialCards, { autoAlpha: 0 })
     .set(leftCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -index * 0.8, rotation: 0 })
-    .set(rightCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -8.8 - index * 0.8, rotation: 0 })
+    .set(rightCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -4.8 - index * 0.8, rotation: 0 })
 
-  const spreadX = cardWidth * 0.7
+  const spreadX = cardWidth * 0.85
 
   timeline
-    .to(leftCards, { x: -spreadX, y: (index: number) => -20 - index * 0.8, rotation: -12, duration: 0.4, ease: 'power2.out' })
-    .to(rightCards, { x: spreadX, y: (index: number) => 20 - index * 0.8, rotation: 12, duration: 0.4, ease: 'power2.out' }, '<')
-    .to(leftCards, { x: 0, y: (index: number) => -index * 1.6, rotation: -2, duration: 0.3, stagger: 0.02, ease: 'power1.in' }, '+=0.1')
-    .to(rightCards, { x: 0, y: (index: number) => -0.8 - index * 1.6, rotation: 2, duration: 0.3, stagger: 0.02, ease: 'power1.in' }, '<0.02')
-    .to([...leftCards, ...rightCards], { x: 0, rotation: 0, duration: 0.2, ease: 'back.out(2)' })
+    .to(leftCards, { x: -spreadX, y: (index: number) => -30 - index * 0.8, rotation: -16, duration: 0.5, ease: 'power2.out' })
+    .to(rightCards, { x: spreadX, y: (index: number) => 30 - index * 0.8, rotation: 16, duration: 0.5, ease: 'power2.out' }, '<')
+    .to(leftCards, { x: 0, y: (index: number) => -index * 1.6, rotation: -2, duration: 0.4, stagger: 0.06, ease: 'power2.out' }, '+=0.2')
+    .to(rightCards, { x: 0, y: (index: number) => -0.8 - index * 1.6, rotation: 2, duration: 0.4, stagger: 0.06, ease: 'power2.out' }, '<0.03')
+    .to([...leftCards, ...rightCards], { x: 0, rotation: 0, duration: 0.3, ease: 'back.out(1.5)' }, '+=0.1')
     .set([...leftCards, ...rightCards], { autoAlpha: 0 })
     .set(initialCards, { autoAlpha: 1 })
     .fromTo(initialCards, { scaleY: 0.9 }, { scaleY: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
@@ -408,7 +408,7 @@ function playCut() {
 
   const cardWidth = getCardWidth()
   const cardHeight = getCardHeight()
-  const spread = isWide.value ? cardWidth * 1.16 : cardHeight * 0.92
+  const spread = isWide.value ? cardWidth * 1.5 : cardHeight * 1.3
   const leftX = isWide.value ? -spread : 0
   const leftY = isWide.value ? 0 : -spread
   const rightX = isWide.value ? spread : 0
@@ -424,23 +424,40 @@ function playCut() {
   timeline
     .set([cutTop, cutMid, cutBot], { display: 'block', autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1, zIndex: 10 })
     .to(initialCards, { autoAlpha: 0, duration: 0.1 })
-    .to(cutTop, { x: leftX, y: leftY, rotation: -4, duration: 0.6, ease: 'power3.out' }, '<')
-    .to(cutMid, { x: 0, y: 0, rotation: 0, duration: 0.6, ease: 'power3.out' }, '<')
-    .to(cutBot, { x: rightX, y: rightY, rotation: 4, duration: 0.6, ease: 'power3.out' }, '<')
-    .to([cutTop, cutMid, cutBot], { scale: 1.08, duration: 0.4, ease: 'power1.out' })
-    .to(cutBot, { boxShadow: '0 20px 30px rgba(0,0,0,0.4)', duration: 0.4, ease: 'power1.out' }, '<')
-    .to(cutTop, { x: rightX, y: rightY, rotation: 2, duration: 0.8, ease: 'back.inOut(1.2)', zIndex: 12 }, '+=0.1')
-    .to(cutBot, { x: leftX, y: leftY, rotation: -2, duration: 0.8, ease: 'back.inOut(1.2)' }, '<')
+    // 分离切牌
+    .to(cutTop, { x: leftX, y: leftY, rotation: -12, duration: 0.7, ease: 'power3.out' }, '<')
+    .to(cutMid, { x: 0, y: 0, rotation: 8, duration: 0.7, ease: 'power3.out' }, '<')
+    .to(cutBot, { x: rightX, y: rightY, rotation: 18, duration: 0.7, ease: 'power3.out' }, '<')
+    // 放大并加深阴影悬浮感
+    .to([cutTop, cutMid, cutBot], { scale: 1.1, duration: 0.4, ease: 'power1.out' })
+    .to([cutTop, cutMid, cutBot], { boxShadow: '0 24px 40px rgba(0,0,0,0.5)', duration: 0.4, ease: 'power1.out' }, '<')
+    
+    // 第一波打乱：逆时针轮换
+    .to(cutTop, { x: 0, y: 0, rotation: 15, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '+=0.1')
+    .to(cutMid, { x: rightX, y: rightY, rotation: -10, zIndex: 11, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: leftX, y: leftY, rotation: 5, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
+
+    // 第二波打乱：交叉对换
+    .to(cutTop, { x: rightX, y: rightY, rotation: -5, zIndex: 11, duration: 0.6, ease: 'power2.inOut' })
+    .to(cutMid, { x: leftX, y: leftY, rotation: 12, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: 0, y: 0, rotation: -18, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
+    
+    // 第三波打乱：再次错位且随机位置
+    .to(cutTop, { x: leftX, y: leftY, rotation: -22, zIndex: 10, duration: 0.6, ease: 'power2.inOut' })
+    .to(cutMid, { x: rightX, y: rightY, rotation: 8, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: 0, y: 0, rotation: 25, zIndex: 14, duration: 0.6, ease: 'power2.inOut' }, '<')
+
+    // 最终合并还原
     .to([cutTop, cutMid, cutBot], {
       x: 0,
       y: 0,
       rotation: 0,
       scale: 1,
-      duration: 0.5,
-      stagger: 0.1,
-      ease: 'power3.out'
-    })
-    .to(cutBot, { boxShadow: 'none', duration: 0.5, ease: 'power3.out' }, '<')
+      duration: 0.6,
+      stagger: 0.15,
+      ease: 'back.out(1.5)'
+    }, '+=0.2')
+    .to([cutTop, cutMid, cutBot], { boxShadow: '0 8px 24px rgba(0,0,0,0.3)', duration: 0.6, ease: 'power3.out' }, '<')
     .set([cutTop, cutMid, cutBot], { autoAlpha: 0 })
     .to(initialCards, { autoAlpha: 1, duration: 0.1 })
 }
@@ -569,6 +586,7 @@ function handleRestart() {
 
 /* 结果展示后的容器变形 */
 .stage-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -685,15 +703,17 @@ function handleRestart() {
 }
 
 .stage {
-  flex: 1;
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6vh 0;
   isolation: isolate;
-  overflow: hidden;
-  min-height: 0;
+  pointer-events: none;
+}
+
+.stage > * {
+  pointer-events: auto;
 }
 
 .tarot-card,
@@ -821,9 +841,11 @@ function handleRestart() {
 }
 
 .action-footer {
+  margin-top: auto;
   padding: 40rpx 20rpx calc(env(safe-area-inset-bottom, 0px) + 60rpx);
   display: flex;
   justify-content: center;
+  position: relative;
   z-index: 20;
 }
 
