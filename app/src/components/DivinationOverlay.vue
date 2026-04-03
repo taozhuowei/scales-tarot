@@ -451,28 +451,28 @@ function playCut() {
   timeline
     .set([cutTop, cutMid, cutBot], { display: 'block', autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1, zIndex: 10 })
     .to(initialCards, { autoAlpha: 0, duration: 0.1 })
-    // 分离切牌
-    .to(cutTop, { x: leftX, y: leftY, rotation: -12, duration: 0.7, ease: 'power3.out' }, '<')
-    .to(cutMid, { x: 0, y: 0, rotation: 8, duration: 0.7, ease: 'power3.out' }, '<')
-    .to(cutBot, { x: rightX, y: rightY, rotation: 18, duration: 0.7, ease: 'power3.out' }, '<')
+    // 分离切牌（保持竖直，不倾斜）
+    .to(cutTop, { x: leftX, y: leftY, duration: 0.7, ease: 'power3.out' }, '<')
+    .to(cutMid, { x: 0, y: 0, duration: 0.7, ease: 'power3.out' }, '<')
+    .to(cutBot, { x: rightX, y: rightY, duration: 0.7, ease: 'power3.out' }, '<')
     // 放大并加深阴影悬浮感
     .to([cutTop, cutMid, cutBot], { scale: 1.1, duration: 0.4, ease: 'power1.out' })
     .to([cutTop, cutMid, cutBot], { boxShadow: '0 24px 40px rgba(0,0,0,0.5)', duration: 0.4, ease: 'power1.out' }, '<')
-    
+
     // 第一波打乱：逆时针轮换
-    .to(cutTop, { x: 0, y: 0, rotation: 15, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '+=0.1')
-    .to(cutMid, { x: rightX, y: rightY, rotation: -10, zIndex: 11, duration: 0.6, ease: 'power2.inOut' }, '<')
-    .to(cutBot, { x: leftX, y: leftY, rotation: 5, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutTop, { x: 0, y: 0, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '+=0.1')
+    .to(cutMid, { x: rightX, y: rightY, zIndex: 11, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: leftX, y: leftY, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
 
     // 第二波打乱：交叉对换
-    .to(cutTop, { x: rightX, y: rightY, rotation: -5, zIndex: 11, duration: 0.6, ease: 'power2.inOut' })
-    .to(cutMid, { x: leftX, y: leftY, rotation: 12, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
-    .to(cutBot, { x: 0, y: 0, rotation: -18, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
-    
-    // 第三波打乱：再次错位且随机位置
-    .to(cutTop, { x: leftX, y: leftY, rotation: -22, zIndex: 10, duration: 0.6, ease: 'power2.inOut' })
-    .to(cutMid, { x: rightX, y: rightY, rotation: 8, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
-    .to(cutBot, { x: 0, y: 0, rotation: 25, zIndex: 14, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutTop, { x: rightX, y: rightY, zIndex: 11, duration: 0.6, ease: 'power2.inOut' })
+    .to(cutMid, { x: leftX, y: leftY, zIndex: 13, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: 0, y: 0, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
+
+    // 第三波打乱：再次错位
+    .to(cutTop, { x: leftX, y: leftY, zIndex: 10, duration: 0.6, ease: 'power2.inOut' })
+    .to(cutMid, { x: rightX, y: rightY, zIndex: 12, duration: 0.6, ease: 'power2.inOut' }, '<')
+    .to(cutBot, { x: 0, y: 0, zIndex: 14, duration: 0.6, ease: 'power2.inOut' }, '<')
 
     // 最终合并还原
     .to([cutTop, cutMid, cutBot], {

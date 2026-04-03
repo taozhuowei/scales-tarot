@@ -245,20 +245,13 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.5);
-  border-left: 6rpx solid var(--color-accent);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+  padding: var(--space-5) 0;
+  border-bottom: 1rpx solid rgba(184, 148, 62, 0.15);
 }
 
-@media (hover: hover) {
-  .meaning-item:hover {
-    transform: translateY(-4rpx);
-    box-shadow: var(--shadow-md);
-    background: rgba(255, 255, 255, 0.8);
-  }
+.meaning-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .meaning-header {
