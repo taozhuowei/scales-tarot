@@ -9,12 +9,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg",
       "upright": {
         "keywords": ["新开始", "冒险", "自由", "无限可能", "纯真"],
-        "meaning": "新的开始，冒险，自由，无限可能",
+        "meaning": "一段崭新旅程即将展开，以开放之心迎接未知，能量指向积极的开始与无限可能。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["轻率", "盲目", "缺乏计划", "愚蠢行为"],
-        "meaning": "轻率，盲目，缺乏计划，愚蠢行为",
+        "meaning": "轻率行事或缺乏准备正在阻碍前进，需要在冒险前稳固根基与方向。",
         "sentiment": "negative"
       }
     },
@@ -27,12 +27,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_01_the_magician.jpeg",
       "upright": {
         "keywords": ["创造力", "意志力", "资源整合", "行动力", "显化"],
-        "meaning": "创造力，意志力，资源整合，行动力",
+        "meaning": "你已具备实现目标的所有资源与能力，专注意志便能将想法化为现实。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["欺骗", "缺乏自信", "能量分散", "失败"],
-        "meaning": "欺骗，缺乏自信，能量分散，失败",
+        "meaning": "能量分散或自信不足正在削弱你的力量，需警惕虚假表象与自我欺骗。",
         "sentiment": "negative"
       }
     },
@@ -45,12 +45,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_02_the_high_priestess.jpeg",
       "upright": {
         "keywords": ["直觉", "内在智慧", "神秘", "潜意识"],
-        "meaning": "直觉，内在智慧，神秘，潜意识",
+        "meaning": "倾听内心深处的声音，直觉将为你揭示隐藏的真相与灵性指引。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["表面化", "缺乏直觉", "冷漠", "秘密暴露"],
-        "meaning": "表面化，缺乏直觉，冷漠，秘密暴露",
+        "meaning": "过于理性或忽视内心感受让你迷失，需要重新连接内在的静默智慧。",
         "sentiment": "negative"
       }
     },
@@ -63,12 +63,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_03_the_empress.jpeg",
       "upright": {
         "keywords": ["丰饶", "母性", "创造力", "自然", "享受"],
-        "meaning": "丰饶，母性，创造力，自然，享受",
+        "meaning": "丰盛的创造力正在流动，顺应自然的节奏，让生命如花朵般绽放。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["过度依赖", "虚荣", "不孕", "物质主义"],
-        "meaning": "过度依赖，虚荣，物质主义",
+        "meaning": "过度追求物质享受或外界认可，让你与内在丰饶的本质失去了连接。",
         "sentiment": "negative"
       }
     },
@@ -81,12 +81,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_04_the_emperor.jpeg",
       "upright": {
         "keywords": ["权威", "秩序", "稳定", "领导力"],
-        "meaning": "权威，秩序，稳定，领导力",
+        "meaning": "以坚定的意志建立稳固基础，理性规划将带来长久的安全与掌控。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["专制", "僵化", "滥用权力", "缺乏自律"],
-        "meaning": "专制，僵化，滥用权力，缺乏自律",
+        "meaning": "过度的控制欲或僵化思维成为枷锁，需要在权威与弹性之间找到平衡。",
         "sentiment": "negative"
       }
     },
@@ -99,12 +99,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_05_the_hierophant.jpeg",
       "upright": {
         "keywords": ["传统", "信仰", "教育", "精神指引"],
-        "meaning": "传统，信仰，教育，精神指引",
+        "meaning": "遵循传统的智慧寻求指引，遵循既定规则将带来内心的安定与成长。",
         "sentiment": "neutral"
       },
       "reversed": {
         "keywords": ["反叛", "打破常规", "错误指引", "非传统"],
-        "meaning": "反叛，打破常规，错误指引，非传统",
+        "meaning": "质疑既有框架，走出自己的道路，在打破传统中寻找真正的信仰。",
         "sentiment": "neutral"
       }
     },
@@ -117,12 +117,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_06_the_lovers.jpeg",
       "upright": {
         "keywords": ["爱情", "选择", "和谐", "结合", "价值观"],
-        "meaning": "爱情，选择，和谐，结合，价值观一致",
+        "meaning": "心灵的契合与真诚的选择带来和谐，遵循内心的价值做出决定。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["不和谐", "错误选择", "分离", "价值观冲突"],
-        "meaning": "不和谐，错误选择，分离，价值观冲突",
+        "meaning": "价值观的冲突或错误的选择正在制造裂痕，需要重新审视关系的本质。",
         "sentiment": "negative"
       }
     },
@@ -135,12 +135,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_07_the_chariot.jpeg",
       "upright": {
         "keywords": ["胜利", "意志力", "控制", "前进", "成功"],
-        "meaning": "胜利，意志力，控制，前进，成功",
+        "meaning": "以坚定的意志驾驭对立的力量，勇往直前必将抵达胜利的彼岸。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["失控", "失败", "内部冲突", "缺乏方向"],
-        "meaning": "失控，失败，内部冲突，缺乏方向",
+        "meaning": "内心的冲突或方向不明让你陷入困境，需要先整合自我再出发。",
         "sentiment": "negative"
       }
     },
@@ -153,12 +153,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_08_strength.jpeg",
       "upright": {
         "keywords": ["内在力量", "勇气", "耐心", "以柔克刚"],
-        "meaning": "内在力量，勇气，耐心，以柔克刚",
+        "meaning": "以温柔的勇气驯服内心的野兽，真正的力量来自于耐心与自我掌控。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["软弱", "缺乏自信", "滥用力量", "恐惧"],
-        "meaning": "软弱，缺乏自信，滥用力量，恐惧",
+        "meaning": "内心的恐惧或自信的缺乏让你退缩，需要重新找回内在的勇气之源。",
         "sentiment": "negative"
       }
     },
@@ -171,12 +171,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_09_the_hermit.jpeg",
       "upright": {
         "keywords": ["内省", "寻求真理", "独处", "智慧"],
-        "meaning": "内省，寻求真理，独处，智慧",
+        "meaning": "在静默的独处中寻求内在真理，智慧之光将照亮你前行的道路。",
         "sentiment": "neutral"
       },
       "reversed": {
         "keywords": ["孤独", "孤立", "拒绝帮助", "迷失方向"],
-        "meaning": "孤独，孤立，拒绝帮助，迷失方向",
+        "meaning": "过度的孤立让你与世人疏离，或是借独处之名逃避该面对的问题。",
         "sentiment": "negative"
       }
     },
@@ -189,12 +189,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_10_wheel_of_fortune.jpeg",
       "upright": {
         "keywords": ["转变", "机遇", "命运", "周期", "好运"],
-        "meaning": "转变，机遇，命运，周期，好运",
+        "meaning": "命运的齿轮开始转动，新的机遇正在降临，顺应变化将迎来好运。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["厄运", "阻碍", "拒绝改变", "坏时机"],
-        "meaning": "厄运，阻碍，拒绝改变，坏时机",
+        "meaning": "命运的低谷只是暂时的考验，抗拒改变只会让转机更加遥远。",
         "sentiment": "negative"
       }
     },
@@ -207,12 +207,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_11_justice.jpeg",
       "upright": {
         "keywords": ["公正", "平衡", "因果", "诚实", "法律"],
-        "meaning": "公正，平衡，因果，诚实，法律",
+        "meaning": "因果法则正在运作，诚实面对自己与他人，公正的决定将带来平衡。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["不公", "偏见", "逃避责任", "法律纠纷"],
-        "meaning": "不公，偏见，逃避责任，法律纠纷",
+        "meaning": "不公或偏见蒙蔽了真相，需要诚实地审视内心，承担应有的责任。",
         "sentiment": "negative"
       }
     },
@@ -225,12 +225,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_12_the_hanged_man.jpeg",
       "upright": {
         "keywords": ["牺牲", "等待", "新视角", "放手", "耐心"],
-        "meaning": "牺牲，等待，新视角，放手，耐心",
+        "meaning": "在悬置的状态中获得新的洞见，有时候放手与等待是最深的智慧。",
         "sentiment": "neutral"
       },
       "reversed": {
         "keywords": ["无谓牺牲", "抗拒改变", "拖延", "固执"],
-        "meaning": "无谓牺牲，抗拒改变，拖延，固执",
+        "meaning": "无谓的固执或抗拒让你困在原地，真正的牺牲应该换来灵性的成长。",
         "sentiment": "negative"
       }
     },
@@ -243,12 +243,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_13_death.jpeg",
       "upright": {
         "keywords": ["结束", "转变", "重生", "放下", "必要改变"],
-        "meaning": "结束，转变，重生，放下，必要改变",
+        "meaning": "旧有的篇章必须结束，勇敢放手才能让新的生命从灰烬中重生。",
         "sentiment": "neutral"
       },
       "reversed": {
         "keywords": ["抗拒结束", "停滞", "害怕改变", "拖延"],
-        "meaning": "抗拒结束，停滞，害怕改变，拖延",
+        "meaning": "对结束的恐惧让你停滞不前，唯有接受转化才能迎来真正的蜕变。",
         "sentiment": "negative"
       }
     },
@@ -261,12 +261,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_14_temperance.jpeg",
       "upright": {
         "keywords": ["平衡", "调和", "耐心", "适度", "合作"],
-        "meaning": "平衡，调和，耐心，适度，合作",
+        "meaning": "在对立中寻找黄金中道，以耐心与调和创造和谐流动的生命状态。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["极端", "失衡", "过度", "缺乏节制", "冲突"],
-        "meaning": "极端，失衡，过度，缺乏节制，冲突",
+        "meaning": "失衡或过度正在破坏内在的平静，需要重新找回生命的节奏与节制。",
         "sentiment": "negative"
       }
     },
@@ -279,12 +279,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_15_the_devil.jpeg",
       "upright": {
         "keywords": ["束缚", "欲望", "物质主义", "诱惑", "成瘾"],
-        "meaning": "束缚，欲望，物质主义，诱惑，成瘾",
+        "meaning": "欲望的锁链看似牢固实则可解，觉知到束缚本身便是解脱的开始。",
         "sentiment": "negative"
       },
       "reversed": {
         "keywords": ["解脱", "摆脱束缚", "重获自由", "觉醒"],
-        "meaning": "解脱，摆脱束缚，重获自由，觉醒",
+        "meaning": "打破自我设限的枷锁，从物质的束缚中觉醒，重获心灵真正的自由。",
         "sentiment": "positive"
       }
     },
@@ -297,12 +297,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_16_the_tower.jpeg",
       "upright": {
         "keywords": ["突然改变", "崩溃", "觉醒", "破坏", "真相"],
-        "meaning": "突然改变，崩溃，觉醒，破坏，真相",
+        "meaning": "旧有结构的崩塌带来剧烈改变，在废墟中将看清真相并获得重生。",
         "sentiment": "negative"
       },
       "reversed": {
         "keywords": ["避免灾难", "延迟改变", "内在觉醒", "恐惧"],
-        "meaning": "避免灾难，延迟改变，内在觉醒，恐惧",
+        "meaning": "试图逃避必然的崩解只会延迟痛苦，内在的觉醒比外在的毁灭更安全。",
         "sentiment": "neutral"
       }
     },
@@ -315,12 +315,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_17_the_star.jpeg",
       "upright": {
         "keywords": ["希望", "灵感", "宁静", "信心", "灵性指引"],
-        "meaning": "希望，灵感，宁静，信心，灵性指引",
+        "meaning": "夜空中的星辰带来希望与指引，保持信心，梦想将在宁静中实现。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["绝望", "失去信心", "不切实际", "缺乏灵感"],
-        "meaning": "绝望，失去信心，不切实际，缺乏灵感",
+        "meaning": "暂时的迷茫让你失去信心，重新连接内在的灵感源泉将点亮希望。",
         "sentiment": "negative"
       }
     },
@@ -333,12 +333,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_18_the_moon.jpeg",
       "upright": {
         "keywords": ["幻觉", "恐惧", "潜意识", "直觉", "不确定"],
-        "meaning": "幻觉，恐惧，潜意识，直觉，不确定",
+        "meaning": "月光下的迷雾带来不确定与幻象，倾听直觉穿越恐惧，真相终将显现。",
         "sentiment": "negative"
       },
       "reversed": {
         "keywords": ["恐惧消退", "真相大白", "混乱结束", "欺骗暴露"],
-        "meaning": "恐惧消退，真相大白，混乱结束，欺骗暴露",
+        "meaning": "迷雾开始散去，恐惧与谎言将被驱散，真相的光芒照亮前行的路。",
         "sentiment": "positive"
       }
     },
@@ -351,12 +351,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_19_the_sun.jpeg",
       "upright": {
         "keywords": ["成功", "喜悦", "活力", "真相", "自信"],
-        "meaning": "成功，喜悦，活力，真相，自信",
+        "meaning": "阳光普照带来丰盛与喜悦，成功的能量正照耀着你，答案清晰可见。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["暂时的挫折", "缺乏自信", "延迟成功", "骄傲"],
-        "meaning": "暂时的挫折，缺乏自信，延迟成功，骄傲",
+        "meaning": "成功或许稍有延迟，内心的阴霾需要驱散，保持谦逊等待光芒再现。",
         "sentiment": "neutral"
       }
     },
@@ -369,12 +369,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_20_judgement.jpeg",
       "upright": {
         "keywords": ["重生", "觉醒", "评价", "宽恕", "召唤"],
-        "meaning": "重生，觉醒，评价，宽恕，召唤",
+        "meaning": "生命的召唤唤醒沉睡的灵魂，宽恕过去，全新的自我即将重生。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["拒绝改变", "自我怀疑", "逃避评价", "遗憾"],
-        "meaning": "拒绝改变，自我怀疑，逃避评价，遗憾",
+        "meaning": "拒绝聆听内心的召唤，逃避自我审视只会留下遗憾，觉醒需要勇气。",
         "sentiment": "negative"
       }
     },
@@ -387,12 +387,12 @@
       "image": "/static/themes/golden_dawn/tarot/major/major_arcana_21_the_world.jpeg",
       "upright": {
         "keywords": ["完成", "成就", "整合", "圆满", "旅行"],
-        "meaning": "完成，成就，整合，圆满，旅行",
+        "meaning": "一个完整的循环即将圆满达成，所有的努力汇聚成完美的成就与和谐。",
         "sentiment": "positive"
       },
       "reversed": {
         "keywords": ["未完成", "延迟", "缺乏closure", "完美主义"],
-        "meaning": "未完成，延迟，缺乏closure，完美主义",
+        "meaning": "还有未尽之事需要完成，过度的完美主义阻碍圆满，接纳不完美才能结束。",
         "sentiment": "negative"
       }
     }

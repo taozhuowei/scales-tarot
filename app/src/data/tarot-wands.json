@@ -16,12 +16,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_01.jpeg",
         "upright": {
           "keywords": ["新机会", "灵感", "创造力", "潜能"],
-          "meaning": "新机会，灵感，创造力，潜能",
+          "meaning": "创造之火已然点燃，神圣的灵感正在召唤你即刻启程，答案是肯定的。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["延迟", "错失机会", "缺乏方向", "错误开始"],
-          "meaning": "延迟，错失机会，缺乏方向，错误开始",
+          "meaning": "时机尚未成熟，想法受阻或方向迷失，需要等待或重新评估再行动。",
           "sentiment": "negative"
         }
       },
@@ -35,12 +35,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_02.jpeg",
         "upright": {
           "keywords": ["计划", "决定", "选择", "未来规划"],
-          "meaning": "计划，决定，选择，未来规划",
+          "meaning": "未来的道路在视野中展开，现在正是制定计划、做出关键抉择的时刻。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["恐惧改变", "犹豫不决", "计划受阻", "信息不足"],
-          "meaning": "恐惧改变，犹豫不决，计划受阻，信息不足",
+          "meaning": "内心充满对未知的恐惧，犹豫不决会让你错失良机，答案暂时是否定的。",
           "sentiment": "negative"
         }
       },
@@ -54,12 +54,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_03.jpeg",
         "upright": {
           "keywords": ["远见", "领导", "贸易", "合作", "扩展"],
-          "meaning": "远见，领导，贸易，合作，扩展",
+          "meaning": "远见卓识引领着合作与拓展，你的努力即将开花结果，前景光明。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["障碍", "延迟", "缺乏远见", "合作问题"],
-          "meaning": "障碍，延迟，缺乏远见，合作问题",
+          "meaning": "前方的障碍尚未清除，缺乏远见可能导致计划搁浅，需要重新审视方向。",
           "sentiment": "negative"
         }
       },
@@ -73,12 +73,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_04.jpeg",
         "upright": {
           "keywords": ["庆祝", "稳定", "家庭", "和谐", "成就"],
-          "meaning": "庆祝，稳定，家庭，和谐，成就",
+          "meaning": "和谐与稳定降临，庆祝的时刻已经到来，这是一个充满喜悦的肯定答案。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["不稳定", "家庭冲突", "缺乏支持", "过渡阶段"],
-          "meaning": "不稳定，家庭冲突，缺乏支持，过渡阶段",
+          "meaning": "根基尚不稳固，家庭或环境中存在潜在的冲突，需要更多时间来实现。",
           "sentiment": "negative"
         }
       },
@@ -92,12 +92,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_05.jpeg",
         "upright": {
           "keywords": ["冲突", "竞争", "斗争", "挑战", "多样性"],
-          "meaning": "冲突，竞争，斗争，挑战",
+          "meaning": "竞争与挑战交织，冲突的能量虽然激烈，但也蕴含着成长的契机。",
           "sentiment": "negative"
         },
         "reversed": {
           "keywords": ["避免冲突", "和解", "内心冲突", "不公平竞争"],
-          "meaning": "避免冲突，和解，内心冲突",
+          "meaning": "纷争逐渐平息，和解与理解的曙光出现，阻碍正在消融，趋向肯定。",
           "sentiment": "positive"
         }
       },
@@ -111,12 +111,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_06.jpeg",
         "upright": {
           "keywords": ["胜利", "自信", "荣誉", "好消息", "公众认可"],
-          "meaning": "胜利，自信，荣誉，好消息，公众认可",
+          "meaning": "胜利的荣耀已经降临，公众的认可与成功就在前方，这是明确的肯定。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["骄傲", "延迟胜利", "自负", "公众羞辱"],
-          "meaning": "骄傲，延迟胜利，自负，公众羞辱",
+          "meaning": "骄傲可能遮蔽双眼，胜利会延迟到来，需要保持谦逊才能最终成功。",
           "sentiment": "negative"
         }
       },
@@ -130,12 +130,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_07.jpeg",
         "upright": {
           "keywords": ["防御", "坚持", "勇气", "立场", "优势"],
-          "meaning": "防御，坚持，勇气，立场，优势",
+          "meaning": "坚守阵地需要勇气，面对挑战不退缩，坚持将带来最终的肯定答案。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["放弃", "不知所措", "无法应对", "疲惫"],
-          "meaning": "放弃，不知所措，无法应对，疲惫",
+          "meaning": "压力让你想要放弃，感到不知所措时，暂停比硬撑更明智，答案是否定的。",
           "sentiment": "negative"
         }
       },
@@ -149,12 +149,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_08.jpeg",
         "upright": {
           "keywords": ["快速行动", "消息", "进展", "旅行", "动力"],
-          "meaning": "快速行动，消息，进展，旅行，动力",
+          "meaning": "快速的进展与消息即将抵达，宇宙的能量在推动你向前，时机正好。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["延迟", "阻碍", "混乱", "方向错误", "急躁"],
-          "meaning": "延迟，阻碍，混乱，方向错误，急躁",
+          "meaning": "延迟与阻碍横亘在前，急躁只会适得其反，需要耐心等待转机。",
           "sentiment": "negative"
         }
       },
@@ -168,12 +168,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_09.jpeg",
         "upright": {
           "keywords": ["韧性", "准备", "防御", "警惕", "经验"],
-          "meaning": "韧性，准备，防御，警惕，经验",
+          "meaning": "经历过战斗的战士依然站立，韧性与警惕将守护你走向最终的胜利。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["疲惫", "放弃", "无法应对", "固执", "偏执"],
-          "meaning": "疲惫，放弃，无法应对，固执，偏执",
+          "meaning": "疲惫快要压垮你的防线，勉强坚持不如暂时撤退，答案暂时是否定的。",
           "sentiment": "negative"
         }
       },
@@ -187,12 +187,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_10.jpeg",
         "upright": {
           "keywords": ["负担", "责任", "压力", "努力工作", "完成"],
-          "meaning": "负担，责任，压力，努力工作，完成",
+          "meaning": "沉重的责任压在肩头，负担过重可能会阻碍前行，需要审视优先级。",
           "sentiment": "negative"
         },
         "reversed": {
           "keywords": ["不堪重负", "崩溃", "无法放下", "委派失败"],
-          "meaning": "不堪重负，崩溃，无法放下，委派失败",
+          "meaning": "崩溃的边缘警示着你，必须学会放下或委派，否则答案将是否定的。",
           "sentiment": "negative"
         }
       },
@@ -206,12 +206,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_11_page.jpeg",
         "upright": {
           "keywords": ["探索", "热情", "新想法", "自由精神", "消息"],
-          "meaning": "探索，热情，新想法，自由精神",
+          "meaning": "探索的热情与崭新的想法正在萌发，自由的精神将引领你发现新的可能。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["坏消息", "缺乏方向", "冲动", "拖延", "不稳定"],
-          "meaning": "坏消息，缺乏方向，冲动，拖延，不稳定",
+          "meaning": "缺乏方向感让你徘徊不前，冲动或拖延都会阻碍进展，需要重新寻找定位。",
           "sentiment": "negative"
         }
       },
@@ -225,12 +225,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_12_knight.jpeg",
         "upright": {
           "keywords": ["行动", "冒险", "冲动", "热情", "旅行"],
-          "meaning": "行动，冒险，冲动，热情，旅行",
+          "meaning": "冒险的召唤已然响起，热情与行动将带你征服前方，时机正好。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["冲动", "鲁莽", "延迟", "愤怒", "失控"],
-          "meaning": "冲动，鲁莽，延迟，愤怒，失控",
+          "meaning": "鲁莽可能带来危险，延迟或愤怒会遮蔽判断，需要谨慎行事。",
           "sentiment": "negative"
         }
       },
@@ -244,12 +244,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_13_queen.jpeg",
         "upright": {
           "keywords": ["自信", "热情", "独立", "社交", "魅力"],
-          "meaning": "自信，热情，独立，社交，魅力",
+          "meaning": "自信与魅力的光芒照耀四方，成熟的热情将吸引你所求，答案是肯定的。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["专横", "嫉妒", "攻击性", "自我怀疑", "不稳定"],
-          "meaning": "专横，嫉妒，攻击性，自我怀疑，不稳定",
+          "meaning": "专横或嫉妒正在侵蚀内心，自我怀疑让你失去力量，需要调整状态。",
           "sentiment": "negative"
         }
       },
@@ -263,12 +263,12 @@
         "image": "/static/themes/golden_dawn/tarot/wands/wands_14_king.jpeg",
         "upright": {
           "keywords": ["领导力", "远见", "创业精神", "荣誉", "成熟"],
-          "meaning": "领导力，远见，创业精神，荣誉，成熟",
+          "meaning": "领导力的巅峰已然达成，远见与成熟将指引你走向成功，答案明确。",
           "sentiment": "positive"
         },
         "reversed": {
           "keywords": ["暴政", "冲动", "专横", "缺乏方向", "暴怒"],
-          "meaning": "暴政，冲动，专横，缺乏方向，暴怒",
+          "meaning": "暴政与冲动会摧毁一切，权力失去控制时，答案将是否定的。",
           "sentiment": "negative"
         }
       }
