@@ -30,23 +30,23 @@
       <view class="stage" ref="stageRef">
         <view class="deck-layer">
           <image
-            v-for="i in 6"
+            v-for="i in 22"
             :key="`m${i}`"
             class="tarot-card stack-card initial-deck"
             :ref="(el) => setRef(el, initialDeckRefs, i - 1)"
             :src="cardBack"
-            :style="{ transform: `translateY(${-i * 1.2}px)` }"
+            :style="{ transform: `translateY(${-(i - 1) * 0.8}px)` }"
           />
 
           <image
-            v-for="i in 2"
+            v-for="i in 11"
             :key="`l${i}`"
             class="tarot-card stack-card hidden-element"
             :ref="(el) => setRef(el, leftDeckRefs, i - 1)"
             :src="cardBack"
           />
           <image
-            v-for="i in 2"
+            v-for="i in 11"
             :key="`r${i}`"
             class="tarot-card stack-card hidden-element"
             :ref="(el) => setRef(el, rightDeckRefs, i - 1)"
@@ -160,6 +160,11 @@ const isWide = ref(false)
 
 function checkWidth() {
   isWide.value = window.innerWidth >= 768
+  if (showResults.value) {
+    nextTick(() => {
+      updateLayout()
+    })
+  }
 }
 
 const overlayRef = ref<any>(null)
@@ -243,6 +248,78 @@ function getDrawLayout(stage_width: number, stage_height: number, card_width: nu
   }
 }
 
+function updateLayout() {
+  if (phase.value !== 'revealing' && phase.value !== 'drawing') return
+
+  const stage = getElement(stageRef.value)
+  if (!stage) return
+  
+  const stageRect = stage.getBoundingClientRect()
+  const stage_width = stageRect.width
+  const stage_height = stageRect.height
+  const card_width = getCardWidth()
+  const card_height = getCardHeight()
+  
+  let targetX = [0,0,0]
+  let targetY = [0,0,0]
+  
+  if (showResults.value) {
+    if (isWide.value) {
+      const gap_x = 20
+      const gap_y = 20
+      
+      let cols = 3
+      if (card_width * 3 + gap_x * 2 > stage_width * 0.9) cols = 2
+      if (card_width * 2 + gap_x > stage_width * 0.9) cols = 1
+      
+      const rows = Math.ceil(3 / cols)
+      const grid_height = rows * card_height + (rows - 1) * gap_y
+      let current_y = -grid_height / 2 + card_height / 2
+      
+      let i = 0
+      for (let r = 0; r < rows; r++) {
+        let row_cols = Math.min(3 - i, cols)
+        let row_width = row_cols * card_width + (row_cols - 1) * gap_x
+        let start_x = -row_width / 2 + card_width / 2
+        
+        for (let c = 0; c < row_cols; c++) {
+          if (i < 3) {
+            targetX[i] = start_x + c * (card_width + gap_x)
+            targetY[i] = current_y
+          }
+          i++
+        }
+        current_y += card_height + gap_y
+      }
+    } else {
+      const available_width = Math.max(stage_width * 0.95, card_width)
+      let spreadX = card_width * 0.9
+      if (spreadX * 2 + card_width > available_width) {
+        spreadX = (available_width - card_width) / 2
+      }
+      targetX = [-spreadX, 0, spreadX]
+      targetY = [0, 0, 0]
+    }
+    
+    gsap.to(stage, { y: 0, duration: 0.6, ease: 'power2.out' })
+  } else {
+    const layout = getDrawLayout(stage_width, stage_height, card_width, card_height, isWide.value)
+    targetX = layout.targetX
+    targetY = layout.targetY
+  }
+  
+  const wrappers = getElementArray(drawRefs.value)
+  wrappers.forEach((card, i) => {
+    gsap.to(card, {
+      x: targetX[i],
+      y: targetY[i],
+      duration: 0.6,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    })
+  })
+}
+
 onMounted(() => {
   checkWidth()
   window.addEventListener('resize', checkWidth)
@@ -263,7 +340,7 @@ onMounted(() => {
       getElementArray(initialDeckRefs.value),
       { y: -entryDrop, rotation: 180, scale: 0.5 },
       {
-        y: (index: number) => -index * 1.2,
+        y: (index: number) => -index * 0.8,
         rotation: 0,
         scale: 1,
         duration: 1.2,
@@ -302,16 +379,16 @@ function playShuffle() {
 
   timeline
     .set(initialCards, { autoAlpha: 0 })
-    .set(leftCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -index * 2.4, rotation: 0 })
-    .set(rightCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -index * 2.4, rotation: 0 })
+    .set(leftCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -index * 0.8, rotation: 0 })
+    .set(rightCards, { display: 'block', autoAlpha: 1, x: 0, y: (index: number) => -8.8 - index * 0.8, rotation: 0 })
 
   const spreadX = cardWidth * 0.7
 
   timeline
-    .to(leftCards, { x: -spreadX, y: -20, rotation: -12, duration: 0.4, ease: 'power2.out' })
-    .to(rightCards, { x: spreadX, y: 20, rotation: 12, duration: 0.4, ease: 'power2.out' }, '<')
-    .to(leftCards, { x: 0, y: (index: number) => -index * 2.4, rotation: -2, duration: 0.3, stagger: 0.05, ease: 'power1.in' }, '+=0.1')
-    .to(rightCards, { x: 0, y: (index: number) => -index * 2.4 - 1.2, rotation: 2, duration: 0.3, stagger: 0.05, ease: 'power1.in' }, '<0.02')
+    .to(leftCards, { x: -spreadX, y: (index: number) => -20 - index * 0.8, rotation: -12, duration: 0.4, ease: 'power2.out' })
+    .to(rightCards, { x: spreadX, y: (index: number) => 20 - index * 0.8, rotation: 12, duration: 0.4, ease: 'power2.out' }, '<')
+    .to(leftCards, { x: 0, y: (index: number) => -index * 1.6, rotation: -2, duration: 0.3, stagger: 0.02, ease: 'power1.in' }, '+=0.1')
+    .to(rightCards, { x: 0, y: (index: number) => -0.8 - index * 1.6, rotation: 2, duration: 0.3, stagger: 0.02, ease: 'power1.in' }, '<0.02')
     .to([...leftCards, ...rightCards], { x: 0, rotation: 0, duration: 0.2, ease: 'back.out(2)' })
     .set([...leftCards, ...rightCards], { autoAlpha: 0 })
     .set(initialCards, { autoAlpha: 1 })
@@ -408,7 +485,7 @@ function playDraw() {
         y: index === 0 ? -card_height * 0.3 : -stage_height,
         rotation: (Math.random() - 0.5) * 15,
         scale: 1,
-        zIndex: 10 + index
+        zIndex: 20 - index
       }, 1 + index * 0.3)
       .to(card, { x: targetX[index], y: targetY[index] + card_height * 0.4, duration: 0.7, ease: 'power2.in' }, '>')
       .to(card, { y: targetY[index] + card_height * 0.56, duration: 0.4, ease: 'power1.out' }, '>')
@@ -457,6 +534,10 @@ function finish() {
   tarotStore.revealResult()
   showResults.value = true
   phasePrompt.value = '解读结果'
+  
+  nextTick(() => {
+    updateLayout()
+  })
 }
 
 function handleRestart() {
