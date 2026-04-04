@@ -177,27 +177,25 @@ page {
    基础重置
    ======================================== */
 
-*,
-*::before,
-*::after {
+page,
+view,
+text,
+image,
+scroll-view,
+swiper,
+swiper-item,
+button,
+input,
+textarea,
+label,
+navigator {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-/* #ifdef H5 */
-html {
-  font-size: 16px;
-}
-/* #endif */
-
-html, body, page {
+/* Global reset uses only selectors supported by both H5 and WeChat Mini Program. */
+page {
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
