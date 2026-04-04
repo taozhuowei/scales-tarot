@@ -2,9 +2,22 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { generateReading, loadAllCards, drawThreeCards, type DrawnResult } from '../src/utils/tarotReading'
-import { CARD_BACK_IMAGE, TAROT_THEME_ASSET_BASE } from '../src/constants'
+import {
+  CARD_BACK_IMAGE,
+  TAROT_THEME_ASSET_BASE,
+  getTarotThemeAssetBase
+} from '../src/constants'
+
+function toLocalStaticPath(asset_path: string): string {
+  return asset_path.replace(/^\.?\//, '')
+}
 
 describe('tarotReading', () => {
+  it('builds platform-specific tarot asset roots', () => {
+    expect(getTarotThemeAssetBase('h5')).toBe('./static/themes/golden_dawn/tarot')
+    expect(getTarotThemeAssetBase('mp-weixin')).toBe('/static/themes/golden_dawn/tarot')
+  })
+
   it('loads all 78 tarot cards correctly', () => {
     const cards = loadAllCards()
     expect(cards.length).toBe(78)
@@ -16,14 +29,27 @@ describe('tarotReading', () => {
 
   it('maps every generated card asset path to an existing local static file', () => {
     const cards = loadAllCards()
-    const card_back_file_path = resolve(__dirname, '..', 'src', CARD_BACK_IMAGE.replace('./', ''))
+    const card_back_file_path = resolve(__dirname, '..', 'src', toLocalStaticPath(CARD_BACK_IMAGE))
 
     expect(existsSync(card_back_file_path)).toBe(true)
 
     cards.forEach((card) => {
-      const image_file_path = resolve(__dirname, '..', 'src', card.image.replace('./', ''))
+      const image_file_path = resolve(__dirname, '..', 'src', toLocalStaticPath(card.image))
       expect(existsSync(image_file_path)).toBe(true)
     })
+  })
+
+  it('uses package-root asset paths for mp-weixin cards and card back', () => {
+    const mp_asset_base = getTarotThemeAssetBase('mp-weixin')
+    const cards = loadAllCards()
+    const fool = cards.find(card => card.id === 'the_fool')
+
+    expect(mp_asset_base).toBe('/static/themes/golden_dawn/tarot')
+    expect(`${mp_asset_base}/card_back.jpeg`).toBe('/static/themes/golden_dawn/tarot/card_back.jpeg')
+    expect(
+      `${mp_asset_base}/major/major_arcana_00_the_fool.jpeg`
+    ).toBe('/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg')
+    expect(fool?.image.startsWith('./static/')).toBe(true)
   })
 
   it('draws 3 random cards with positions', () => {

@@ -1,14 +1,36 @@
 /**
- * 全局常量
- * 存放项目级别的固定配置值
+ * Global constants shared across runtime platforms.
  */
-/** 卡牌静态资源根路径
- * 使用相对路径 ./static/ 兼容 H5 子目录部署、直接打开产物和小程序编译产物。
- */
-export const TAROT_THEME_ASSET_BASE = './static/themes/golden_dawn/tarot'
 
-/** 卡牌背面图片路径（golden_dawn 主题）
- * 使用相对路径 ./static/ 确保 H5 端在子目录部署或直接打开文件时也能正确加载
- * 微信小程序端同样兼容相对路径
+export type TarotAssetPlatform = 'h5' | 'mp-weixin'
+
+/**
+ * Detect the active runtime so tarot image URLs resolve correctly on each platform.
+ * H5 needs relative paths for subdirectory deploys; mp-weixin components need
+ * package-root absolute paths to avoid resolving into /components/static/...
+ */
+export function detectTarotAssetPlatform(): TarotAssetPlatform {
+  if (typeof globalThis !== 'undefined' && 'wx' in globalThis && typeof document === 'undefined') {
+    return 'mp-weixin'
+  }
+
+  return 'h5'
+}
+
+/**
+ * Tarot theme asset base. Source files live under src/static/themes/golden_dawn/tarot.
+ */
+export function getTarotThemeAssetBase(
+  platform: TarotAssetPlatform = detectTarotAssetPlatform()
+): string {
+  return platform === 'mp-weixin'
+    ? '/static/themes/golden_dawn/tarot'
+    : './static/themes/golden_dawn/tarot'
+}
+
+export const TAROT_THEME_ASSET_BASE = getTarotThemeAssetBase()
+
+/**
+ * Card back image used by shuffle/cut/reveal states.
  */
 export const CARD_BACK_IMAGE = `${TAROT_THEME_ASSET_BASE}/card_back.jpeg`
