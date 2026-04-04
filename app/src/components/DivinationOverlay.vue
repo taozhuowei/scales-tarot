@@ -79,7 +79,7 @@
               :class="tarotStore.drawnCards[idx]?.position ?? 'upright'"
             >
               <text class="badge-label font-display">
-                {{ tarotStore.drawnCards[idx]?.position === 'reversed' ? '逆' : '正' }}
+                {{ tarotStore.drawnCards[idx]?.position === 'reversed' ? overlay_text.position_reversed : overlay_text.position_upright }}
               </text>
             </view>
           </view>
@@ -91,28 +91,28 @@
         <view class="actions">
           <!-- 结果展示后显示再占一次，与洗牌/切牌的"再来一次"按钮逻辑一致 -->
           <template v-if="showResults">
-            <view class="btn btn-primary" @click="handleRestart">再占一次</view>
+            <view class="btn btn-primary" @click="handleRestart">{{ overlay_text.restart }}</view>
           </template>
 
           <template v-else-if="phase === 'shuffling'">
-            <view v-if="!actionDone" class="btn btn-primary" @click="playShuffle">开始洗牌</view>
+            <view v-if="!actionDone" class="btn btn-primary" @click="playShuffle">{{ overlay_text.start_shuffle }}</view>
             <template v-else>
-              <view class="btn" @click="playShuffle">再洗一次</view>
-              <view class="btn btn-primary" @click="playCut">开始切牌</view>
+              <view class="btn" @click="playShuffle">{{ overlay_text.shuffle_again }}</view>
+              <view class="btn btn-primary" @click="playCut">{{ overlay_text.start_cut }}</view>
             </template>
           </template>
 
           <template v-else-if="phase === 'cutting'">
             <template v-if="actionDone">
-              <view class="btn" @click="playCut">再切一次</view>
-              <view class="btn btn-primary" @click="playDraw">抽取牌阵</view>
+              <view class="btn" @click="playCut">{{ overlay_text.cut_again }}</view>
+              <view class="btn btn-primary" @click="playDraw">{{ overlay_text.start_draw }}</view>
             </template>
           </template>
 
           <template v-else-if="phase === 'revealing'">
             <!-- 纯文字提示 + 点点点进度动画，替代原来的按钮样式 -->
             <view class="revealing-hint font-display">
-              神谕显现中<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
+              {{ overlay_text.revealing }}<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
             </view>
           </template>
         </view>
@@ -181,10 +181,31 @@ const stageIcons = {
   pentacles: `${stage_icon_base}/icon-pentacles.png`,
 }
 
+// User-facing copy is stored with unicode escapes so Mini Program build output stays ASCII-safe.
+const overlay_text = {
+  position_reversed: '\u9006',
+  position_upright: '\u6b63',
+  restart: '\u518d\u5360\u4e00\u6b21',
+  start_shuffle: '\u5f00\u59cb\u6d17\u724c',
+  shuffle_again: '\u518d\u6d17\u4e00\u6b21',
+  start_cut: '\u5f00\u59cb\u5207\u724c',
+  cut_again: '\u518d\u5207\u4e00\u6b21',
+  start_draw: '\u62bd\u53d6\u724c\u9635',
+  revealing: '\u795e\u8c15\u663e\u73b0\u4e2d',
+  prompt_shuffle: '\u6d41\u7a0b\uff1a\u8bf7\u6d17\u724c',
+  prompt_shuffling: '\u6d41\u7a0b\uff1a\u6d17\u724c\u4e2d',
+  prompt_cutting: '\u6d41\u7a0b\uff1a\u5207\u724c\u4e2d',
+  prompt_cut: '\u6d41\u7a0b\uff1a\u8bf7\u5207\u724c',
+  prompt_draw: '\u6d41\u7a0b\uff1a\u8bf7\u62bd\u53d6\u724c\u9635',
+  prompt_drawing: '\u6d41\u7a0b\uff1a\u724c\u9635\u51dd\u805a\u4e2d',
+  revealed: '\u795e\u8c15\u5df2\u7ecf\u663e\u73b0',
+  result: '\u89e3\u8bfb\u7ed3\u679c',
+}
+
 // ---- 响应式状态 ----
 const phase = ref<'shuffling' | 'cutting' | 'drawing' | 'revealing'>('shuffling')
 const actionDone = ref(false)
-const phasePrompt = ref('流程：请洗牌')
+const phasePrompt = ref(overlay_text.prompt_shuffle)
 const showResults = ref(false)
 const isWide = ref(false)
 
@@ -487,14 +508,14 @@ onUnmounted(() => {
 // 牌组拆分左右 → 交叉合并 → 弹性归位；完成后显示「下一步」按钮
 function playShuffle() {
   actionDone.value = false
-  phasePrompt.value = '流程：洗牌中'
+  phasePrompt.value = overlay_text.prompt_shuffling
   const cardWidth = getCardWidth()
   const spreadX = cardWidth * 0.85
 
   const timeline = gsap.timeline({
     onComplete: () => {
       actionDone.value = true
-      phasePrompt.value = '流程：请切牌'
+      phasePrompt.value = overlay_text.prompt_cut
     },
   })
 
@@ -548,7 +569,7 @@ function playCut() {
   phase.value = 'cutting'
   tarotStore.setPhase('cutting')
   actionDone.value = false
-  phasePrompt.value = '流程：切牌中'
+  phasePrompt.value = overlay_text.prompt_cutting
 
   const cardWidth = getCardWidth()
   const cardHeight = getCardHeight()
@@ -561,7 +582,7 @@ function playCut() {
   const timeline = gsap.timeline({
     onComplete: () => {
       actionDone.value = true
-      phasePrompt.value = '流程：请抽取牌阵'
+      phasePrompt.value = overlay_text.prompt_draw
     },
   })
 
@@ -616,7 +637,7 @@ function playDraw() {
   tarotStore.setPhase('drawing')
   tarotStore.drawThreeCards()
   actionDone.value = false
-  phasePrompt.value = '流程：牌阵凝聚中'
+  phasePrompt.value = overlay_text.prompt_drawing
 
   const { width: stage_width, height: stage_height } = getStageDimensions()
   const card_width = getCardWidth()
@@ -687,7 +708,7 @@ function playDraw() {
     .add(() => {
       phase.value = 'revealing'
       tarotStore.setPhase('revealing')
-      phasePrompt.value = '神谕已经显现'
+      phasePrompt.value = overlay_text.revealed
     }, alignTime + 2.7)
     .add(() => { finish() }, alignTime + 4.3)
 }
@@ -762,7 +783,7 @@ function updateLayout() {
 function finish() {
   tarotStore.revealResult()
   showResults.value = true
-  phasePrompt.value = '解读结果'
+  phasePrompt.value = overlay_text.result
   nextTick(() => { updateLayout() })
 }
 
