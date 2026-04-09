@@ -649,10 +649,11 @@ function playShuffle() {
     },
   })
 
+  // Phase icon crossfade: quick (0.35s) so it finishes before the heavy interleave phase at ~0.7s
   timeline.to(_phaseIndicator, {
     progress: 1,
-    duration: 1.9,
-    ease: 'power1.out',
+    duration: 0.35,
+    ease: 'power2.out',
     onUpdate: refreshPhaseIndicator,
   }, 0)
 
@@ -725,10 +726,11 @@ function playCut() {
     },
   })
 
+  // Phase icon crossfade: quick (0.35s) to avoid GPU competition with cut card tweens
   timeline.to(_phaseIndicator, {
     progress: 1,
-    duration: 3.05,
-    ease: 'power1.out',
+    duration: 0.35,
+    ease: 'power2.out',
     onUpdate: refreshPhaseIndicator,
   }, 0)
 
@@ -834,10 +836,11 @@ function playDraw() {
   const revealingStart = alignTime + 2.7
   const finishTime = alignTime + 4.3
 
+  // Phase icon crossfade: quick (0.35s), runs only at draw-phase start
   timeline.to(_phaseIndicator, {
     progress: 1,
-    duration: revealingStart,
-    ease: 'power1.out',
+    duration: 0.35,
+    ease: 'power2.out',
     onUpdate: refreshPhaseIndicator,
   }, 0)
 
@@ -869,8 +872,8 @@ function playDraw() {
     }, revealingStart)
     .to(_phaseIndicator, {
       progress: 1,
-      duration: finishTime - revealingStart,
-      ease: 'power1.out',
+      duration: 0.35,
+      ease: 'power2.out',
       onUpdate: refreshPhaseIndicator,
     }, revealingStart)
     .add(() => { void finish() }, finishTime)
