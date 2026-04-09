@@ -65,9 +65,14 @@ import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
 import { gsap } from 'gsap'
 import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'
-import { CARD_BACK_IMAGE as cardBack } from '../../constants'
+import { useThemeStore } from '../../stores/theme'
+import { CARD_BACK_IMAGE } from '../../constants'
 
 const tarotStore = useTarotStore()
+const themeStore = useThemeStore()
+
+// Theme-aware card back image with fallback
+const cardBack = computed(() => themeStore.cardBackImage || CARD_BACK_IMAGE)
 const isIdle = computed(() => tarotStore.isIdle)
 const cardsLoadError = computed(() => tarotStore.cardsLoadError)
 function retryLoadCards() { tarotStore.loadCards() }

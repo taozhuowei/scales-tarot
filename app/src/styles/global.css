@@ -15,35 +15,35 @@
    Production: replace localhost:3000 with VITE_API_BASE_URL domain. */
 @font-face {
   font-family: 'Cinzel';
-  src: url('http://localhost:3000/static/fonts/cinzel-400.woff2') format('woff2');
+  src: url('http://localhost:3000/static/themes/golden_dawn/fonts/cinzel-400.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Cinzel';
-  src: url('http://localhost:3000/static/fonts/cinzel-600.woff2') format('woff2');
+  src: url('http://localhost:3000/static/themes/golden_dawn/fonts/cinzel-600.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Cinzel';
-  src: url('http://localhost:3000/static/fonts/cinzel-700.woff2') format('woff2');
+  src: url('http://localhost:3000/static/themes/golden_dawn/fonts/cinzel-700.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'LXGW WenKai';
-  src: url('http://localhost:3000/static/fonts/lxgw-wenkai-light.woff2') format('woff2');
+  src: url('http://localhost:3000/static/themes/golden_dawn/fonts/lxgw-wenkai-light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'LXGW WenKai';
-  src: url('http://localhost:3000/static/fonts/lxgw-wenkai-regular.woff2') format('woff2');
+  src: url('http://localhost:3000/static/themes/golden_dawn/fonts/lxgw-wenkai-regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;

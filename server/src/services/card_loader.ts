@@ -11,9 +11,18 @@ import pentaclesData from '../data/tarot-pentacles.json'
 import swordsData from '../data/tarot-swords.json'
 import wandsData from '../data/tarot-wands.json'
 
-// TODO Phase 3: theme ID becomes dynamic via theme API
-const STATIC_BASE = process.env.STATIC_BASE_URL ?? 'http://localhost:3000'
-const THEME_TAROT_BASE = `${STATIC_BASE}/static/themes/golden_dawn/tarot`
+import { getDefaultTheme } from './theme_loader'
+
+// Derive tarot image base from default theme; fallback to hardcoded path
+function getThemeTarotBase(): string {
+  const theme = getDefaultTheme()
+  if (theme) {
+    // card_back is like http://host/static/themes/golden_dawn/tarot/card_back.jpeg
+    return theme.images.card_back.replace(/\/[^/]+$/, '')
+  }
+  const base = process.env.STATIC_BASE_URL ?? 'http://localhost:3000'
+  return `${base}/static/themes/golden_dawn/tarot`
+}
 
 export interface TarotCardMeaning {
   keywords: string[]
@@ -39,12 +48,12 @@ type CardSeed = Omit<TarotCard, 'image'> & { image?: string }
 function buildImageUrl(card: CardSeed): string {
   if (card.type === 'major') {
     const num = String(card.number).padStart(2, '0')
-    return `${THEME_TAROT_BASE}/major/major_arcana_${num}_${card.id}.jpeg`
+    return `${getThemeTarotBase()}/major/major_arcana_${num}_${card.id}.jpeg`
   }
   const suit = card.suit ?? ''
   const num = String(card.number).padStart(2, '0')
   const name = card.nameEn.toLowerCase().replace(/\s+/g, '_')
-  return `${THEME_TAROT_BASE}/minor/${suit}/minor_arcana_${suit}_${num}_${name}.jpeg`
+  return `${getThemeTarotBase()}/minor/${suit}/minor_arcana_${suit}_${num}_${name}.jpeg`
 }
 
 function normalize(seed: CardSeed): TarotCard {

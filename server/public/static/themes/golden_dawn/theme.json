@@ -1,0 +1,49 @@
+{
+  "id": "golden_dawn",
+  "name": "Golden Dawn",
+  "description": "Classic Hermetic Order of the Golden Dawn tarot theme",
+  "fonts": {
+    "display": {
+      "family": "Cinzel",
+      "weights": {
+        "400": "fonts/cinzel-400.woff2",
+        "600": "fonts/cinzel-600.woff2",
+        "700": "fonts/cinzel-700.woff2"
+      }
+    },
+    "body": {
+      "family": "LXGW WenKai",
+      "weights": {
+        "300": "fonts/lxgw-wenkai-light.woff2",
+        "400": "fonts/lxgw-wenkai-regular.woff2"
+      }
+    }
+  },
+  "icons": {
+    "cups": "icons/icon-cups.png",
+    "pentacles": "icons/icon-pentacles.png",
+    "swords": "icons/icon-swords.png",
+    "wands": "icons/icon-wands.png"
+  },
+  "images": {
+    "card_back": "tarot/card_back.jpeg",
+    "btn_primary": "ui/btn_primary.svg"
+  },
+  "colors": {
+    "bg_primary": "#F2E8D0",
+    "bg_secondary": "#EAD9BC",
+    "bg_sunken": "#D9C9A8",
+    "bg_raised": "#F7F0E0",
+    "text_primary": "#1E0F06",
+    "text_secondary": "#4A2510",
+    "text_tertiary": "#6B4226",
+    "text_muted": "#8B6914",
+    "accent": "#7A5C14",
+    "accent_light": "#B8941E",
+    "accent_glow": "rgba(122, 92, 20, 0.3)",
+    "border": "rgba(122, 92, 20, 0.15)",
+    "border_strong": "rgba(122, 92, 20, 0.3)",
+    "yes": "#7A1515",
+    "no": "#1A2E4A"
+  }
+}

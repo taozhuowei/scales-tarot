@@ -14,6 +14,7 @@ import express from 'express'
 import path from 'path'
 import cardsRouter from './routes/cards'
 import readingsRouter from './routes/readings'
+import themesRouter from './routes/themes'
 
 const app = express()
 
@@ -35,6 +36,7 @@ app.use('/static', express.static(path.join(__dirname, '../public/static'), { ma
 // API routes
 app.use('/api/v1/cards', cardsRouter)
 app.use('/api/v1/readings', readingsRouter)
+app.use('/api/v1/themes', themesRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

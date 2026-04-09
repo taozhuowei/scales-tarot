@@ -157,7 +157,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import gsap from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import ResultPanel from './ResultPanel.vue'
-import { CARD_BACK_IMAGE as cardBack, getStaticIconBase } from '../constants'
+import { CARD_BACK_IMAGE, getStaticIconBase } from '../constants'
+import { useThemeStore } from '../stores/theme'
 
 // Emits 定义
 // complete - 占卜流程完成时触发（抽牌动画结束、结果即将展示）
@@ -168,14 +169,23 @@ const emit = defineEmits<{
 }>()
 
 const tarotStore = useTarotStore()
+const themeStore = useThemeStore()
 
-// 使用后端服务器提供的静态资源路径
-const stageIcons = {
-  wands: `${getStaticIconBase()}/icon-wands.png`,
-  swords: `${getStaticIconBase()}/icon-swords.png`,
-  cups: `${getStaticIconBase()}/icon-cups.png`,
-  pentacles: `${getStaticIconBase()}/icon-pentacles.png`,
-}
+// Theme-aware stage icons with fallback to static assets
+const stageIcons = computed(() => {
+  if (themeStore.icons.wands) {
+    return themeStore.icons
+  }
+  return {
+    wands: `${getStaticIconBase()}/icon-wands.png`,
+    swords: `${getStaticIconBase()}/icon-swords.png`,
+    cups: `${getStaticIconBase()}/icon-cups.png`,
+    pentacles: `${getStaticIconBase()}/icon-pentacles.png`,
+  }
+})
+
+// Theme-aware card back image with fallback
+const cardBack = computed(() => themeStore.cardBackImage || CARD_BACK_IMAGE)
 
 // User-facing copy strings.
 const overlay_text = {

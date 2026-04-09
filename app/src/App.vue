@@ -6,11 +6,14 @@
  */
 import { onLaunch } from '@dcloudio/uni-app'
 import { useTarotStore } from './stores/tarot'
+import { useThemeStore } from './stores/theme'
 
 const tarotStore = useTarotStore()
+const themeStore = useThemeStore()
 
 onLaunch(() => {
   tarotStore.loadCards()
+  themeStore.loadTheme()
 })
 </script>
 
