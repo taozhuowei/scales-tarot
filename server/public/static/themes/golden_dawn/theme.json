@@ -20,10 +20,6 @@
     }
   },
   "ui": {
-    "icon_cups": "ui/icon-cups.png",
-    "icon_pentacles": "ui/icon-pentacles.png",
-    "icon_swords": "ui/icon-swords.png",
-    "icon_wands": "ui/icon-wands.png",
     "btn_primary": "ui/btn_primary.svg"
   },
   "images": {

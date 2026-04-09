@@ -45,19 +45,6 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   /**
-   * Suit icons from theme UI assets, or empty strings if not loaded
-   */
-  const icons = computed(() => {
-    const ui = currentTheme.value?.ui
-    return {
-      wands: ui?.icon_wands ?? '',
-      swords: ui?.icon_swords ?? '',
-      cups: ui?.icon_cups ?? '',
-      pentacles: ui?.icon_pentacles ?? '',
-    }
-  })
-
-  /**
    * Card back image URL from theme, or empty string if not loaded
    */
   const cardBackImage = computed<string>(() => {
@@ -84,7 +71,6 @@ export const useThemeStore = defineStore('theme', () => {
     loadError,
     loadTheme,
     themeBase,
-    icons,
     cardBackImage,
     colors,
     fonts,

@@ -12,8 +12,3 @@ const THEME_BASE = `${API_BASE}/static/themes/golden_dawn`
 
 /** Fallback card back image used during shuffle / cut / draw animations */
 export const CARD_BACK_IMAGE = `${THEME_BASE}/tarot/card_back.jpeg`
-
-/** Fallback base URL for suit icons used in the progress header of DivinationOverlay */
-export function getStaticIconBase(): string {
-  return `${API_BASE}/static/icons`
-}

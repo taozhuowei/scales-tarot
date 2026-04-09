@@ -35,10 +35,6 @@ export interface ThemeColors {
 }
 
 export interface ThemeUI {
-  icon_cups: string
-  icon_pentacles: string
-  icon_swords: string
-  icon_wands: string
   btn_primary?: string
   [key: string]: string | undefined
 }

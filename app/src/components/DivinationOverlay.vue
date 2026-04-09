@@ -5,16 +5,7 @@
     <!-- 动画区：始终存在，结果展示后收缩到上方/左侧 -->
     <view class="stage-container">
       <view class="progress-header" :style="headerStyle">
-        <view class="stars">
-          <!-- Stage icons use platform-safe local paths for H5 and WeChat Mini Program. -->
-          <image class="star" :class="{ active: isS1Active, blink: isS1Blink }" :src="stageIcons.wands" mode="aspectFit" />
-          <view class="star-line" />
-          <image class="star" :class="{ active: isS2Active, blink: isS2Blink }" :src="stageIcons.swords" mode="aspectFit" />
-          <view class="star-line" />
-          <image class="star" :class="{ active: isS3Active, blink: isS3Blink }" :src="stageIcons.cups" mode="aspectFit" />
-          <view class="star-line" />
-          <image class="star" :class="{ active: isS4Active, blink: isS4Blink }" :src="stageIcons.pentacles" mode="aspectFit" />
-        </view>
+        <MoonPhase :phase="moonPhaseIndex" />
       </view>
 
       <!-- 动画舞台：:style 驱动 GSAP 动画的 y-lift 效果 -->
@@ -157,8 +148,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import gsap from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import ResultPanel from './ResultPanel.vue'
-import { CARD_BACK_IMAGE, getStaticIconBase } from '../constants'
-import { useThemeStore } from '../stores/theme'
+import MoonPhase from './MoonPhase.vue'
+import { CARD_BACK_IMAGE } from '../constants'
 
 // Emits 定义
 // complete - 占卜流程完成时触发（抽牌动画结束、结果即将展示）
@@ -169,23 +160,15 @@ const emit = defineEmits<{
 }>()
 
 const tarotStore = useTarotStore()
-const themeStore = useThemeStore()
 
-// Theme-aware stage icons with fallback to static assets
-const stageIcons = computed(() => {
-  if (themeStore.icons.wands) {
-    return themeStore.icons
-  }
-  return {
-    wands: `${getStaticIconBase()}/icon-wands.png`,
-    swords: `${getStaticIconBase()}/icon-swords.png`,
-    cups: `${getStaticIconBase()}/icon-cups.png`,
-    pentacles: `${getStaticIconBase()}/icon-pentacles.png`,
-  }
+// Card back image
+const cardBack = computed(() => CARD_BACK_IMAGE)
+
+// Map phase to moon phase index (0-3)
+const moonPhaseIndex = computed(() => {
+  const map: Record<string, number> = { shuffling: 0, cutting: 1, drawing: 2, revealing: 3 }
+  return map[phase.value] ?? 0
 })
-
-// Theme-aware card back image with fallback
-const cardBack = computed(() => themeStore.cardBackImage || CARD_BACK_IMAGE)
 
 // User-facing copy strings.
 const overlay_text = {
@@ -215,23 +198,8 @@ const phasePrompt = ref(overlay_text.prompt_shuffle)
 const showResults = ref(false)
 const isWide = ref(false)
 
-// 进度星星的点亮范围
-const PHASES_S1 = ['shuffling', 'cutting', 'drawing', 'revealing']
-const PHASES_S2 = ['cutting', 'drawing', 'revealing']
-const PHASES_S3 = ['drawing', 'revealing']
-const PHASES_S4 = ['revealing']
-
-const isS1Active = computed(() => PHASES_S1.includes(phase.value))
-const isS2Active = computed(() => PHASES_S2.includes(phase.value))
-const isS3Active = computed(() => PHASES_S3.includes(phase.value))
-const isS4Active = computed(() => PHASES_S4.includes(phase.value))
-const isS1Blink = computed(() => phase.value === 'shuffling')
-const isS2Blink = computed(() => phase.value === 'cutting')
-const isS3Blink = computed(() => phase.value === 'drawing')
-const isS4Blink = computed(() => phase.value === 'revealing')
-
 function getCardImg(index: number) {
-  return tarotStore.drawnCards[index]?.card.image || cardBack
+  return tarotStore.drawnCards[index]?.card.image || cardBack.value
 }
 
 // ---- 窗口尺寸（跨端兼容：替代 window.innerWidth/innerHeight）----
@@ -245,6 +213,7 @@ function getTopBarHeight(): number {
     return 88  // fallback: status bar(44) + nav bar(44)
   }
   // #endif
+  // eslint-disable-next-line no-unreachable -- reachable on non-MP platforms via conditional compilation
   return 0
 }
 
@@ -962,64 +931,6 @@ function handleRestart() {
 }
 /* #endif */
 
-.stars {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
-}
-
-.star {
-  width: 48rpx;
-  height: 48rpx;
-  transition: all 0.5s ease;
-}
-
-/* 统一 SVG 图标样式 */
-.star {
-  width: 48rpx;
-  height: 48rpx;
-  transition: all 0.5s ease;
-  /* 未激活状态：降低透明度 */
-  opacity: 0.4;
-}
-
-.star.active {
-  transform: scale(1.15);
-  opacity: 1;
-}
-
-.star.blink {
-  animation: star-blink 1s infinite alternate;
-}
-
-/* #ifdef H5 */
-.star {
-  filter: brightness(0.8);
-}
-
-.star.active {
-  filter: brightness(1) drop-shadow(0 0 6px rgba(122, 92, 20, 0.65));
-}
-/* #endif */
-
-/* #ifdef MP-WEIXIN */
-/* 小程序 SVG 需要显式尺寸 */
-.star {
-  display: block;
-}
-
-.star.active {
-  /* 小程序使用 box-shadow 模拟发光效果 */
-}
-/* #endif */
-
-.star-line {
-  width: 60rpx;
-  height: 2px;
-  background: var(--color-border-strong);
-}
-
 .phase-prompt {
   font-size: 28rpx;
   color: var(--color-text-primary);
@@ -1245,36 +1156,6 @@ function handleRestart() {
 @media (min-width: 768px) {
   .divination-overlay {
     --card-width: 188px;
-  }
-}
-/* #endif */
-
-/* #ifdef H5 */
-@keyframes star-blink {
-  0% {
-    opacity: 0.7;
-    filter: brightness(0.9) saturate(0.8) drop-shadow(0 0 4px rgba(122, 92, 20, 0.35));
-    transform: scale(1.15);
-  }
-
-  100% {
-    opacity: 1;
-    filter: brightness(1.15) saturate(1.2) drop-shadow(0 0 14px rgba(232, 184, 74, 0.9));
-    transform: scale(1.35);
-  }
-}
-/* #endif */
-
-/* #ifdef MP-WEIXIN */
-@keyframes star-blink {
-  0% {
-    opacity: 0.5;
-    transform: scale(1.15);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.35);
   }
 }
 /* #endif */
