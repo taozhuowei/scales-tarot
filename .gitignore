@@ -7,3 +7,5 @@
 /app/node_modules/
 /server/node_modules/
 CLAUDE.md
+.env*.local
+.env.production

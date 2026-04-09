@@ -3,7 +3,7 @@ import uni from "@dcloudio/vite-plugin-uni";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [uni()],
   resolve: {
     alias: {
@@ -11,13 +11,12 @@ export default defineConfig({
       gsap: path.resolve(__dirname, "../node_modules/gsap/gsap-core.js"),
     },
   },
-  build: {
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
-  },
-});
+  build: mode === 'production'
+    ? {
+        minify: 'terser',
+        terserOptions: {
+          compress: { drop_console: true, drop_debugger: true },
+        },
+      }
+    : { minify: false },
+}));

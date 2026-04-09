@@ -66,8 +66,9 @@ async function startServer(): Promise<void> {
     process.exit(1)
   }
 
-  app.listen(availablePort, () => {
-    console.log(`[server] Scales Tarot API running on http://localhost:${availablePort}`)
+  // Bind to 0.0.0.0 so LAN devices (mini program real device debugging) can connect
+  app.listen(availablePort, '0.0.0.0', () => {
+    console.log(`[server] Scales Tarot API running on http://0.0.0.0:${availablePort}`)
   })
 }
 

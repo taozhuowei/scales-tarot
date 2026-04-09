@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "vue-tsc --noEmit -p app/tsconfig.json && tsc --noEmit -p server/tsconfig.json && concurrently --kill-others-on-fail -n h5,mp \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build --config app/vite.config.ts\" \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build -p mp-weixin --config app/vite.config.ts\" && tsx server/src/server.ts",
+    "dev": "node scripts/dev_env.js && vue-tsc --noEmit -p app/tsconfig.json && tsc --noEmit -p server/tsconfig.json && concurrently --kill-others-on-fail -n h5,mp,server \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build --watch --config app/vite.config.ts\" \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build -p mp-weixin --watch --config app/vite.config.ts\" \"tsx server/src/server.ts\"",
+    "build": "vue-tsc --noEmit -p app/tsconfig.json && tsc --noEmit -p server/tsconfig.json && concurrently --kill-others-on-fail -n h5,mp \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build --mode production --config app/vite.config.ts\" \"cross-env UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build -p mp-weixin --mode production --config app/vite.config.ts\"",
     "lint": "eslint app/src/"
   },
   "workspaces": [
