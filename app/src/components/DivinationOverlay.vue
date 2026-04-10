@@ -1,5 +1,5 @@
 <template>
-  <view class="divination-overlay" :class="{ 'show-results': showResults, 'is-wide': isWide }">
+  <view class="divination-overlay" :class="{ 'show-results': showResults, 'is-wide': isWide }" :style="overlayVarsStyle">
     <view class="overlay-bg" :style="bgStyle" />
 
     <!-- Animation area: always present, shrinks to top/left after results shown -->
@@ -149,11 +149,7 @@ import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
 import ResultPanel from './ResultPanel.vue'
 import { CARD_BACK_IMAGE } from '../constants'
-import config from '../config.json'
-import { resolveSpreadLayout, type SpreadScene, type SpreadKind, getSpreadCardCount } from '../utils/spread_layout'
-
-const SPREAD_KIND: SpreadKind = config.spreadKind as SpreadKind
-const CARD_COUNT: number = getSpreadCardCount(SPREAD_KIND)
+import { resolveSpreadLayout, type SpreadScene, getSpreadCardCount } from '../utils/spread_layout'
 
 // Emits definition
 // complete - triggered when divination flow completes (draw animation ends, result about to show)
@@ -168,6 +164,12 @@ const themeStore = useThemeStore()
 
 // Card back image
 const cardBack = computed(() => themeStore.cardBackImage || CARD_BACK_IMAGE)
+
+// Runtime card count from store spread kind
+const cardCount = computed(() => getSpreadCardCount(tarotStore.spreadKind))
+
+// Max cards for array initialization (cross_spread has 5)
+const MAX_CARD_COUNT = 5
 
 /**
  * Current phase icon mapping
@@ -218,6 +220,11 @@ const isWide = ref(false)
 const layoutCardWidth = ref(172)
 const layoutCardHeight = ref(275)
 
+// CSS variables driven by solver output — cross-platform alternative to document.querySelector
+const overlayVarsStyle = computed(() =>
+  `--card-width: ${layoutCardWidth.value}px; --card-height: ${layoutCardHeight.value}px`
+)
+
 // Track entry animation completion to prevent shuffle CTA competition
 const entryAnimationComplete = ref(false)
 let entryTimeline: gsap.core.Timeline | null = null
@@ -242,19 +249,31 @@ function getTopBarHeight(): number {
   return 0
 }
 
+/**
+ * Get current card dimensions from the spread layout solver
+ * This ensures consistency with resolveSpreadLayout calculations
+ */
+function getCardDimensions(): { width: number; height: number } {
+  const { width: stage_width, height: stage_height } = getStageDimensions()
+  const scene: SpreadScene = showResults.value ? 'result_stage' : 'draw_stage'
+  const layout = resolveSpreadLayout({
+    spreadKind: tarotStore.spreadKind,
+    scene,
+    containerWidth: stage_width,
+    containerHeight: stage_height,
+    isWide: isWide.value,
+    cardAspectRatio: 1.6,
+  })
+  return { width: layout.cardWidth, height: layout.cardHeight }
+}
+
+// Backward compatibility: use layout solver dimensions
 function getCardWidth(): number {
-  const { windowWidth } = uni.getWindowInfo()
-  if (isWide.value) return Math.min(188, Math.max(120, windowWidth * 0.13))
-  const topBar = getTopBarHeight()
-  if (topBar > 0) {
-    // Mini program: smaller cards to fit reduced vertical space
-    return Math.min(120, Math.max(88, windowWidth * 0.22))
-  }
-  return Math.min(172, Math.max(108, windowWidth * 0.26))
+  return getCardDimensions().width
 }
 
 function getCardHeight(): number {
-  return getCardWidth() * 1.6
+  return getCardDimensions().height
 }
 
 // Calculate stage dimensions from layout state (replaces getBoundingClientRect)
@@ -320,11 +339,11 @@ const _cutTop: CenterCardState = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 0
 const _cutMid: CenterCardState = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 0, zIndex: 10 }
 const _cutBot: CenterCardState = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 0, zIndex: 10 }
 // Drawn cards (absolute positioned centered)
-const _draws: CenterCardState[] = Array.from({ length: CARD_COUNT }, (_, i) => ({
+const _draws: CenterCardState[] = Array.from({ length: MAX_CARD_COUNT }, (_, i) => ({
   x: 0, y: 0, rotation: 0, scale: 1, opacity: 0, zIndex: 20 - i,
 }))
 // 3D flip inner
-const _inners: InnerState[] = Array.from({ length: CARD_COUNT }, () => ({ rotationY: 0 }))
+const _inners: InnerState[] = Array.from({ length: MAX_CARD_COUNT }, () => ({ rotationY: 0 }))
 
 // ---- Vue style refs (bound to template :style, updated by refresh functions) ----
 
@@ -352,10 +371,10 @@ const cutTopStyle = ref('')
 const cutMidStyle = ref('')
 const cutBotStyle = ref('')
 
-const drawsVisible = ref<boolean[]>(Array(CARD_COUNT).fill(false))
-const drawsStyle = ref<string[]>(Array(CARD_COUNT).fill(''))
-const drawsSizeStyle = ref<{ width: string; height: string }[]>(Array(CARD_COUNT).fill({ width: '', height: '' }))
-const innersStyle = ref<string[]>(Array(CARD_COUNT).fill(''))
+const drawsVisible = ref<boolean[]>(Array(MAX_CARD_COUNT).fill(false))
+const drawsStyle = ref<string[]>(Array(MAX_CARD_COUNT).fill(''))
+const drawsSizeStyle = ref<{ width: string; height: string }[]>(Array(MAX_CARD_COUNT).fill({ width: '', height: '' }))
+const innersStyle = ref<string[]>(Array(MAX_CARD_COUNT).fill(''))
 
 
 
@@ -479,6 +498,11 @@ function _checkWidth(windowWidth: number) {
 onMounted(() => {
   const { windowWidth } = uni.getWindowInfo()
   _checkWidth(windowWidth)
+
+  // Initialize card dimensions from solver before entry animation
+  const initDims = getCardDimensions()
+  layoutCardWidth.value = initDims.width
+  layoutCardHeight.value = initDims.height
 
   // Listen for window size changes (unified API for mini program / H5)
   _resizeHandler = (res) => { _checkWidth(res.size.windowWidth) }
@@ -707,7 +731,7 @@ function playDraw() {
 
   // Use spread layout solver for draw stage
   const drawLayout = resolveSpreadLayout({
-    spreadKind: SPREAD_KIND,
+    spreadKind: tarotStore.spreadKind,
     scene: 'draw_stage',
     containerWidth: stage_width,
     containerHeight: stage_height,
@@ -722,8 +746,12 @@ function playDraw() {
   // Set initial card sizes from solver output
   drawsSizeStyle.value = drawLayout.cards.map(c => _cardSizeStyleStr(c.width, c.height))
 
+  // Sync CSS vars with solver output for the draw phase
+  layoutCardWidth.value = drawLayout.cardWidth
+  layoutCardHeight.value = drawLayout.cardHeight
+
   // Random initial rotation angles (pre-generate to avoid re-randomizing per frame)
-  const preRotations = Array.from({ length: CARD_COUNT }, () => (Math.random() - 0.5) * 15)
+  const preRotations = Array.from({ length: cardCount.value }, () => (Math.random() - 0.5) * 15)
 
 
 
@@ -749,7 +777,7 @@ function playDraw() {
     .to(_initials, { opacity: 0, y: (i: number) => -card_height * 0.4 - i * 0.8, scale: 0.8, duration: 0.6, ease: 'power1.in' }, '<0.2')
 
   // Cards fall from above to target positions
-  Array.from({ length: CARD_COUNT }, (_, i) => i).forEach((index) => {
+  Array.from({ length: cardCount.value }, (_, i) => i).forEach((index) => {
     timeline.add(() => {
       Object.assign(_draws[index], {
         x: 0,
@@ -772,9 +800,9 @@ function playDraw() {
 
   // After all cards land: align → compress → flip
   // alignTime is based on the last card's fall sequence
-  const alignTime = 1 + (CARD_COUNT - 1) * 0.3 + 0.7 + 0.4 + 1.5 + 0.5
+  const alignTime = 1 + (cardCount.value - 1) * 0.3 + 0.7 + 0.4 + 1.5 + 0.5
   // revealingStart: after align(0.8s) + compress(0.5s) + flip(1s + stagger) with small buffer
-  const flipDuration = 1 + (CARD_COUNT - 1) * 0.4
+  const flipDuration = 1 + (cardCount.value - 1) * 0.4
   const revealingStart = alignTime + 1.2 + flipDuration + 0.1
   // finishTime: 0.3s after revealing starts — reading request was fired at t=0, already resolved
   const finishTime = revealingStart + 0.3
@@ -817,7 +845,7 @@ function updateLayout() {
   // Use spread layout solver for result stage
   const scene: SpreadScene = showResults.value ? 'result_stage' : 'draw_stage'
   const layout = resolveSpreadLayout({
-    spreadKind: SPREAD_KIND,
+    spreadKind: tarotStore.spreadKind,
     scene,
     containerWidth: stage_width,
     containerHeight: stage_height,
@@ -1071,7 +1099,6 @@ function handleRestart() {
 
 .tarot-card {
   border-radius: 12rpx;
-  border: 1px solid var(--color-border);
   will-change: transform;
 }
 
@@ -1096,7 +1123,7 @@ function handleRestart() {
 .cut-m,
 .cut-b,
 .draw-wrapper {
-  box-shadow: 0 8px 24rpx rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12rpx rgba(0, 0, 0, 0.15);
 }
 
 .stage-center {
@@ -1137,7 +1164,6 @@ function handleRestart() {
 
 .face-front {
   transform: rotateY(180deg);
-  background: var(--color-card-bg);
 }
 
 .front-img {

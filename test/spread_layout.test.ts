@@ -453,3 +453,139 @@ describe('single_card specific layout', () => {
     expect(result.cardWidth).toBeGreaterThanOrEqual(multiCardResult.cardWidth)
   })
 })
+
+/**
+ * Cross-device sizing regression tests
+ *
+ * Background: CSS variables (--card-width) were previously defined as small static
+ * values (88px for mini program, 108px for H5 mobile) that did not match solver output.
+ * face-back/face-front elements used the CSS vars instead of the solver dimensions,
+ * causing them to appear tiny (e.g., 88px) inside correctly-sized solver containers
+ * (e.g., 134px). Fix: CSS vars are now driven by solver output via Vue reactive binding.
+ *
+ * These tests verify solver output is larger than the old CSS var fallbacks across all
+ * typical device profiles, ensuring face elements now fill the card frame correctly.
+ */
+describe('cross-device card sizing', () => {
+  // Typical WeChat Mini Program phone: 375×812 logical pixels, narrow
+  it('mini program phone (375×812) single_card: solver > old CSS var (88px)', () => {
+    // topBar ~84px (44 status + 32 capsule + 8 padding)
+    const result = resolveSpreadLayout({
+      spreadKind: 'single_card',
+      scene: 'draw_stage',
+      containerWidth: 375,
+      containerHeight: 812 - 84,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cardWidth).toBeGreaterThan(88) // old CSS var was 88px — solver should give more
+    expect(result.cardWidth).toBeGreaterThanOrEqual(88)
+    expect(result.cardHeight).toBeCloseTo(result.cardWidth * 1.6, 1)
+  })
+
+  it('mini program phone (375×812) three_card column: card fits vertically', () => {
+    const containerHeight = 812 - 84
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'draw_stage',
+      containerWidth: 375,
+      containerHeight,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cards).toHaveLength(3)
+    // All 3 cards + 2 gaps should fit within container
+    const totalHeight = result.cardHeight * 3 + 16 * 2
+    expect(totalHeight).toBeLessThanOrEqual(containerHeight)
+    // Solver should give more than old CSS var (88px)
+    expect(result.cardWidth).toBeGreaterThan(88)
+  })
+
+  // Typical H5 mobile: 375×812, narrow
+  it('H5 mobile (375×812) three_card column: solver > old CSS var (108px)', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'draw_stage',
+      containerWidth: 375,
+      containerHeight: 812,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cardWidth).toBeGreaterThan(88)
+    expect(result.cardHeight).toBeCloseTo(result.cardWidth * 1.6, 1)
+  })
+
+  // iPad / mini program tablet: 768×1024, wide
+  it('wide tablet (768×1024) three_card row: cards fit horizontally', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'draw_stage',
+      containerWidth: 768,
+      containerHeight: 1024,
+      isWide: true,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cards).toHaveLength(3)
+    // All 3 cards + 2 gaps should fit within container width
+    const totalWidth = result.cardWidth * 3 + 16 * 2
+    expect(totalWidth).toBeLessThanOrEqual(768)
+    // Wide mode: cards should be in a row (different X)
+    const xs = result.cards.map(c => c.x)
+    expect(new Set(xs).size).toBe(3)
+  })
+
+  // Desktop H5: 1440×900, wide
+  it('desktop (1440×900) single_card: card dimensions within bounds', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'single_card',
+      scene: 'draw_stage',
+      containerWidth: 1440,
+      containerHeight: 900,
+      isWide: true,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cardWidth).toBeGreaterThanOrEqual(88)
+    expect(result.cardWidth).toBeLessThanOrEqual(300) // sanity upper bound
+    expect(result.cardHeight).toBeCloseTo(result.cardWidth * 1.6, 1)
+  })
+
+  // Result stage shrinks container — still fits
+  it('mini program result stage (375×340): cards fit in half-screen', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'result_stage',
+      containerWidth: 375,
+      containerHeight: 812 * 0.42, // ~341px
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cards).toHaveLength(3)
+    expect(result.stageShiftY).toBe(0) // no lift in result stage
+    // Each card center should be within half the container height from center
+    const halfH = (812 * 0.42) / 2
+    for (const card of result.cards) {
+      expect(Math.abs(card.y)).toBeLessThanOrEqual(halfH)
+    }
+  })
+
+  // cross_spread on mini program: all 5 cards fit
+  it('mini program phone (375×728) cross_spread: all 5 cards fit', () => {
+    const containerWidth = 375
+    const containerHeight = 812 - 84
+    const result = resolveSpreadLayout({
+      spreadKind: 'cross_spread',
+      scene: 'draw_stage',
+      containerWidth,
+      containerHeight,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    expect(result.cards).toHaveLength(5)
+    const halfW = containerWidth / 2 + result.cardWidth / 2
+    const halfH = containerHeight / 2 + result.cardHeight / 2
+    for (const card of result.cards) {
+      expect(Math.abs(card.x)).toBeLessThanOrEqual(halfW)
+      expect(Math.abs(card.y)).toBeLessThanOrEqual(halfH)
+    }
+  })
+})

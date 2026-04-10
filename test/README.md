@@ -6,7 +6,7 @@
 npm test -w test
 ```
 
-当前共 **99 个测试用例，6 个测试文件**。
+当前共 **120 个测试用例，7 个测试文件**。
 
 ---
 
@@ -18,6 +18,7 @@ test/
 ├── spread_layout.test.ts      # 前端 spread layout 求解器单元测试
 ├── tarot_store.test.ts        # 前端 tarot store 抽牌/读牌时序与失效请求保护
 ├── tarotReading.test.ts       # 前端 drawCards 逻辑
+├── index_page.test.ts         # 前端首页设置面板与 runtime spread 状态测试
 └── testcases/
     ├── backend.test.ts        # 后端服务层单元测试（card_loader + tarot_reading）
     └── api.test.ts            # 前后端接口联调测试（supertest HTTP）
@@ -41,6 +42,7 @@ test/
 | `resolveSpreadLayout` | cross_spread 5 张卡位 | 十字形布局 |
 | `resolveSpreadLayout` | draw_stage vs result_stage | 场景切换 |
 | `resolveSpreadLayout` | 宽屏 vs 窄屏布局选择 | 响应式适配 |
+| `resolveSpreadLayout` | 小程序手机/H5 移动/iPad/桌面各设备尺寸 | 跨设备尺寸回归（防止 CSS 变量与求解器不同步） |
 
 ### `result_panel.test.ts`
 
@@ -75,6 +77,21 @@ test/
 | `startReadingRequest` | 单独启动异步读牌并可被等待 | 抽牌/读牌解耦路径 |
 | `waitForReadingResult` | 复用当前进行中的 Promise | 结果展示等待路径 |
 | `reset` + `startReadingRequest` | 旧请求完成后不会覆盖新结果 | 失效请求保护 |
+| `setSpreadKind` | 运行时切换 spread 类型 | `single_card`/`three_card`/`cross_spread` |
+| `spreadKind` + `drawCards` | 切换后 drawCards 长度变化 | runtime spread 驱动抽牌数量 |
+| `spreadKind` + `reset` | 重置后 spread 选择保持可用 | 下回占卜使用当前选择 |
+
+### `index_page.test.ts`
+
+测试对象：`app/src/pages/index/index.vue` + stores
+
+| 功能 | 用例 | 覆盖路径 |
+|------|------|----------|
+| spread 选项标签 | 单牌阵/三牌阵/十字牌阵 | 中文标签正确性 |
+| `spreadKind` 状态 | 可从 store 读写 | 设置面板绑定 |
+| `cardCount` 计算 | 1/3/5 张对应正确 | spread 到数量映射 |
+| `isIdle` 条件 | 仅在 idle 状态显示设置入口 | 首页空闲态判断 |
+| `getUiAsset` | 读取主题设置图标 | 主题资源访问 |
 
 ---
 
