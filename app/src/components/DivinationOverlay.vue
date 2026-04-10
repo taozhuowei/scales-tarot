@@ -250,6 +250,34 @@ function getTopBarHeight(): number {
 }
 
 /**
+ * Estimate bottom edge of the progress-header in result stage (px from top of
+ * stage-container). Cards must be offset downward by half this value so they
+ * appear centered in the visible area below the header instead of at the
+ * geometric container center (the header overlaps the stage from the top).
+ *
+ * CSS source of truth — .show-results .progress-header:
+ *   H5: margin-top = env(safe-area-inset-top, 0px) + 20rpx + 40px icon
+ *   MP: margin-top = env(safe-area-inset-top, 44px) + 80rpx + 40px icon
+ */
+function getResultHeaderBottom(): number {
+  const { windowWidth } = uni.getWindowInfo()
+  const rpxToPx = windowWidth / 750  // uni rpx→px conversion for this screen
+  const iconHeight = 40              // .phase-step-icon is always 40px
+
+  // #ifdef MP-WEIXIN
+  try {
+    const { top } = uni.getMenuButtonBoundingClientRect()  // top = status bar height
+    return top + Math.round(80 * rpxToPx) + iconHeight
+  } catch {
+    return Math.round(44 + 80 * rpxToPx) + iconHeight
+  }
+  // #endif
+
+  // eslint-disable-next-line no-unreachable -- reachable on non-MP via conditional compilation
+  return Math.round(20 * rpxToPx) + iconHeight  // H5: safe-area-top ≈0 + 20rpx + icon
+}
+
+/**
  * Get current card dimensions from the spread layout solver
  * This ensures consistency with resolveSpreadLayout calculations
  */
@@ -861,7 +889,11 @@ function updateLayout() {
   drawsSizeStyle.value = layout.cards.map(c => _cardSizeStyleStr(c.width, c.height))
 
   const targetX = layout.cards.map(c => c.x)
-  const targetY = layout.cards.map(c => c.y)
+  // In result stage the progress-header overlaps the top of the stage-container.
+  // Shift cards down by half the header height so they appear visually centered
+  // in the remaining area below the header rather than at the geometric center.
+  const headerOffset = showResults.value ? getResultHeaderBottom() / 2 : 0
+  const targetY = layout.cards.map(c => c.y + headerOffset)
 
   if (showResults.value) {
     gsap.to(_stage, { y: 0, duration: 0.6, ease: 'power2.out', onUpdate: refreshStage })
