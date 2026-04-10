@@ -230,8 +230,10 @@ function buildThreeCardLayout(
   const rowLayout = ((): SpreadLayoutResult => {
     const sideOffset = Math.min(cardWidth * 1.28, maxCenterX)
     const liftY = Math.min(containerHeight * 0.32, cardHeight * 1.26)
-    const centeredRowY = Math.max(minCenterY, Math.min(maxCenterY, liftY))
-    
+    // draw_stage: cards shift up so stage lift brings them to center; result_stage: center at 0
+    const targetRowY = scene === 'draw_stage' ? liftY : 0
+    const centeredRowY = Math.max(minCenterY, Math.min(maxCenterY, targetRowY))
+
     const stageShiftY = scene === 'draw_stage' ? liftY : 0
 
     return {
@@ -250,8 +252,10 @@ function buildThreeCardLayout(
     const availableSpan = Math.max(0, maxCenterY - minCenterY)
     const spread = Math.min(cardHeight * 1.12, availableSpan / 2)
     const liftY = Math.min(containerHeight * 0.16, cardHeight * 0.56)
-    const mobileCenterY = Math.max(minCenterY + spread, Math.min(maxCenterY - spread, liftY))
-    
+    // draw_stage: cards shift up so stage lift brings them to center; result_stage: center at 0
+    const targetCenterY = scene === 'draw_stage' ? liftY : 0
+    const mobileCenterY = Math.max(minCenterY + spread, Math.min(maxCenterY - spread, targetCenterY))
+
     const stageShiftY = scene === 'draw_stage' ? liftY : 0
 
     return {

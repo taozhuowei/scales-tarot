@@ -247,12 +247,74 @@ describe('draw_stage vs result_stage determinism', () => {
 
   it('draw_stage has stageShiftY while result_stage has none', () => {
     const baseInput = makeInput({ spreadKind: 'three_card' })
-    
+
     const drawResult = resolveSpreadLayout({ ...baseInput, scene: 'draw_stage' })
     const resultResult = resolveSpreadLayout({ ...baseInput, scene: 'result_stage' })
-    
+
     expect(drawResult.stageShiftY).toBeGreaterThan(0)
     expect(resultResult.stageShiftY).toBe(0)
+  })
+
+  // Regression: three_card result_stage cards must be centered (y=0 target),
+  // not shifted up by liftY as they were before the fix.
+  it('three_card result_stage column: cards centered around y=0', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'result_stage',
+      containerWidth: 375,
+      containerHeight: 800,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    // In result_stage the group center (middle card) should be at y=0 (container center)
+    const presentCard = result.cards.find(c => c.slotId === 'present')!
+    expect(presentCard.y).toBe(0)
+  })
+
+  it('three_card result_stage row (wide): cards centered around y=0', () => {
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'result_stage',
+      containerWidth: 1200,
+      containerHeight: 800,
+      isWide: true,
+      cardAspectRatio: 1.6,
+    })
+    // All three cards should share the same Y which equals 0 (container center)
+    for (const card of result.cards) {
+      expect(card.y).toBe(0)
+    }
+  })
+
+  it('three_card draw_stage column: stage lift compensated by positive card Y offset', () => {
+    // Use a tall container (1200px) so spread < availableSpan/2, leaving room for liftY offset
+    const result = resolveSpreadLayout({
+      spreadKind: 'three_card',
+      scene: 'draw_stage',
+      containerWidth: 375,
+      containerHeight: 1200,
+      isWide: false,
+      cardAspectRatio: 1.6,
+    })
+    // Stage lifts upward (stageShiftY > 0); present card must shift downward (y > 0)
+    // so net screen position = container_center (stage shift cancels card offset)
+    expect(result.stageShiftY).toBeGreaterThan(0)
+    const presentCard = result.cards.find(c => c.slotId === 'present')!
+    // With tall container, liftY fits within clamped range → center > 0
+    expect(presentCard.y).toBeGreaterThanOrEqual(0)
+  })
+
+  it('three_card result_stage vs draw_stage: result is more centered', () => {
+    // With a tall container, draw_stage shifts the group up while result_stage centers it
+    const base = { spreadKind: 'three_card' as const, containerWidth: 375, containerHeight: 1200, isWide: false, cardAspectRatio: 1.6 }
+    const drawResult = resolveSpreadLayout({ ...base, scene: 'draw_stage' })
+    const stageResult = resolveSpreadLayout({ ...base, scene: 'result_stage' })
+    const presentDraw = drawResult.cards.find(c => c.slotId === 'present')!
+    const presentResult = stageResult.cards.find(c => c.slotId === 'present')!
+    // result_stage present card should be at y=0 (true center)
+    expect(presentResult.y).toBe(0)
+    // draw_stage present card shifted down (positive y) to compensate stage lift
+    expect(presentDraw.y).toBeGreaterThan(presentResult.y)
   })
 })
 
