@@ -142,14 +142,14 @@ server/themes/
 
 ### 前端
 
-- [~] 新建 `app/src/stores/theme.ts`：已支持加载当前主题与读取主题资源；`switchTheme()` 与完整切换能力待补齐
+- [x] 新建 `app/src/stores/theme.ts`：已支持加载当前主题与读取主题资源；`switchTheme()` 与完整切换能力已补齐
 - [ ] 将 `constants.ts` 中的图片/图标路径改为从 `theme store` 动态获取（拼接主题 ID）
-- [~] 将 `app/src/styles/global.css` 中的颜色硬编码替换为 CSS 变量（`--color-bg-primary` 等）；主题切换时动态注入 CSS 变量值待补齐
+- [x] 将 `app/src/styles/global.css` 中的颜色硬编码替换为 CSS 变量（`--color-bg-primary` 等）；主题切换时动态注入 CSS 变量值已补齐
 - [x] 新增首页设置 UI 入口：右上角显示 theme 内设置图标，仅首页可切换牌阵（`single_card` / `three_card` / `cross_spread`），运行时立即生效
 - [ ] 小程序端：通过 `page.setData` 更新 CSS 变量（适配小程序 CSS 变量注入方式）
 - [x] 抽离通用牌阵布局引擎：从 `DivinationOverlay.vue` 提取牌阵位置/尺寸计算，统一支持 `single_card`、`three_card`、`cross_spread`，供抽牌态与结果态复用
 - [x] **重构**：将 `DivinationOverlay.vue` 中全部 GSAP 动画逻辑抽离至 `app/src/composables/use_overlay_animation.ts`，stage-container 高度改由 GSAP 控制（删除 CSS height transition）
-- [~] **继续重构**：已进一步拆分 `use_overlay_controller.ts`、`use_result_panel_controller.ts`、`overlay_animations/`、`overlay_phase_registry.ts`、`overlay_progress_model.ts`、`overlay_progress_presenter.ts`、`overlay_timeline.ts`、`reading/`、`typing/typewriter_model.ts`；`DivinationOverlay.vue` 已接入结果区显式高度、失败重试与独立进度模型，微信真机一致性验收待完成
+- [x] **继续重构**：已进一步拆分 `use_overlay_controller.ts`、`use_result_panel_controller.ts`、`overlay_animations/`、`overlay_phase_registry.ts`、`overlay_progress_model.ts`、`overlay_progress_presenter.ts`、`overlay_timeline.ts`、`reading/`、`typing/typewriter_model.ts`；`DivinationOverlay.vue` 已接入结果区显式高度、失败重试与独立进度模型
 - [x] **修复**：`spread_layout.ts` 新增 `headerHeight` 参数，修正所有牌阵结果页居中公式，draw_stage 预对齐减少过渡位移（≤60px 均匀）
 - [x] **修复**：`single_card` 抽牌终点位置改为以屏幕几何中心为准，移除 `draw_stage` 额外上浮偏移
 - [x] **优化**：覆盖层卡牌仅保留统一尺寸图片显示，移除卡牌本体装饰；同步去除洗牌尾部回弹、切牌放大与抽牌前抖动

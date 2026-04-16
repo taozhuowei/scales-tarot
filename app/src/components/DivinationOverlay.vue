@@ -222,7 +222,7 @@ import { useThemeStore } from '../stores/theme'
 import ResultPanel from './ResultPanel.vue'
 import { getSpreadCardCount } from '../utils/spread_layout'
 import { useOverlayController } from '../composables/use_overlay_controller'
-import { getPhaseStep, PHASE_STEPS } from '../utils/overlay_phase_registry'
+import { getPhaseStep, PHASE_STEPS } from '../utils/overlay_animation/phase_registry'
 import type { OverlayPhase } from '../utils/overlay_animations/types'
 
 const emit = defineEmits<{

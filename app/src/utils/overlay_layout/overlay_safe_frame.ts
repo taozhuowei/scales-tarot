@@ -6,8 +6,12 @@
  * Data flow: viewport metrics and scene flow in; safe width/height, insets, and stage center flow out.
  */
 
+// TODO: phase1 migration shim — this file delegates to core/viewport modules.
+
 import type { OverlayViewportMetrics } from '../overlay_viewport'
 import type { SpreadScene } from './spread_spec'
+import { resolveSafeFrame } from '../../core/viewport/safe_frame_calculator'
+import type { ViewportMetrics, UiInsetsConfig } from '../../core/viewport/types'
 
 export interface OverlaySafeFrame {
   width: number
@@ -20,14 +24,35 @@ export interface OverlaySafeFrame {
   stageCenterY: number
 }
 
-const DEFAULT_SIDE_INSET_DRAW = 24
-const DEFAULT_SIDE_INSET_RESULT = 20
-const DEFAULT_TOP_EXTRA_DRAW = 12
-const DEFAULT_TOP_EXTRA_RESULT = 8
-const DEFAULT_BOTTOM_MIN_DRAW = 56
-const DEFAULT_BOTTOM_MIN_RESULT = 44
-const DEFAULT_BOTTOM_RATIO_DRAW = 0.2
-const DEFAULT_BOTTOM_RATIO_RESULT = 0.16
+function toViewportMetrics(viewport: OverlayViewportMetrics): ViewportMetrics {
+  return {
+    width: viewport.stageWidth,
+    height: viewport.stageHeight,
+    safeAreaTop: 0,
+    safeAreaBottom: 0,
+    dpr: 1,
+  }
+}
+
+function getDefaultInsets(): UiInsetsConfig {
+  return {
+    topBarHeight: 0,
+    headerIconSize: 44,
+    headerMarginRpx: 60,
+    footerReserveRpx: 164,
+    footerReserveMinPx: 48,
+    resultStageWidthRatio: 0.44,
+    resultStageHeightRatio: 0.42,
+    sideInsetDraw: 24,
+    sideInsetResult: 20,
+    topExtraDraw: 12,
+    topExtraResult: 8,
+    bottomMinDraw: 56,
+    bottomMinResult: 44,
+    bottomRatioDraw: 0.2,
+    bottomRatioResult: 0.16,
+  }
+}
 
 /**
  * Resolve the overlay safe frame for a given scene and viewport.
@@ -37,29 +62,27 @@ export function resolveOverlaySafeFrame(
   scene: SpreadScene,
   viewport: OverlayViewportMetrics,
 ): OverlaySafeFrame {
-  const sideInset = scene === 'result_stage' ? DEFAULT_SIDE_INSET_RESULT : DEFAULT_SIDE_INSET_DRAW
-  const topInset =
-    Math.max(0, viewport.headerBottom - viewport.topBarHeight) +
-    (scene === 'result_stage' ? DEFAULT_TOP_EXTRA_RESULT : DEFAULT_TOP_EXTRA_DRAW)
-  const bottomInset = Math.min(
-    viewport.footerReserve,
-    Math.max(
-      scene === 'result_stage' ? DEFAULT_BOTTOM_MIN_RESULT : DEFAULT_BOTTOM_MIN_DRAW,
-      viewport.stageHeight * (scene === 'result_stage' ? DEFAULT_BOTTOM_RATIO_RESULT : DEFAULT_BOTTOM_RATIO_DRAW),
-    ),
-  )
-
-  const width = Math.max(0, viewport.stageWidth - sideInset * 2)
-  const height = Math.max(0, viewport.stageHeight - topInset - bottomInset)
+  const insets = getDefaultInsets()
+  const metrics = toViewportMetrics(viewport)
+  const safeFrame = resolveSafeFrame(metrics, insets, {
+    scene,
+    topBarHeight: viewport.topBarHeight,
+    precomputedStage: {
+      stageWidth: viewport.stageWidth,
+      stageHeight: viewport.stageHeight,
+      headerBottom: viewport.headerBottom,
+      footerReserve: viewport.footerReserve,
+    },
+  })
 
   return {
-    width,
-    height,
-    centerYOffset: (topInset - bottomInset) / 2,
-    topInset,
-    bottomInset,
-    sideInset,
-    stageCenterX: 0,
-    stageCenterY: (topInset - bottomInset) / 2,
+    width: safeFrame.width,
+    height: safeFrame.height,
+    centerYOffset: safeFrame.centerY,
+    topInset: safeFrame.y,
+    bottomInset: safeFrame.bottomInset,
+    sideInset: safeFrame.x,
+    stageCenterX: safeFrame.centerX,
+    stageCenterY: safeFrame.centerY,
   }
 }

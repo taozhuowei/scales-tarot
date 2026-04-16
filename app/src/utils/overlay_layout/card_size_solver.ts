@@ -8,7 +8,16 @@
  *   card size, gap, and slot pitches flow out.
  */
 
+// TODO: phase1 migration shim — this file delegates to core/sizing modules
+// and augments the result with legacy CardEnvelope fields.
+
 import type { CardEnvelope } from './spread_spec'
+import {
+  resolveCardSize as resolveCoreCardSize,
+  DEFAULT_ENVELOPE_GAP,
+} from '../../core/sizing/card_size_solver'
+import type { CardSizeInput as CoreCardSizeInput } from '../../core/sizing/card_size_solver'
+import type { SafeFrame } from '../../core/viewport/types'
 
 export type CardSizeResult = CardEnvelope
 
@@ -27,35 +36,10 @@ export interface CardSizeInput {
   badgeOverflowPx?: number
 }
 
-export const DEFAULT_ENVELOPE_GAP = 16
 const DEFAULT_MIN_CARD_WIDTH = 64
 const DEFAULT_MAX_CARD_WIDTH = 188
 
-function constrainedWidth(
-  safeSize: number,
-  slotCount: number,
-  gap: number,
-  focusScale: number,
-  badgeOverflowPx: number,
-): number {
-  const slots = Math.max(1, Math.floor(slotCount))
-  // Original envelope constraint (slots fit edge-to-edge with gaps).
-  const original = (Math.max(0, safeSize) - (slots - 1) * gap) / slots
-
-  if (focusScale <= 1 && badgeOverflowPx <= 0) {
-    return original
-  }
-
-  // Focus constraint: outer cards may scale up and badge may overhang.
-  // halfSpan + (cardSize/2 + badgeOverflow) * focusScale <= safeSize/2
-  // Solving for cardWidth gives:
-  // cardWidth <= (safeSize - (slots-1)*gap - 2*badgeOverflowPx*focusScale) / (slots - 1 + focusScale)
-  const numerator = safeSize - (slots - 1) * gap - 2 * badgeOverflowPx * focusScale
-  const denominator = slots - 1 + focusScale
-  if (numerator <= 0 || denominator <= 0) return 0
-  const focused = numerator / denominator
-  return Math.min(original, focused)
-}
+export { DEFAULT_ENVELOPE_GAP }
 
 /**
  * Resolve the maximum card size that keeps every animation frame inside the safe frame,
@@ -76,13 +60,33 @@ export function resolveCardSize(input: CardSizeInput): CardEnvelope {
   const hSlots = Math.max(1, Math.floor(input.horizontalSlots))
   const vSlots = Math.max(1, Math.floor(input.verticalSlots))
 
-  const widthFromHorizontal = constrainedWidth(safeWidth, hSlots, gap, focusScale, badgeOverflowPx)
-  const heightFromVertical = constrainedWidth(safeHeight, vSlots, gap, focusScale, badgeOverflowPx)
-  const widthFromVertical = heightFromVertical / Math.max(cardAspectRatio, 0.0001)
+  const safeFrame: SafeFrame = {
+    x: 0,
+    y: 0,
+    width: safeWidth,
+    height: safeHeight,
+    centerX: 0,
+    centerY: 0,
+    bottomInset: 0,
+  }
 
-  let cardWidth = Math.min(widthFromHorizontal, widthFromVertical)
-  cardWidth = Math.max(minCardWidth, Math.min(cardWidth, maxCardWidth))
-  const cardHeight = cardWidth * cardAspectRatio
+  const coreInput: CoreCardSizeInput = {
+    safeFrame,
+    cardAspectRatio,
+    requirement: {
+      horizontalSlots: hSlots,
+      verticalSlots: vSlots,
+    },
+    gap,
+    minCardWidth,
+    maxCardWidth,
+    focusScale,
+    badgeOverflowPx,
+  }
+
+  const coreSize = resolveCoreCardSize(coreInput)
+  const cardWidth = coreSize.width
+  const cardHeight = coreSize.height
 
   const slotPitchX = cardWidth + gap
   const slotPitchY = cardHeight + gap

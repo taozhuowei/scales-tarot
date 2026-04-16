@@ -1,9 +1,7 @@
 /**
- * Name: built_in_layouts
- * Purpose: preserve the exact layout behavior for built-in spreads.
- * Reason: these spreads have scene-specific lift/clamp rules that are best owned
- *   by the spread registry rather than encoded in a generic solver switch.
- * Data flow: envelope and container bounds flow in; positioned slots flow out.
+ * Name: built_in_layouts (compatibility shim)
+ * Purpose: delegates to the new core layout resolvers (draw_layout_resolver and result_layout_resolver).
+ * TODO: migrate all consumers to core/layout/draw_layout_resolver and core/layout/result_layout_resolver.
  */
 
 import type {
@@ -12,153 +10,117 @@ import type {
   SpreadLayoutContext,
   SpreadLayoutResult,
 } from './spread_spec'
+import { resolveDrawLayout } from '../../core/layout/draw_layout_resolver'
+import { resolveResultLayout } from '../../core/layout/result_layout_resolver'
+import { resolveSpreadSlots } from '../../core/layout/spread_layout_calculator'
+import type { SpreadSpec as CoreSpreadSpec, SpreadSlot } from '../../core/layout/types'
+import { resolveSpreadSpec } from '../../core/layout/spread_registry'
+import type { CardSize } from '../../core/sizing/types'
+import type { SafeFrame } from '../../core/viewport/types'
 
-export function buildSingleCardLayout(ctx: SpreadLayoutContext): SpreadLayoutResult {
-  const { scene, containerHeight, envelope, headerHeight } = ctx
-  const { cardWidth, cardHeight } = envelope
-  const centerX = 0
+function toCardSize(envelope: CardEnvelope): CardSize {
+  return {
+    width: envelope.cardWidth,
+    height: envelope.cardHeight,
+    gap: envelope.gap,
+  }
+}
+
+function toSafeFrame(ctx: SpreadLayoutContext): SafeFrame {
+  // The legacy context does not carry full safe frame.
+  // We approximate a safe frame centered at (0, 0).
+  const halfSpanX = ctx.envelope.fullSpanX / 2
+  const halfSpanY = ctx.envelope.fullSpanY / 2
+  return {
+    x: 0,
+    y: 0,
+    width: halfSpanX * 2,
+    height: halfSpanY * 2,
+    centerX: 0,
+    centerY: 0,
+    bottomInset: 0,
+  }
+}
+
+function toCoreSpec(spreadId: string, isWide: boolean): CoreSpreadSpec {
+  return resolveSpreadSpec(spreadId, isWide)
+}
+
+function fromDrawResult(result: import('../../core/layout/draw_layout_resolver').DrawLayoutResult, cardSize: CardSize): SpreadLayoutResult {
+  return {
+    cardWidth: cardSize.width,
+    cardHeight: cardSize.height,
+    stageShiftY: result.stageShiftY,
+    cards: result.cards.map(c => ({
+      slotId: c.slotId,
+      x: c.x,
+      y: c.y,
+      width: c.width,
+      height: c.height,
+      rotateDeg: c.rotateDeg,
+      zIndex: c.zIndex,
+    })),
+  }
+}
+
+function fromResultResult(result: import('../../core/layout/result_layout_resolver').ResultLayoutResult, cardSize: CardSize): SpreadLayoutResult {
+  return {
+    cardWidth: cardSize.width,
+    cardHeight: cardSize.height,
+    stageShiftY: result.stageShiftY,
+    cards: result.cards.map(c => ({
+      slotId: c.slotId,
+      x: c.x,
+      y: c.y,
+      width: c.width,
+      height: c.height,
+      rotateDeg: c.rotateDeg,
+      zIndex: c.zIndex,
+    })),
+  }
+}
+
+function resolveLayout(
+  spreadId: string,
+  ctx: SpreadLayoutContext,
+): SpreadLayoutResult {
+  const { scene, isWide, envelope, headerHeight } = ctx
+  const coreSpec = toCoreSpec(spreadId, isWide)
+  const cardSize = toCardSize(envelope)
+  const safeFrame = toSafeContext(ctx)
+  const slots: SpreadSlot[] = resolveSpreadSlots(coreSpec, isWide, cardSize)
 
   if (scene === 'draw_stage') {
-    const liftY = Math.min(containerHeight * 0.12, cardHeight * 0.3)
-    const stageShiftY = liftY
-    const minCenterY = -containerHeight / 2 + cardHeight / 2
-    const maxCenterY = containerHeight / 2 - cardHeight / 2
-    const centerY = clamp(liftY, minCenterY, maxCenterY)
-
-    return {
-      cardWidth,
-      cardHeight,
-      stageShiftY,
-      cards: [{
-        slotId: 'center',
-        x: centerX,
-        y: centerY,
-        width: cardWidth,
-        height: cardHeight,
-        rotateDeg: 0,
-        zIndex: 20,
-      }],
-    }
+    const drawResult = resolveDrawLayout(spreadId, slots, safeFrame, cardSize, headerHeight)
+    return fromDrawResult(drawResult, cardSize)
   }
 
+  const resultResult = resolveResultLayout(spreadId, slots, safeFrame, cardSize, headerHeight)
+  return fromResultResult(resultResult, cardSize)
+}
+
+function toSafeContext(ctx: SpreadLayoutContext): SafeFrame {
+  // Approximate safe frame from context values used by legacy solvers.
+  const { containerWidth, containerHeight } = ctx
   return {
-    cardWidth,
-    cardHeight,
-    stageShiftY: 0,
-    cards: [{
-      slotId: 'center',
-      x: centerX,
-      y: (headerHeight ?? 0) / 2,
-      width: cardWidth,
-      height: cardHeight,
-      rotateDeg: 0,
-      zIndex: 20,
-    }],
+    x: 0,
+    y: 0,
+    width: containerWidth,
+    height: containerHeight,
+    centerX: 0,
+    centerY: 0,
+    bottomInset: 0,
   }
+}
+
+export function buildSingleCardLayout(ctx: SpreadLayoutContext): SpreadLayoutResult {
+  return resolveLayout('single_card', ctx)
 }
 
 export function buildThreeCardLayout(ctx: SpreadLayoutContext): SpreadLayoutResult {
-  const { scene, containerWidth, containerHeight, isWide, envelope, headerHeight } = ctx
-  const { cardWidth, cardHeight, slotPitchX, slotPitchY } = envelope
-  const hMargin = Math.max(cardWidth * 0.08, 12)
-  const vMargin = Math.max(cardHeight * 0.06, 12)
-  const maxCenterX = Math.max(0, containerWidth / 2 - cardWidth / 2 - hMargin)
-  const minCenterY = -containerHeight / 2 + cardHeight / 2 + vMargin
-  const maxCenterY = containerHeight / 2 - cardHeight / 2 - vMargin
-
-  if (isWide) {
-    const sideOffset = Math.min(slotPitchX, maxCenterX)
-    const liftY = Math.min(containerHeight * 0.32, cardHeight * 1.26)
-    const targetRowY = scene === 'draw_stage' ? liftY : 0
-    const centeredRowY = clamp(targetRowY, minCenterY, maxCenterY)
-
-    return buildResult(cardWidth, cardHeight, scene === 'draw_stage' ? liftY : 0, [
-      { slotId: 'past', x: -sideOffset, y: centeredRowY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 20 },
-      { slotId: 'present', x: 0, y: centeredRowY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 21 },
-      { slotId: 'future', x: sideOffset, y: centeredRowY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 22 },
-    ])
-  }
-
-  const verticalAvailable = Math.max(0, (containerHeight / 2 - cardHeight / 2) - vMargin)
-  const verticalSpread = Math.min(slotPitchY, verticalAvailable)
-
-  if (scene === 'draw_stage') {
-    const liftY = Math.min(containerHeight * 0.16, cardHeight * 0.56)
-    const targetCenterY = Math.max(liftY, liftY + (headerHeight ?? 0) / 2 + 60 - containerHeight * 0.29)
-    const mobileCenterY = clamp(targetCenterY, minCenterY + verticalSpread, maxCenterY - verticalSpread)
-
-    return buildResult(cardWidth, cardHeight, liftY, [
-      { slotId: 'past', x: 0, y: mobileCenterY + verticalSpread, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 20 },
-      { slotId: 'present', x: 0, y: mobileCenterY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 21 },
-      { slotId: 'future', x: 0, y: mobileCenterY - verticalSpread, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 22 },
-    ])
-  }
-
-  const targetCenterY = (headerHeight ?? 0) / 2
-  const mobileCenterY = clamp(targetCenterY, minCenterY + verticalSpread, maxCenterY - verticalSpread)
-
-  return buildResult(cardWidth, cardHeight, 0, [
-    { slotId: 'past', x: 0, y: mobileCenterY + verticalSpread, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 20 },
-    { slotId: 'present', x: 0, y: mobileCenterY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 21 },
-    { slotId: 'future', x: 0, y: mobileCenterY - verticalSpread, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 22 },
-  ])
+  return resolveLayout('three_card', ctx)
 }
 
 export function buildCrossSpreadLayout(ctx: SpreadLayoutContext): SpreadLayoutResult {
-  const { scene, containerHeight, isWide, envelope, headerHeight } = ctx
-  const { cardWidth, cardHeight, slotPitchX, slotPitchY } = envelope
-  const liftY = isWide
-    ? Math.min(containerHeight * 0.28, cardHeight)
-    : Math.min(containerHeight * 0.12, cardHeight * 0.4)
-  const hOffset = slotPitchX
-  const vOffset = slotPitchY
-  const centerX = 0
-
-  const maxCenterShift = Math.max(0, containerHeight / 2 - vOffset - cardHeight / 2)
-
-  if (scene === 'draw_stage') {
-    let centerY: number
-    if (!isWide) {
-      const targetCenterY = liftY + (headerHeight ?? 0) / 2 + 60 - containerHeight * 0.29
-      centerY = clamp(targetCenterY, -maxCenterShift, maxCenterShift)
-      const minNorthY = -containerHeight / 2 + cardHeight / 2 + (headerHeight ?? 0) + 8
-      const northY = centerY - vOffset
-      if (northY < minNorthY) {
-        centerY = minNorthY + vOffset
-      }
-    } else {
-      centerY = clamp(liftY * 0.5, -maxCenterShift, maxCenterShift)
-    }
-
-    return buildResult(cardWidth, cardHeight, liftY, [
-      { slotId: 'center', x: centerX, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 25 },
-      { slotId: 'north', x: centerX, y: centerY - vOffset, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-      { slotId: 'south', x: centerX, y: centerY + vOffset, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-      { slotId: 'west', x: centerX - hOffset, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-      { slotId: 'east', x: centerX + hOffset, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-    ])
-  }
-
-  const centerY = clamp((headerHeight ?? 0) / 2, -containerHeight * 0.1, containerHeight * 0.1)
-
-  return buildResult(cardWidth, cardHeight, 0, [
-    { slotId: 'center', x: centerX, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 25 },
-    { slotId: 'north', x: centerX, y: centerY - vOffset, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-    { slotId: 'south', x: centerX, y: centerY + vOffset, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-    { slotId: 'west', x: centerX - hOffset, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-    { slotId: 'east', x: centerX + hOffset, y: centerY, width: cardWidth, height: cardHeight, rotateDeg: 0, zIndex: 24 },
-  ])
-}
-
-function buildResult(
-  cardWidth: number,
-  cardHeight: number,
-  stageShiftY: number,
-  cards: SpreadCardLayout[],
-): SpreadLayoutResult {
-  return { cardWidth, cardHeight, stageShiftY, cards }
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
+  return resolveLayout('cross_spread', ctx)
 }

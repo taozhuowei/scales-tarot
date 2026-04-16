@@ -6,10 +6,10 @@ import {
   presentFooter,
   presentPositionBadge,
   DEFAULT_OVERLAY_TEXT,
-} from '../app/src/utils/overlay_progress_presenter'
+} from '../app/src/utils/overlay_progress/phase_progress_presenter'
 import type { OverlayPhase } from '../app/src/utils/overlay_animations/types'
 
-describe('overlay_progress_presenter', () => {
+describe('overlay_progress/phase_progress_presenter', () => {
   const mockGetIconAsset = vi.fn((name: string) => `/icons/${name}.png`)
 
   describe('presentProgressHeader', () => {

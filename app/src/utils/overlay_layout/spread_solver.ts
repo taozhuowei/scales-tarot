@@ -1,8 +1,7 @@
 /**
- * Name: spread_solver
- * Purpose: build a generic solver that maps a spread spec into final card positions.
- * Reason: future custom spreads should not require editing the core solver.
- * Data flow: spread spec + scene + envelope flow in; positioned cards flow out.
+ * Name: spread_solver (compatibility shim)
+ * Purpose: backward-compatible re-export of spread layout solving.
+ * TODO: migrate all consumers to core/layout/draw_layout_resolver and result_layout_resolver.
  */
 
 import type {
@@ -13,7 +12,34 @@ import type {
   SpreadCardLayout,
 } from './spread_spec'
 export type { SpreadLayoutResult, SpreadCardLayout } from './spread_spec'
-import { getSpreadSpec } from './spread_registry'
+
+import { resolveDrawLayout } from '../../core/layout/draw_layout_resolver'
+import { resolveResultLayout } from '../../core/layout/result_layout_resolver'
+import { resolveSpreadSlots } from '../../core/layout/spread_layout_calculator'
+import { resolveSpreadSpec } from '../../core/layout/spread_registry'
+import type { SpreadSlot } from '../../core/layout/types'
+import type { CardSize } from '../../core/sizing/types'
+import type { SafeFrame } from '../../core/viewport/types'
+
+function toCardSize(envelope: CardEnvelope): CardSize {
+  return {
+    width: envelope.cardWidth,
+    height: envelope.cardHeight,
+    gap: envelope.gap,
+  }
+}
+
+function toSafeFrame(containerWidth: number, containerHeight: number): SafeFrame {
+  return {
+    x: 0,
+    y: 0,
+    width: containerWidth,
+    height: containerHeight,
+    centerX: 0,
+    centerY: 0,
+    bottomInset: 0,
+  }
+}
 
 export interface SpreadSolverInput {
   spreadId: SpreadId
@@ -25,38 +51,28 @@ export interface SpreadSolverInput {
   headerHeight?: number
 }
 
-/**
- * Generic spread layout solver.
- * 1. Looks up the spread spec from the registry.
- * 2. If the spec provides a custom resolveLayout, delegates to it.
- * 3. Otherwise, places cards on a grid using slotPitchX / slotPitchY.
- */
 export function resolveSpreadLayout(input: SpreadSolverInput): SpreadLayoutResult {
   const { spreadId, scene, containerWidth, containerHeight, isWide, envelope, headerHeight } = input
-  const spec = getSpreadSpec(spreadId)
+  const coreSpec = resolveSpreadSpec(spreadId, isWide)
+  const cardSize = toCardSize(envelope)
+  const slots: SpreadSlot[] = resolveSpreadSlots(coreSpec, isWide, cardSize)
+  const safeFrame = toSafeFrame(containerWidth, containerHeight)
 
-  if (spec?.resolveLayout) {
-    return spec.resolveLayout({ scene, containerWidth, containerHeight, isWide, envelope, headerHeight })
+  if (scene === 'draw_stage') {
+    const drawResult = resolveDrawLayout(spreadId, slots, safeFrame, cardSize, headerHeight)
+    return {
+      cardWidth: cardSize.width,
+      cardHeight: cardSize.height,
+      stageShiftY: drawResult.stageShiftY,
+      cards: drawResult.cards,
+    }
   }
 
-  // Generic grid placement for data-only spreads.
-  const slots = (isWide && spec?.wideSlots?.length) ? spec!.wideSlots : (spec?.slots ?? [])
-  const { cardWidth, cardHeight, slotPitchX, slotPitchY } = envelope
-
-  const cards: SpreadCardLayout[] = slots.map((slot, index) => ({
-    slotId: slot.slotId,
-    x: slot.rx * slotPitchX,
-    y: slot.ry * slotPitchY,
-    width: cardWidth,
-    height: cardHeight,
-    rotateDeg: 0,
-    zIndex: 20 + index,
-  }))
-
+  const resultResult = resolveResultLayout(spreadId, slots, safeFrame, cardSize, headerHeight)
   return {
-    cardWidth,
-    cardHeight,
-    stageShiftY: 0,
-    cards,
+    cardWidth: cardSize.width,
+    cardHeight: cardSize.height,
+    stageShiftY: resultResult.stageShiftY,
+    cards: resultResult.cards,
   }
 }

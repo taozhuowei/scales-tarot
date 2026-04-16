@@ -11,24 +11,15 @@ import gsap from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
 import overlayConfig from '../config.json'
-import type { OverlayPhase } from '../utils/overlay_animation'
 import {
   createShuffleInitialStates,
   createCutInitialStates,
   createDrawInitialStates,
-  buildShufflePhase,
-  buildCutPhase,
-  buildDrawPhase,
-  buildRevealPhase,
   createTimelineOrchestrator,
   killAnimationTargets,
   createPhasePipeline,
   getDefaultPhaseOrder,
   getPhaseIndex,
-  type ShufflePhaseContext,
-  type CutPhaseContext,
-  type DrawPhaseContext,
-  type RevealPhaseContext,
 } from '../utils/overlay_animation'
 import {
   createProgressModel,
@@ -49,6 +40,14 @@ import {
 import { OfflineReadingProvider } from '../utils/reading/offline_reading_provider'
 import { createReadingOrchestrator } from '../utils/reading/reading_orchestrator'
 import type { ReadingRequest } from '../utils/reading/reading_provider'
+import type { PhaseContext, PhaseRunner, OverlayPhase } from '../core/flow/types'
+import { buildShufflePhaseRunner } from '../core/flow/phases/shuffle_phase'
+import { buildCutPhaseRunner } from '../core/flow/phases/cut_phase'
+import { buildDrawPhaseRunner } from '../core/flow/phases/draw_phase'
+import { buildRevealPhaseRunner } from '../core/flow/phases/reveal_phase'
+import { resolveDeckGeometry } from '../core/deck/deck_calculator'
+import type { CardLayout } from '../core/layout/types'
+import type { SafeFrame } from '../core/viewport/types'
 
 const MAX_CARD_COUNT = 10
 const MAX_CUT_PILES = 8
@@ -401,114 +400,6 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     entryAnimationComplete.value = true
   }
 
-  // Phase builders
-  function buildShuffle(onComplete: () => void): gsap.core.Timeline {
-    settleEntryAnimation()
-
-    const shuffleContext: ShufflePhaseContext = {
-      initials: _initials,
-      lefts: _lefts,
-      rights: _rights,
-      leftsVisible,
-      rightsVisible,
-      refreshInitials,
-      refreshLefts,
-      refreshRights,
-    }
-
-    const metrics = getMotionMetrics('draw_stage')
-    return buildShufflePhase(shuffleContext, { spreadX: metrics.shuffleSpreadX }, onComplete)
-  }
-
-  function buildCut(onComplete: () => void): gsap.core.Timeline {
-    const cutContext: CutPhaseContext = {
-      piles: _piles,
-      pilesVisible,
-      refreshPiles,
-    }
-
-    const metrics = getMotionMetrics('draw_stage')
-    return buildCutPhase(
-      cutContext,
-      {
-        pileCount: CUT_PILE_COUNT,
-        pileSpacing: metrics.cutPileSpacing,
-        axis: metrics.cutAxis,
-        cutLeadingOffset: metrics.cutLeadingOffset,
-        cutTrailingOffset: metrics.cutTrailingOffset,
-      },
-      onComplete,
-    )
-  }
-
-  function buildDraw(onComplete: () => void): gsap.core.Timeline {
-    deps.tarotStore.drawCards()
-
-    const { drawLayout } = getOverlayLayouts()
-    setDrawCardSizes(drawLayout)
-
-    const drawContext: DrawPhaseContext = {
-      stage: _stage,
-      initials: _initials,
-      draws: _draws,
-      inners: _inners,
-      drawsVisible,
-      deckCtn: _deckCtn,
-      refreshStage,
-      refreshInitials,
-      refreshDraws,
-      refreshInners,
-      refreshDeckCtn,
-      onPhaseChange: (p) => {
-        phase.value = p
-        progressModel.transitionTo(p)
-        deps.tarotStore.setPhase(p)
-      },
-    }
-
-    const drawViewport = getViewportMetrics(false)
-
-    return buildDrawPhase(
-      drawContext,
-      {
-        cardCount: deps.cardCount.value,
-        cardHeight: drawLayout.cardHeight,
-        stageHeight: drawViewport.stageHeight,
-        liftY: drawLayout.stageShiftY,
-        targetX: drawLayout.cards.map((c: { x: number }) => c.x),
-        targetY: drawLayout.cards.map((c: { y: number }) => c.y),
-        autoRevealDelayMs: AUTO_REVEAL_DELAY_MS,
-      },
-      onComplete,
-    )
-  }
-
-  function buildReveal(onComplete: () => void): gsap.core.Timeline {
-    const { drawLayout } = getOverlayLayouts()
-    setDrawCardSizes(drawLayout)
-
-    const revealContext: RevealPhaseContext = {
-      stage: _stage,
-      draws: _draws,
-      inners: _inners,
-      drawsVisible,
-      initials: _initials,
-      refreshStage,
-      refreshDraws,
-      refreshInners,
-      refreshInitials,
-    }
-
-    return buildRevealPhase(
-      revealContext,
-      {
-        cardCount: deps.cardCount.value,
-        drawLayout,
-      },
-      onComplete,
-    )
-  }
-
   function getOverlayLayouts() {
     const drawViewport = getViewportMetrics(false)
     const drawLayout = getSceneLayout('draw_stage')
@@ -516,32 +407,148 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     return { drawViewport, drawLayout, resultLayout }
   }
 
-  // Phase builder registry — data-driven so order comes from the pipeline API.
-  const phaseBuilders = new Map<OverlayPhase, (onComplete: () => void) => gsap.core.Timeline>([
-    ['shuffling', buildShuffle],
-    ['cutting', buildCut],
-    ['drawing', buildDraw],
-    ['revealing', buildReveal],
-  ])
-
   function transitionPhase(nextPhase: OverlayPhase) {
     phase.value = nextPhase
     progressModel.transitionTo(nextPhase)
     deps.tarotStore.setPhase(nextPhase)
   }
 
+  function createPhaseContext(): PhaseContext {
+    const drawViewport = getViewportMetrics(false)
+    const overlaySafeFrame = resolveOverlaySafeFrame('draw_stage', drawViewport)
+    const safeFrame: SafeFrame = {
+      x: overlaySafeFrame.sideInset,
+      y: overlaySafeFrame.topInset,
+      width: overlaySafeFrame.width,
+      height: overlaySafeFrame.height,
+      centerX: overlaySafeFrame.stageCenterX,
+      centerY: overlaySafeFrame.stageCenterY,
+      bottomInset: overlaySafeFrame.bottomInset,
+    }
+
+    return {
+      deckGeometry: resolveDeckGeometry(safeFrame, DECK_COUNT),
+      spreadSlots: [] as unknown as CardLayout[],
+      getCurrentLayouts: () => {
+        const { drawLayout } = getOverlayLayouts()
+        return { drawLayout }
+      },
+      getTargetLayouts: () => {
+        const { drawLayout } = getOverlayLayouts()
+        return { drawLayout }
+      },
+      cardElements: {
+        initials: _initials,
+        lefts: _lefts,
+        rights: _rights,
+        piles: _piles,
+        draws: _draws,
+        inners: _inners,
+        stage: _stage,
+        deckCtn: _deckCtn,
+        bg: _bg,
+        header: _header,
+        footer: _footer,
+      },
+      visible: {
+        lefts: leftsVisible,
+        rights: rightsVisible,
+        piles: pilesVisible,
+        draws: drawsVisible,
+      },
+      refresh: {
+        initials: refreshInitials,
+        lefts: refreshLefts,
+        rights: refreshRights,
+        piles: refreshPiles,
+        draws: refreshDraws,
+        inners: refreshInners,
+        stage: refreshStage,
+        deckCtn: refreshDeckCtn,
+        bg: refreshBg,
+        header: refreshHeader,
+        footer: refreshFooter,
+      },
+      onPhaseChange: (p: OverlayPhase) => {
+        phase.value = p
+        progressModel.transitionTo(p)
+        deps.tarotStore.setPhase(p)
+      },
+    }
+  }
+
+  function createPhaseRunners(): PhaseRunner[] {
+    const metrics = getMotionMetrics('draw_stage')
+
+    return [
+      buildShufflePhaseRunner({ spreadX: metrics.shuffleSpreadX }),
+      buildCutPhaseRunner({
+        pileCount: CUT_PILE_COUNT,
+        pileSpacing: metrics.cutPileSpacing,
+        axis: metrics.cutAxis,
+        cutLeadingOffset: metrics.cutLeadingOffset,
+        cutTrailingOffset: metrics.cutTrailingOffset,
+      }),
+      {
+        name: 'drawing',
+        run(context: PhaseContext, onComplete: () => void) {
+          deps.tarotStore.drawCards()
+          const { drawLayout, drawViewport } = getOverlayLayouts()
+          setDrawCardSizes(drawLayout)
+          const runner = buildDrawPhaseRunner({
+            cardCount: deps.cardCount.value,
+            cardHeight: drawLayout.cardHeight,
+            stageHeight: drawViewport.stageHeight,
+            liftY: drawLayout.stageShiftY,
+            targetX: drawLayout.cards.map((c) => c.x),
+            targetY: drawLayout.cards.map((c) => c.y),
+            autoRevealDelayMs: AUTO_REVEAL_DELAY_MS,
+          })
+          return runner.run(context, onComplete)
+        },
+      },
+      {
+        name: 'revealing',
+        run(context: PhaseContext, onComplete: () => void) {
+          const { drawLayout } = getOverlayLayouts()
+          setDrawCardSizes(drawLayout)
+          const runner = buildRevealPhaseRunner({
+            cardCount: deps.cardCount.value,
+            drawLayout: {
+              stageShiftY: drawLayout.stageShiftY,
+              cards: drawLayout.cards.map((c) => ({ x: c.x, y: c.y })),
+            },
+          })
+          return runner.run(context, onComplete)
+        },
+      },
+    ]
+  }
+
+  function adaptPhaseRunner(
+    phaseRunner: PhaseRunner,
+    context: PhaseContext,
+  ): { phase: OverlayPhase; build: (onComplete: () => void) => gsap.core.Timeline | null } {
+    return {
+      phase: phaseRunner.name,
+      build: (onComplete) => {
+        const tl = phaseRunner.run(context, onComplete)
+        return tl as unknown as gsap.core.Timeline | null
+      },
+    }
+  }
+
   function runPipeline(startIndex: number = 0) {
-    const phaseOrder = getDefaultPhaseOrder()
-    const ordered = phaseOrder
-      .map((p) => {
-        const build = phaseBuilders.get(p)
-        return build ? { phase: p, build } : null
-      })
-      .filter((item): item is { phase: OverlayPhase; build: (onComplete: () => void) => gsap.core.Timeline } => Boolean(item))
+    const phaseContext = createPhaseContext()
+    const phaseRunners = createPhaseRunners()
+    const ordered = phaseRunners.map((runner) => adaptPhaseRunner(runner, phaseContext))
 
     const pipeline = createPhasePipeline(timelineOrchestrator, ordered, {
       onPhaseStart: (startedPhase) => {
         transitionPhase(startedPhase)
+        if (startedPhase === 'shuffling') {
+          settleEntryAnimation()
+        }
       },
       onPhaseComplete: (completedPhase) => {
         // Pipeline step complete — if we just finished drawing, schedule reading.

@@ -1,6 +1,6 @@
 /**
- * Name: spread_layout (compatibility shim)
- * Purpose: backward-compatible public API that delegates to the new foldered layout system.
+ * Name: spread_layout
+ * Purpose: public API that delegates to the foldered layout system.
  */
 
 import { resolveSpreadLayout as resolveSpreadLayoutCore } from './overlay_layout/spread_solver'
@@ -8,15 +8,25 @@ import { resolveCardSize } from './overlay_layout/card_size_solver'
 import type { SceneLayoutResult } from './overlay_layout/scene_layout'
 import { getSpreadCardCount } from './overlay_layout/spread_registry'
 import { getBuiltInEnvelopeRequirement } from './overlay_layout/spread_spec'
-import type { SpreadLayoutInput, SpreadLayoutResult, SpreadKind, SpreadScene } from './overlay_layout_types'
-
-export type {
+import type {
   SpreadCardLayout,
-  SpreadLayoutInput,
   SpreadLayoutResult,
-  SpreadKind,
+  SpreadId as SpreadKind,
   SpreadScene,
-} from './overlay_layout_types'
+} from './overlay_layout/spread_spec'
+
+export type { SpreadCardLayout, SpreadLayoutResult, SpreadScene }
+export type { SpreadKind }
+
+export interface SpreadLayoutInput {
+  spreadKind: string
+  scene: SpreadScene
+  containerWidth: number
+  containerHeight: number
+  isWide: boolean
+  cardAspectRatio: number
+  headerHeight?: number
+}
 
 export interface SpreadLayoutResultWithEnvelope extends SpreadLayoutResult {
   envelope: {

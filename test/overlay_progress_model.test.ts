@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vitest'
 import {
   createProgressModel,
   calculatePhaseProgress,
-} from '../app/src/utils/overlay_progress_model'
+} from '../app/src/utils/overlay_progress/phase_progress_model'
 import type { OverlayPhase } from '../app/src/utils/overlay_animations/types'
 
-describe('overlay_progress_model', () => {
+describe('overlay_progress/phase_progress_model', () => {
   describe('createProgressModel', () => {
     it('initializes with correct default state', () => {
       const model = createProgressModel('shuffling')

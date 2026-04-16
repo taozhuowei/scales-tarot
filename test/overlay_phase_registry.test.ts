@@ -7,10 +7,10 @@ import {
   getPhaseStep,
   isValidPhase,
   getNextPhase,
-} from '../app/src/utils/overlay_phase_registry'
+} from '../app/src/utils/overlay_animation/phase_registry'
 import type { OverlayPhase } from '../app/src/utils/overlay_animations/types'
 
-describe('overlay_phase_registry', () => {
+describe('overlay_animation/phase_registry', () => {
   describe('PHASE_STEPS', () => {
     it('contains exactly 4 phases in order', () => {
       expect(PHASE_STEPS).toHaveLength(4)

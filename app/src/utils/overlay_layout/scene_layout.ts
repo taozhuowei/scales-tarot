@@ -130,6 +130,7 @@ export function resolveCutLayout(input: {
   }
 }
 
+// TODO: move to animation/flow layer
 /**
  * Resolve the flip emphasis scale before cards are collected into the result layout.
  * The CSS focus scale is the real source of truth; this helper just mirrors it for JS bounds.
@@ -151,11 +152,13 @@ export function resolveRevealMotion(input: {
   }
 }
 
+// TODO: move to animation/flow layer
 /** Focus scale used by CSS; layout must reserve bounds for this. */
 export function getFocusScale(isWide: boolean): number {
   return isWide ? 1.2 : 1.42
 }
 
+// TODO: move to animation/flow layer
 /** Badge overflow in px beyond card edge (12rpx). */
 export function getBadgeOverflowPx(windowWidth: number): number {
   return Math.round((12 / 750) * windowWidth)
