@@ -1,20 +1,18 @@
 /**
- * Name: shuffle_animation
- * Purpose: pure shuffle animation implementation - state transitions only, no orchestration.
- * Reason: allows shuffle animation to be tested and swapped independently.
- * Data flow: layout metrics flow in; GSAP tween configs and state updates flow out.
+ * Name: shuffle_phase
+ * Purpose: pure shuffle animation logic.
+ * Reason: one phase per file; no cross-phase orchestration.
+ * Data flow: animation states + spread config flow in; GSAP timeline flows out.
  */
 
 import gsap from 'gsap'
-import type { CardState } from './types'
+import type { CardState } from '../types'
 
-export interface ShuffleAnimationConfig {
-  /** Half the horizontal spread between centre and outer card during shuffle.
-   * Derived from the card envelope so the spread never exceeds the safe frame. */
+export interface ShufflePhaseConfig {
   spreadX: number
 }
 
-export interface ShuffleAnimationContext {
+export interface ShufflePhaseContext {
   initials: CardState[]
   lefts: CardState[]
   rights: CardState[]
@@ -28,9 +26,9 @@ export interface ShuffleAnimationContext {
 /**
  * Build shuffle phase GSAP timeline.
  */
-export function buildShuffleTimeline(
-  context: ShuffleAnimationContext,
-  config: ShuffleAnimationConfig,
+export function buildShufflePhase(
+  context: ShufflePhaseContext,
+  config: ShufflePhaseConfig,
   onComplete: () => void,
 ): gsap.core.Timeline {
   const { initials, lefts, rights, leftsVisible, rightsVisible } = context
@@ -128,8 +126,6 @@ export function buildShuffleTimeline(
 
 /**
  * Create initial state for shuffle animation groups.
- * Deck size and per-half count are configurable so the animation works for
- * any deck count without code changes.
  */
 export function createShuffleInitialStates(
   deckCount: number = 12,

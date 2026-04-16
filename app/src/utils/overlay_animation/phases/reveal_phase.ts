@@ -1,20 +1,20 @@
 /**
- * Name: reveal_animation
- * Purpose: pure reveal animation implementation - card flip and result panel reveal only.
- * Reason: allows reveal animation to be tested and swapped independently.
- * Data flow: current positions and layout metrics flow in; GSAP tween configs flow out.
+ * Name: reveal_phase
+ * Purpose: pure reveal animation logic.
+ * Reason: one phase per file; no cross-phase orchestration logic.
+ * Data flow: current positions and layout metrics flow in; GSAP timeline flows out.
  */
 
 import gsap from 'gsap'
-import type { CenterCardState, InnerState } from './types'
-import type { OverlaySceneLayout } from '../overlay_layout'
+import type { CenterCardState, InnerState } from '../types'
+import type { SceneLayoutResult } from '../../overlay_layout/scene_layout'
 
-export interface RevealAnimationConfig {
+export interface RevealPhaseConfig {
   cardCount: number
-  drawLayout: OverlaySceneLayout
+  drawLayout: SceneLayoutResult
 }
 
-export interface RevealAnimationContext {
+export interface RevealPhaseContext {
   stage: { y: number }
   draws: CenterCardState[]
   inners: InnerState[]
@@ -29,15 +29,15 @@ export interface RevealAnimationContext {
 /**
  * Build reveal phase GSAP timeline.
  */
-export function buildRevealTimeline(
-  context: RevealAnimationContext,
-  config: RevealAnimationConfig,
+export function buildRevealPhase(
+  context: RevealPhaseContext,
+  config: RevealPhaseConfig,
   onComplete: () => void,
 ): gsap.core.Timeline {
   const { stage, draws, inners, drawsVisible, initials } = context
   const { cardCount, drawLayout } = config
-  const targetX = drawLayout.cards.map((c) => c.x)
-  const targetY = drawLayout.cards.map((c) => c.y)
+  const targetX = drawLayout.cards.map((c: { x: number }) => c.x)
+  const targetY = drawLayout.cards.map((c: { y: number }) => c.y)
 
   const timeline = gsap.timeline({
     onUpdate: () => {
@@ -107,8 +107,8 @@ export function buildRevealTimeline(
  * Setup reveal initial state without animation.
  */
 export function setupRevealInitialState(
-  context: RevealAnimationContext,
-  config: RevealAnimationConfig,
+  context: RevealPhaseContext,
+  config: RevealPhaseConfig,
 ): void {
   const { stage, draws, inners, drawsVisible, initials } = context
   const { cardCount, drawLayout } = config

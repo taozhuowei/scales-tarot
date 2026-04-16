@@ -99,18 +99,18 @@ describe('GET /api/v1/cards', () => {
     }
   })
 
-  it('image URLs point to the static server path', async () => {
+  it('image paths are origin-relative under /static/themes/', async () => {
     const res = await request(app).get('/api/v1/cards')
     for (const card of res.body.cards) {
-      expect(card.image).toMatch(/^http:\/\/localhost:3000\/static\/themes\/golden_dawn\/tarot\//)
+      expect(card.image).toMatch(/^\/static\/themes\/golden_dawn\/tarot\//)
     }
   })
 
-  it('the_fool has correct major arcana image URL', async () => {
+  it('the_fool has correct major arcana image path', async () => {
     const res = await request(app).get('/api/v1/cards')
     const fool = res.body.cards.find((c: { id: string }) => c.id === 'the_fool')
     expect(fool.image).toBe(
-      'http://localhost:3000/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg'
+      '/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg'
     )
   })
 })

@@ -1,27 +1,23 @@
 /**
- * Name: cut_animation
- * Purpose: pure cut animation supporting an arbitrary number of piles.
- * Reason: deck size, pile count and cut axis are all configurable so future spreads
- *   that change the cut count don't have to fork the animation.
- * Data flow: pile rest positions and lead/trail offsets flow in;
- *   GSAP tween configs and visibility flags flow out.
+ * Name: cut_phase
+ * Purpose: pure cut animation logic.
+ * Reason: one phase per file; no cross-phase orchestration.
+ * Data flow: pile rest positions and lead/trail offsets flow in; GSAP timeline flows out.
  */
 
 import gsap from 'gsap'
-import { getCutPileRestPosition, type CutAxis } from '../overlay_motion_metrics'
-import type { CenterCardState } from './types'
+import { getCutPileRestPosition, type CutAxis } from '../../overlay_layout/motion_metrics'
+import type { CenterCardState } from '../types'
 
-export interface CutAnimationConfig {
+export interface CutPhaseConfig {
   pileCount: number
   pileSpacing: number
   axis: CutAxis
-  /** Where the leading (top / left) pile finishes after the visual cut. */
   cutLeadingOffset: { x: number; y: number }
-  /** Where the trailing (bottom / right) pile finishes after the visual cut. */
   cutTrailingOffset: { x: number; y: number }
 }
 
-export interface CutAnimationContext {
+export interface CutPhaseContext {
   piles: CenterCardState[]
   pilesVisible: { value: boolean[] }
   refreshPiles: () => void
@@ -29,15 +25,10 @@ export interface CutAnimationContext {
 
 /**
  * Build cut phase GSAP timeline for any pile count.
- * 1. piles fade in stacked at the centre,
- * 2. spread out to evenly-spaced rest positions,
- * 3. leading + trailing piles cross over (visual cut),
- * 4. all piles collapse back to the centre,
- * 5. piles fade out and the deck appears whole again.
  */
-export function buildCutTimeline(
-  context: CutAnimationContext,
-  config: CutAnimationConfig,
+export function buildCutPhase(
+  context: CutPhaseContext,
+  config: CutPhaseConfig,
   onComplete: () => void,
 ): gsap.core.Timeline {
   const { piles, pilesVisible } = context
@@ -63,7 +54,7 @@ export function buildCutTimeline(
     context.refreshPiles()
   })
 
-  // Spread piles out to their resting positions (in parallel).
+  // Spread piles out to their resting positions.
   timeline.to(piles.slice(0, N), {
     x: (i: number) => restPositions[i].x,
     y: (i: number) => restPositions[i].y,
@@ -110,7 +101,7 @@ export function buildCutTimeline(
 }
 
 /**
- * Allocate enough pile state slots up to `maxPiles`. The active count is driven by config.
+ * Allocate enough pile state slots up to `maxPiles`.
  */
 export function createCutInitialStates(maxPiles: number = 8): {
   piles: CenterCardState[]

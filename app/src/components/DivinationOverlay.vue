@@ -4,8 +4,6 @@
     :class="{
       'show-results': controller.showResults.value,
       'is-wide': isWide,
-      'cards-focused': controller.cardsFocused.value,
-      'cards-docked': controller.cardsDocked.value,
     }"
     :style="controller.overlayVarsStyle.value"
   >
@@ -520,18 +518,7 @@ function handleRetry() {
   transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.cards-focused {
-  --card-focus-scale: 1.42;
-}
 
-.cards-docked {
-  --card-focus-scale: 1;
-}
-
-/* Wide screens have less vertical room — keep the focus boost slightly tamer. */
-.is-wide.cards-focused {
-  --card-focus-scale: 1.2;
-}
 
 .card-3d-inner {
   transform-style: preserve-3d;

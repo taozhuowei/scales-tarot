@@ -1,22 +1,14 @@
 /**
- * Name: spread_layout
- * Purpose: compose spread card sizing and positioning into a single pure layout solver.
- * Reason: preserve the existing public API while letting the envelope module own the
- *   "max bounds during the entire flow" calculation as a single source of truth.
- * Data flow: spread input flows in; sized + positioned cards (plus the envelope) flow out.
+ * Name: spread_layout (compatibility shim)
+ * Purpose: backward-compatible public API that delegates to the new foldered layout system.
  */
 
-import { resolveOverlayCardPositions } from './overlay_card_positions'
-import {
-  getSpreadEnvelopeRequirement,
-  resolveOverlayCardEnvelope,
-  type CardEnvelope,
-} from './overlay_card_envelope'
-import type {
-  SpreadLayoutInput,
-  SpreadLayoutResult,
-  SpreadKind,
-} from './overlay_layout_types'
+import { resolveSpreadLayout as resolveSpreadLayoutCore } from './overlay_layout/spread_solver'
+import { resolveCardSize } from './overlay_layout/card_size_solver'
+import type { SceneLayoutResult } from './overlay_layout/scene_layout'
+import { getSpreadCardCount } from './overlay_layout/spread_registry'
+import { getBuiltInEnvelopeRequirement } from './overlay_layout/spread_spec'
+import type { SpreadLayoutInput, SpreadLayoutResult, SpreadKind, SpreadScene } from './overlay_layout_types'
 
 export type {
   SpreadCardLayout,
@@ -27,28 +19,27 @@ export type {
 } from './overlay_layout_types'
 
 export interface SpreadLayoutResultWithEnvelope extends SpreadLayoutResult {
-  envelope: CardEnvelope
-}
-
-/**
- * Get the number of cards for a spread kind.
- */
-export function getSpreadCardCount(spreadKind: SpreadKind): number {
-  switch (spreadKind) {
-    case 'single_card':
-      return 1
-    case 'three_card':
-      return 3
-    case 'cross_spread':
-      return 5
-    default:
-      return 3
+  envelope: {
+    cardWidth: number
+    cardHeight: number
+    gap: number
+    horizontalSlots: number
+    verticalSlots: number
+    slotPitchX: number
+    slotPitchY: number
+    halfSpanX: number
+    halfSpanY: number
+    fullSpanX: number
+    fullSpanY: number
   }
 }
 
+export { getSpreadCardCount }
+
 /**
  * Resolve spread layout for given input parameters.
- * Card sizing is derived from the spread envelope so that animations cannot overflow.
+ * Delegates directly to the spread solver (no safe-frame insets) to preserve
+ * legacy behavior where draw_stage and result_stage yield identical card sizes.
  */
 export function resolveSpreadLayout(input: SpreadLayoutInput): SpreadLayoutResultWithEnvelope {
   const {
@@ -61,15 +52,15 @@ export function resolveSpreadLayout(input: SpreadLayoutInput): SpreadLayoutResul
     headerHeight,
   } = input
 
-  const envelope = resolveOverlayCardEnvelope({
+  const envelope = resolveCardSize({
     safeWidth: containerWidth,
     safeHeight: containerHeight,
     cardAspectRatio,
-    ...getSpreadEnvelopeRequirement(spreadKind, isWide),
+    ...getBuiltInEnvelopeRequirement(spreadKind, isWide),
   })
 
-  const positioned = resolveOverlayCardPositions({
-    spreadKind,
+  const result = resolveSpreadLayoutCore({
+    spreadId: spreadKind,
     scene,
     containerWidth,
     containerHeight,
@@ -78,5 +69,27 @@ export function resolveSpreadLayout(input: SpreadLayoutInput): SpreadLayoutResul
     headerHeight,
   })
 
-  return { ...positioned, envelope }
+  return {
+    cardWidth: result.cardWidth,
+    cardHeight: result.cardHeight,
+    stageShiftY: result.stageShiftY,
+    cards: result.cards,
+    envelope: envelopeFromCardSize(envelope),
+  }
+}
+
+function envelopeFromCardSize(size: SceneLayoutResult['envelope']): SpreadLayoutResultWithEnvelope['envelope'] {
+  return {
+    cardWidth: size.cardWidth,
+    cardHeight: size.cardHeight,
+    gap: size.gap,
+    horizontalSlots: size.horizontalSlots,
+    verticalSlots: size.verticalSlots,
+    slotPitchX: size.slotPitchX,
+    slotPitchY: size.slotPitchY,
+    halfSpanX: size.halfSpanX,
+    halfSpanY: size.halfSpanY,
+    fullSpanX: size.fullSpanX,
+    fullSpanY: size.fullSpanY,
+  }
 }

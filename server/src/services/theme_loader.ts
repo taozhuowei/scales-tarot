@@ -6,10 +6,12 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { config } from '../config'
 
-// Base URL for static assets — resolved from central config
-const STATIC_BASE = config.staticBaseUrl
+// All asset URLs returned from this service are ORIGIN-RELATIVE paths
+// (e.g. /static/themes/golden_dawn/tarot/card_back.jpeg). Clients resolve
+// them against their own origin — H5 against the page origin, mini-program
+// against VITE_API_BASE_URL — so no host ever ends up hard-coded in the
+// API payload.
 
 // Theme directory path (relative to server/src/services)
 const THEMES_DIR = path.join(__dirname, '..', '..', 'public', 'static', 'themes')
@@ -136,7 +138,7 @@ const themeCache = new Map<string, ThemeData>()
  * @returns Full URL to the asset
  */
 function resolvePath(themeId: string, relativePath: string): string {
-  return `${STATIC_BASE}/static/themes/${themeId}/${relativePath}`
+  return `/static/themes/${themeId}/${relativePath}`
 }
 
 /**

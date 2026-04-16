@@ -38,17 +38,17 @@ describe('card_loader', () => {
     expect(getCardById('nonexistent_card')).toBeUndefined()
   })
 
-  it('builds the correct image URL for a major arcana card', () => {
+  it('builds the correct image path for a major arcana card', () => {
     const card = getCardById('the_fool')!
     expect(card.image).toBe(
-      'http://localhost:3000/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg'
+      '/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg'
     )
   })
 
-  it('builds the correct image URL for a minor arcana card', () => {
+  it('builds the correct image path for a minor arcana card', () => {
     const card = getCardById('cups_ace')!
     expect(card.image).toBe(
-      'http://localhost:3000/static/themes/golden_dawn/tarot/minor/cups/minor_arcana_cups_01_ace_of_cups.jpeg'
+      '/static/themes/golden_dawn/tarot/minor/cups/minor_arcana_cups_01_ace_of_cups.jpeg'
     )
   })
 

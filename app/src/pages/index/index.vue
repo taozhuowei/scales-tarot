@@ -100,17 +100,15 @@ import { gsap } from 'gsap'
 import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'
 import { useThemeStore } from '../../stores/theme'
-import { CARD_BACK_IMAGE, SETTINGS_ICON_URL } from '../../constants'
 import type { SpreadKind } from '../../utils/spread_layout'
 
 const tarotStore = useTarotStore()
 const themeStore = useThemeStore()
 
-// Theme-aware card back image with fallback
-const cardBack = computed(() => themeStore.cardBackImage || CARD_BACK_IMAGE)
-
-// Settings icon from theme or fallback to default
-const settingsIconUrl = computed(() => themeStore.getUiAsset('icon_settings') || SETTINGS_ICON_URL)
+// All assets are served by the API; while the theme is still loading these
+// resolve to empty strings and the tags just don't render an image.
+const cardBack = computed(() => themeStore.cardBackImage)
+const settingsIconUrl = computed(() => themeStore.getUiAsset('icon_settings'))
 const isIdle = computed(() => tarotStore.isIdle)
 const cardsLoadError = computed(() => tarotStore.cardsLoadError)
 function retryLoadCards() { tarotStore.loadCards() }

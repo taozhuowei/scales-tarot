@@ -1,44 +1,12 @@
 import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
 import path from 'path'
-import fs from 'fs'
-
-function copyDir(src: string, dest: string): void {
-  fs.mkdirSync(dest, { recursive: true })
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const srcPath = path.join(src, entry.name)
-    const destPath = path.join(dest, entry.name)
-    if (entry.isDirectory()) {
-      copyDir(srcPath, destPath)
-    } else if (entry.isFile()) {
-      fs.copyFileSync(srcPath, destPath)
-    }
-  }
-}
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production'
 
-  // The mp-weixin build of vite-plugin-uni only bundles assets that are referenced
-  // through `import` statements. Card backs and icons must ship inside the package
-  // so the mini program works on a real device that cannot reach the dev server,
-  // so we copy `app/src/static/` into the package output ourselves.
-  const isMp = (process.env.UNI_PLATFORM ?? '').startsWith('mp-')
-  const staticCopyPlugin = isMp ? {
-    name: 'scales-tarot-copy-static',
-    apply: 'build' as const,
-    closeBundle() {
-      const inputDir = process.env.UNI_INPUT_DIR
-      const outputDir = process.env.UNI_OUTPUT_DIR
-      if (!inputDir || !outputDir) return
-      const src = path.join(inputDir, 'static')
-      if (!fs.existsSync(src)) return
-      copyDir(src, path.join(outputDir, 'static'))
-    },
-  } : null
-
   return {
-    plugins: [uni(), ...(staticCopyPlugin ? [staticCopyPlugin] : [])],
+    plugins: [uni()],
     envDir: path.resolve(__dirname, '..'),
     resolve: {
       alias: {

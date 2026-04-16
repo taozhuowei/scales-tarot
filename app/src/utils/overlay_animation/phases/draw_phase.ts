@@ -1,14 +1,14 @@
 /**
- * Name: draw_animation
- * Purpose: pure draw animation implementation - card dealing motion only, no orchestration.
- * Reason: allows draw animation to be tested and swapped independently.
- * Data flow: target positions and layout metrics flow in; GSAP tween configs flow out.
+ * Name: draw_phase
+ * Purpose: pure draw animation logic consuming resolved motion/layout bounds.
+ * Reason: no animation step can leave the safe area.
+ * Data flow: target positions and layout metrics flow in; GSAP timeline flows out.
  */
 
 import gsap from 'gsap'
-import type { CenterCardState, InnerState } from './types'
+import type { CenterCardState, InnerState } from '../types'
 
-export interface DrawAnimationConfig {
+export interface DrawPhaseConfig {
   cardCount: number
   cardHeight: number
   stageHeight: number
@@ -18,7 +18,7 @@ export interface DrawAnimationConfig {
   autoRevealDelayMs: number
 }
 
-export interface DrawAnimationContext {
+export interface DrawPhaseContext {
   stage: { y: number }
   initials: { opacity: number; y: number; scale: number; rotation: number }[]
   draws: CenterCardState[]
@@ -36,9 +36,9 @@ export interface DrawAnimationContext {
 /**
  * Build draw phase GSAP timeline.
  */
-export function buildDrawTimeline(
-  context: DrawAnimationContext,
-  config: DrawAnimationConfig,
+export function buildDrawPhase(
+  context: DrawPhaseContext,
+  config: DrawPhaseConfig,
   onComplete: () => void,
 ): gsap.core.Timeline {
   const { initials, draws, inners, drawsVisible, stage, deckCtn } = context
@@ -52,8 +52,6 @@ export function buildDrawTimeline(
     autoRevealDelayMs,
   } = config
 
-  // Per-card durations stay constant — total dealing time is bounded by capping
-  // perCardDelay so adding more cards never balloons the sequence beyond ~2.5s.
   const drawStartTime = 0.88
   const pullDuration = 0.18
   const fallDuration = 0.78
@@ -62,8 +60,6 @@ export function buildDrawTimeline(
   const stageFollowStart = drawStartTime + pullDuration - 0.02
   const deckExitStart = stageFollowStart + 0.06
 
-  // Bounded stagger: total time between first and last card start never exceeds ~1.6s,
-  // regardless of cardCount. With 1 card it's 0; with 10+ cards it shrinks gracefully.
   const dealOverlapBudget = 1.6
   const perCardDelay = cardCount > 1
     ? Math.min(0.34, dealOverlapBudget / (cardCount - 1))
@@ -78,7 +74,6 @@ export function buildDrawTimeline(
 
   const alignTime = lastCardLandingTime + 0.28
 
-  // Same idea for the flip stagger: cap so 5 / 10 / 100 cards all flip within ~2.4s.
   const flipPerCardDuration = 1
   const flipOverlapBudget = 1.4
   const flipStagger = cardCount > 1
@@ -192,11 +187,7 @@ export function buildDrawTimeline(
     ease: 'power3.inOut',
   }, alignTime + 0.1)
 
-  // Note: focus enlargement is handled by CSS (.cards-focused class transition),
-  // not by tweening the GSAP scale. The card slot keeps scale=1 in JS state.
-
-  // Flip — uses bounded flipStagger so total flip time stays close to flipPerCardDuration
-  // even as cardCount grows.
+  // Flip
   timeline.to(inners, {
     rotationY: 180,
     duration: flipPerCardDuration,

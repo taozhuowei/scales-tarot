@@ -19,6 +19,23 @@ API_BASE = ''
 
 export { API_BASE }
 
+/**
+ * Resolve a server-returned asset path into a URL the current platform can load.
+ *
+ * The server now returns origin-relative paths (e.g. /static/themes/.../x.jpeg)
+ * so the payload never bakes in a specific host. Here we wrap them with API_BASE:
+ *   - H5  (API_BASE='')      — stays relative, browser resolves against page origin
+ *   - MP  (API_BASE='https://…') — becomes absolute, works inside the MP runtime
+ *
+ * Inputs that are already absolute (http:/https:) are returned unchanged so
+ * external CDN URLs, when we ever introduce them, pass through.
+ */
+export function resolveAssetUrl(assetPath: string): string {
+  if (!assetPath) return ''
+  if (/^https?:\/\//i.test(assetPath)) return assetPath
+  return `${API_BASE}${assetPath}`
+}
+
 interface RequestOptions<T = Record<string, unknown>> {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   data?: T

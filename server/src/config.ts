@@ -49,10 +49,6 @@ export const config = Object.freeze({
 
   logLevel: process.env.LOG_LEVEL ?? (IS_TEST ? 'silent' : IS_PROD ? 'info' : 'debug'),
 
-  // Base URL used by card_loader / theme_loader to build absolute asset URLs.
-  // In prod this should be the public https origin (e.g. https://tarot.example.com).
-  staticBaseUrl: process.env.STATIC_BASE_URL ?? 'http://localhost:3000',
-
   // Body size limit for POST /api/v1/readings — a full 10-card spread is
   // well under 4 KB; 64 KB leaves ample headroom without inviting abuse.
   jsonBodyLimit: '64kb',

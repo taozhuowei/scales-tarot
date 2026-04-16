@@ -11,18 +11,12 @@ import pentaclesData from '../data/tarot-pentacles.json'
 import swordsData from '../data/tarot-swords.json'
 import wandsData from '../data/tarot-wands.json'
 
-import { config } from '../config'
-import { getDefaultTheme } from './theme_loader'
-
-// Derive tarot image base from default theme; fallback to staticBaseUrl
-function getThemeTarotBase(): string {
-  const theme = getDefaultTheme()
-  if (theme) {
-    // card_back is like http://host/static/themes/golden_dawn/tarot/card_back.jpeg
-    return theme.images.card_back.replace(/\/[^/]+$/, '')
-  }
-  return `${config.staticBaseUrl}/static/themes/golden_dawn/tarot`
-}
+// All image URLs returned from this service are ORIGIN-RELATIVE paths
+// (e.g. /static/themes/golden_dawn/tarot/...). Clients resolve them against
+// their own origin (browser for H5, VITE_API_BASE_URL for mini-program).
+// This avoids cross-origin image loads when the server is reached via an
+// address different from whatever STATIC_BASE_URL would have hard-coded.
+const TAROT_BASE_PATH = '/static/themes/golden_dawn/tarot'
 
 export interface TarotCardMeaning {
   keywords: string[]
@@ -48,12 +42,12 @@ type CardSeed = Omit<TarotCard, 'image'> & { image?: string }
 function buildImageUrl(card: CardSeed): string {
   if (card.type === 'major') {
     const num = String(card.number).padStart(2, '0')
-    return `${getThemeTarotBase()}/major/major_arcana_${num}_${card.id}.jpeg`
+    return `${TAROT_BASE_PATH}/major/major_arcana_${num}_${card.id}.jpeg`
   }
   const suit = card.suit ?? ''
   const num = String(card.number).padStart(2, '0')
   const name = card.nameEn.toLowerCase().replace(/\s+/g, '_')
-  return `${getThemeTarotBase()}/minor/${suit}/minor_arcana_${suit}_${num}_${name}.jpeg`
+  return `${TAROT_BASE_PATH}/minor/${suit}/minor_arcana_${suit}_${num}_${name}.jpeg`
 }
 
 function normalize(seed: CardSeed): TarotCard {
