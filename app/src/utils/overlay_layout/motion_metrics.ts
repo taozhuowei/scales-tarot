@@ -84,7 +84,9 @@ export function resolveMotionMetrics(input: MotionMetricsInput): MotionMetrics {
   const maxPileSpacing = pilesAlongAxis > 1
     ? Math.max(minPileSpacing, (cutAxisAvailable - cutAxisCardSize) / (pilesAlongAxis - 1) - 4)
     : minPileSpacing
-  const targetPileSpacing = cutAxisCardSize + Math.min(gap * 1.4, cutAxisSlackEachSide / 4 + gap)
+  const targetPileSpacing = pilesAlongAxis > 1
+    ? (cutAxisAvailable - cutAxisCardSize) / (pilesAlongAxis - 1) * 0.85
+    : cutAxisCardSize + gap
   const cutPileSpacing = clamp(targetPileSpacing, minPileSpacing, maxPileSpacing)
 
   const halfRange = ((pilesAlongAxis - 1) / 2) * cutPileSpacing

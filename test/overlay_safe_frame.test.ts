@@ -46,8 +46,17 @@ describe('overlay_safe_frame', () => {
     const viewport = makeViewport({ headerBottom: 60, footerReserve: 80 })
     const frame = resolveOverlaySafeFrame('draw_stage', viewport)
 
-    expect(frame.centerYOffset).toBe((frame.topInset - frame.bottomInset) / 2)
+    // Draw stage: centerYOffset shifts up by footerReserve/2 to account for the action bar
+    // that occupies the bottom of the viewport below the stage-container.
+    expect(frame.centerYOffset).toBe((frame.topInset - frame.bottomInset) / 2 + viewport.footerReserve / 2)
     expect(frame.stageCenterY).toBe(frame.centerYOffset)
+  })
+
+  it('does not apply footerReserve offset in result stage', () => {
+    const viewport = makeViewport({ headerBottom: 60, footerReserve: 80 })
+    const frame = resolveOverlaySafeFrame('result_stage', viewport)
+
+    expect(frame.centerYOffset).toBe((frame.topInset - frame.bottomInset) / 2)
   })
 
   it('side inset changes between draw and result stages', () => {

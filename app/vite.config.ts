@@ -38,5 +38,12 @@ export default defineConfig(({ mode }) => {
           }
         : undefined,
     },
+    server: {
+      host: '0.0.0.0',
+      proxy: {
+        '/static': 'http://localhost:3000',
+        '/api': 'http://localhost:3000',
+      },
+    },
   }
 })

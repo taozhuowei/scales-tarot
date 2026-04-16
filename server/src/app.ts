@@ -47,7 +47,13 @@ app.disable('x-powered-by')
 
 // helmet defaults; CSP is turned off here because the SPA inlines GSAP-driven
 // styles and nginx can layer a stricter policy per-deployment.
-app.use(helmet({ contentSecurityPolicy: false }))
+app.use(helmet({
+  contentSecurityPolicy: false,
+  ...(config.isProd ? {} : {
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' as const },
+  }),
+}))
 app.use(compression())
 app.use(express.json({ limit: config.jsonBodyLimit }))
 

@@ -69,7 +69,7 @@
               :key="`pile${pIdx}-${cIdx}`"
               class="tarot-card pile-card"
               :src="controller.cardBack.value"
-              :style="`top: ${-(cIdx - 1) * 1.2}px; left: ${(cIdx - 1) * 0.4}px; z-index: ${cIdx};`"
+              :style="`top: ${-(cIdx - 1) * 2.5}px; left: ${(cIdx - 1) * 0.8}px; z-index: ${cIdx};`"
             />
           </view>
 

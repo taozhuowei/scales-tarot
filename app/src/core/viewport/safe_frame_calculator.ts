@@ -119,7 +119,7 @@ export function resolveSafeFrame(
     width,
     height,
     centerX: 0,
-    centerY: (topInset - bottomInset) / 2,
+    centerY: (topInset - bottomInset) / 2 + (isResult ? 0 : stage.footerReserve / 2),
     bottomInset,
   }
 }
