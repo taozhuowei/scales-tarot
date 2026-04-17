@@ -2,6 +2,8 @@
 
 Scales Tarot 是一个基于 `Vue 3 + uni-app + TypeScript + Express` 的单页塔罗占卜应用。前端负责仪式化抽牌动画和结果展示，后端负责牌库与解读计算，并同时服务 H5 静态产物与 API。
 
+> **当前发布范围**：仅 H5 网站。小程序（mp-weixin）编译目标已保留但不发布，待后续单独立项推进。
+
 ## 项目结构
 
 ```text
@@ -31,14 +33,13 @@ npm start
 npm run dev
 ```
 
-`dev` 会执行这些步骤：
+`dev:h5` 会执行这些步骤：
 
 1. 生成 `.env.development.local`，写入当前局域网 API 地址。
 2. 执行前后端 TypeScript 类型检查。
 3. 以开发模式并行启动：
-   - H5 watch 构建
-   - 微信小程序 watch 构建
-   - `tsx server/src/server.ts` 开发服务
+   - H5 watch 构建（`uni build --watch`）
+   - `tsx server/src/server.ts` 开发服务（同时服务 API 与 H5 静态文件）
 
 ## 测试与校验
 

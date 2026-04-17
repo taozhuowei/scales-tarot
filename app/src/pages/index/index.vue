@@ -13,40 +13,6 @@
         </view>
       </view>
       <view v-if="isIdle && !cardsLoadError" class="idle-view">
-        <!-- Settings button (idle state only) -->
-        <view class="settings-btn" :style="settingsBtnStyle" @click.stop="toggleSettingsPanel">
-          <image
-            class="settings-icon"
-            :src="settingsIconUrl"
-            mode="aspectFit"
-          />
-        </view>
-
-        <!-- Settings panel -->
-        <view v-if="showSettingsPanel" class="settings-panel" :style="settingsPanelStyle" @click.stop>
-          <view class="settings-header">
-            <text class="settings-title">选择牌阵</text>
-            <view class="settings-close" @click.stop="closeSettingsPanel">
-              <text class="close-icon">×</text>
-            </view>
-          </view>
-          <view class="spread-options">
-            <view
-              v-for="opt in spreadOptions"
-              :key="opt.value"
-              class="spread-option"
-              :class="{ active: tarotStore.spreadKind === opt.value }"
-              @click.stop="selectSpread(opt.value)"
-            >
-              <text class="option-label">{{ opt.label }}</text>
-              <text v-if="tarotStore.spreadKind === opt.value" class="option-check">✓</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- Backdrop to close panel when clicking outside -->
-        <view v-if="showSettingsPanel" class="settings-backdrop" @click.stop="closeSettingsPanel"></view>
-
         <!-- Header -->
         <view class="header" :style="{ paddingTop: headerPaddingTop + 'px' }">
           <text class="title font-display" :style="titleStyle">Scales Tarot</text>
@@ -100,7 +66,6 @@ import { gsap } from 'gsap'
 import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'
 import { useThemeStore } from '../../stores/theme'
-import type { SpreadKind } from '../../utils/spread_layout'
 
 const tarotStore = useTarotStore()
 const themeStore = useThemeStore()
@@ -108,42 +73,13 @@ const themeStore = useThemeStore()
 // All assets are served by the API; while the theme is still loading these
 // resolve to empty strings and the tags just don't render an image.
 const cardBack = computed(() => themeStore.cardBackImage)
-const settingsIconUrl = computed(() => themeStore.getUiAsset('icon_settings'))
 const isIdle = computed(() => tarotStore.isIdle)
 const cardsLoadError = computed(() => tarotStore.cardsLoadError)
 function retryLoadCards() { tarotStore.loadCards() }
 
-// Settings panel state
-const showSettingsPanel = ref(false)
-
-// Spread options for settings panel
-const spreadOptions: { value: SpreadKind; label: string }[] = [
-  { value: 'single_card', label: '单牌阵' },
-  { value: 'three_card', label: '三牌阵' },
-  { value: 'cross_spread', label: '十字牌阵' },
-]
-
-function toggleSettingsPanel() {
-  showSettingsPanel.value = !showSettingsPanel.value
-}
-
-function closeSettingsPanel() {
-  showSettingsPanel.value = false
-}
-
-function selectSpread(kind: SpreadKind) {
-  tarotStore.setSpreadKind(kind)
-  // Keep panel open so user can see the selection change, or close it:
-  // closeSettingsPanel()
-}
-
 const headerPaddingTop = ref(20)
-const settingsBtnTop = ref(20)
 const hintOpacity = ref(0)
 const sceneStyle = ref('')
-
-const settingsBtnStyle = computed(() => `top: ${settingsBtnTop.value}px;`)
-const settingsPanelStyle = computed(() => `top: ${settingsBtnTop.value + 84}px;`)
 
 // Header text animation styles - reactive refs bound to :style
 const titleStyle = ref('')
@@ -180,15 +116,9 @@ function calculateLayout() {
     // #ifdef MP-WEIXIN
     const menuButtonRect = uni.getMenuButtonBoundingClientRect()
     headerPaddingTop.value = menuButtonRect.bottom + 8
-    // Settings button must clear the WeChat capsule menu button.
-    settingsBtnTop.value = menuButtonRect.bottom + 12
-    // #endif
-    // #ifdef H5
-    settingsBtnTop.value = (winInfo.safeAreaInsets?.top ?? 0) + 24
     // #endif
   } catch {
     headerPaddingTop.value = 20
-    settingsBtnTop.value = 20
   }
 }
 
@@ -503,145 +433,4 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-/* =========================================
-   Settings panel (homepage idle only)
-   ========================================= */
-.settings-btn {
-  position: absolute;
-  /* top is set inline via JS to clear the WeChat capsule menu button */
-  right: 30rpx;
-  width: 72rpx;
-  height: 72rpx;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.settings-btn:active {
-  transform: scale(0.95);
-}
-
-.settings-icon {
-  width: 40rpx;
-  height: 40rpx;
-  opacity: 0.8;
-  color: var(--color-accent-light, #B8941E);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.settings-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 55;
-  background: rgba(30, 15, 6, 0.2);
-}
-
-.settings-panel {
-  position: absolute;
-  /* top is set inline via JS so the panel sits below the settings button */
-  right: 30rpx;
-  width: 320rpx;
-  z-index: 60;
-  background: var(--color-bg-raised);
-  border: 1rpx solid var(--color-border);
-  border-radius: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgba(30, 15, 6, 0.15);
-  padding: 24rpx;
-  animation: settings-panel-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes settings-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(-12rpx) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20rpx;
-}
-
-.settings-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  letter-spacing: 0.05em;
-}
-
-.settings-close {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 12rpx;
-  transition: background 0.15s ease;
-}
-
-.settings-close:active {
-  background: var(--color-bg-sunken);
-}
-
-.close-icon {
-  font-size: 36rpx;
-  color: var(--color-text-secondary);
-  line-height: 1;
-}
-
-.spread-options {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.spread-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 16rpx;
-  border-radius: 12rpx;
-  background: var(--color-bg-primary);
-  border: 1rpx solid var(--color-border);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.spread-option:active {
-  background: var(--color-bg-sunken);
-}
-
-.spread-option.active {
-  border-color: var(--color-accent);
-  background: var(--color-bg-raised);
-}
-
-.option-label {
-  font-size: 26rpx;
-  color: var(--color-text-primary);
-  letter-spacing: 0.02em;
-}
-
-.option-check {
-  font-size: 24rpx;
-  color: var(--color-accent);
-  font-weight: 600;
-}
 </style>

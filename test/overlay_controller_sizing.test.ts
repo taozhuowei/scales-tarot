@@ -118,7 +118,6 @@ describe('use_overlay_controller result-zone sizing', () => {
     const { useTarotStore } = await import('../app/src/stores/tarot')
 
     const tarotStore = useTarotStore()
-    tarotStore.spreadKind = 'single_card'
     tarotStore.drawnCards = [{ card: makeCard(), position: 'upright' }]
     tarotStore.currentQuestion = 'Test question'
     tarotStore.drawCards = vi.fn() as never

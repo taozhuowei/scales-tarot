@@ -7,13 +7,11 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { drawCards as drawCardsUtil, type DrawnResult, type ReadingResult, type TarotCardInfo } from '../utils/tarotReading'
-import config from '../config.json'
 import { getSpreadCardCount, type SpreadKind } from '../utils/spread_layout'
 
-const SPREAD_KINDS: readonly SpreadKind[] = ['single_card', 'three_card', 'cross_spread']
-const DEFAULT_SPREAD_KIND: SpreadKind = SPREAD_KINDS.includes(config.spreadKind as SpreadKind) 
-  ? (config.spreadKind as SpreadKind) 
-  : 'three_card'
+// Spread kind is fixed to single_card. Extension point: make this reactive when
+// multi-spread selection UI is reintroduced.
+const ACTIVE_SPREAD_KIND: SpreadKind = 'single_card'
 
 import { fetchAllCards } from '../api/cards'
 import { fetchReading } from '../api/readings'
@@ -32,8 +30,8 @@ export const useTarotStore = defineStore('tarot', () => {
   const isReadingLoading = ref(false)
   const readingError = ref<string | null>(null)
 
-  // Runtime spread state (initialized from config, can be changed at runtime)
-  const spreadKind = ref<SpreadKind>(DEFAULT_SPREAD_KIND)
+  // Spread kind is fixed; use computed for extensibility when multi-spread is reintroduced
+  const spreadKind = computed<SpreadKind>(() => ACTIVE_SPREAD_KIND)
   const cardCount = computed(() => getSpreadCardCount(spreadKind.value))
 
   // Track the current reading request to guard against stale responses
@@ -178,16 +176,6 @@ export const useTarotStore = defineStore('tarot', () => {
     invalidateReadingRequest()
   }
 
-  /**
-   * Set the runtime spread kind.
-   * Changes take effect immediately for the next divination run.
-   */
-  function setSpreadKind(kind: SpreadKind) {
-    if (SPREAD_KINDS.includes(kind)) {
-      spreadKind.value = kind
-    }
-  }
-
   return {
     phase,
     drawnCards,
@@ -212,7 +200,6 @@ export const useTarotStore = defineStore('tarot', () => {
     waitForReadingResult,
     drawCardsAndFetchReading,
     getReadingResult,
-    setSpreadKind,
     reset
   }
 })

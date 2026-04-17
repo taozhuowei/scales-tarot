@@ -210,7 +210,6 @@ describe('use_overlay_controller', () => {
     // that exercise the flow. These spies are safe because the tests here
     // don't assert on store side-effects — only on controller outputs.
     const tarotStore = useTarotStore()
-    tarotStore.spreadKind = 'single_card'
     tarotStore.drawnCards = [{ card: makeCard(), position: 'upright' }]
     tarotStore.currentQuestion = 'Test question'
     tarotStore.drawCards = vi.fn() as never

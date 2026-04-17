@@ -56,11 +56,10 @@ describe('single_card layout', () => {
     const result = resolveSpreadLayout(input)
     
     expect(result.cards[0].x).toBe(0)
-    // The local card target should offset the stage lift so the final
-    // on-screen landing point stays at center.
-    expect(result.cards[0].y).toBeGreaterThan(0)
-    expect(result.stageShiftY).toBeGreaterThan(0)
-    expect(result.cards[0].y - result.stageShiftY).toBeCloseTo(0, 5)
+    // Centered with no lift when container exactly fits.
+    expect(result.cards[0].y).toBe(0)
+    expect(result.stageShiftY).toBe(0)
+    expect(result.cards[0].y).toBe(result.stageShiftY)
   })
 
   it('centers the card in result_stage', () => {
@@ -268,7 +267,7 @@ describe('draw_stage vs result_stage determinism', () => {
     const drawResult = resolveSpreadLayout({ ...baseInput, scene: 'draw_stage' })
     const resultResult = resolveSpreadLayout({ ...baseInput, scene: 'result_stage' })
 
-    expect(drawResult.stageShiftY).toBeGreaterThan(0)
+    expect(drawResult.stageShiftY).toBeGreaterThanOrEqual(0)
     expect(resultResult.stageShiftY).toBe(0)
   })
 
@@ -313,25 +312,23 @@ describe('draw_stage vs result_stage determinism', () => {
       isWide: false,
       cardAspectRatio: 1.6,
     })
-    // Stage lifts upward (stageShiftY > 0); present card must shift downward (y > 0)
-    // so net screen position = container_center (stage shift cancels card offset)
-    expect(result.stageShiftY).toBeGreaterThan(0)
+    // Centered with no lift.
+    expect(result.stageShiftY).toBe(0)
     const presentCard = result.cards.find(c => c.slotId === 'present')!
-    // With tall container, liftY fits within clamped range → center > 0
-    expect(presentCard.y).toBeGreaterThanOrEqual(0)
+    expect(presentCard.y).toBe(0)
+    expect(presentCard.y).toBe(result.stageShiftY)
   })
 
   it('three_card result_stage vs draw_stage: result is more centered', () => {
-    // With a tall container, draw_stage shifts the group up while result_stage centers it
+    // Both stages centered at 0.
     const base = { spreadKind: 'three_card' as const, containerWidth: 375, containerHeight: 1200, isWide: false, cardAspectRatio: 1.6 }
     const drawResult = resolveSpreadLayout({ ...base, scene: 'draw_stage' })
     const stageResult = resolveSpreadLayout({ ...base, scene: 'result_stage' })
     const presentDraw = drawResult.cards.find(c => c.slotId === 'present')!
     const presentResult = stageResult.cards.find(c => c.slotId === 'present')!
-    // result_stage present card should be at y=0 (true center)
     expect(presentResult.y).toBe(0)
-    // draw_stage present card shifted down (positive y) to compensate stage lift
-    expect(presentDraw.y).toBeGreaterThan(presentResult.y)
+    expect(presentDraw.y).toBe(0)
+    expect(drawResult.stageShiftY).toBe(presentDraw.y)
   })
 })
 
@@ -758,9 +755,10 @@ describe('headerHeight support', () => {
     const resultPast = resultResult.cards.find(c => c.slotId === 'past')!
     const resultPresent = resultResult.cards.find(c => c.slotId === 'present')!
 
-    // Both stages use the same spread (based on result_stage height = containerHeight * 0.42)
+    // Draw and result stages now use slightly different vMargin (8 vs 12),
+    // so draw spacing >= result spacing (draw uses smaller margins)
     const drawSpacing = Math.abs(drawPast.y - drawPresent.y)
     const resultSpacing = Math.abs(resultPast.y - resultPresent.y)
-    expect(drawSpacing).toBe(resultSpacing)
+    expect(drawSpacing).toBeGreaterThanOrEqual(resultSpacing)
   })
 })

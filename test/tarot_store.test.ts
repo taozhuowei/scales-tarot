@@ -23,12 +23,6 @@ vi.mock('../app/src/api/cards', () => ({
   fetchAllCards: mockFetchAllCards,
 }))
 
-// Mock config.json to use three_card spread for backward compatibility with tests
-vi.mock('../app/src/config.json', () => ({
-  default: { spreadKind: 'three_card' },
-  spreadKind: 'three_card',
-}))
-
 // Helper to create minimal valid TarotCardInfo
 function makeCard(id: string, sentiment: 'positive' | 'negative' | 'neutral' = 'positive'): TarotCardInfo {
   return {
@@ -70,15 +64,15 @@ describe('tarot store - draw and reading flow', () => {
   })
 
   describe('drawCards (synchronous)', () => {
-    it('draws correct number of cards synchronously (spreadKind=three_card)', () => {
+    it('draws correct number of cards synchronously (single_card)', () => {
       const store = useTarotStore()
       store.allCards = MOCK_DECK
 
       // Draw should be synchronous and return immediately
       const drawn = store.drawCards()
 
-      expect(drawn).toHaveLength(3)
-      expect(store.drawnCards).toHaveLength(3)
+      expect(drawn).toHaveLength(1)
+      expect(store.drawnCards).toHaveLength(1)
       // Use toEqual for deep equality comparison
       expect(store.drawnCards).toEqual(drawn)
     })
@@ -110,7 +104,7 @@ describe('tarot store - draw and reading flow', () => {
 
       const drawn = store.drawCards()
       const ids = drawn.map(d => d.card.id)
-      expect(new Set(ids).size).toBe(3)
+      expect(new Set(ids).size).toBe(1)
     })
 
     it('replaces previous drawn cards on subsequent draws', () => {
@@ -123,8 +117,8 @@ describe('tarot store - draw and reading flow', () => {
       store.drawCards()
       const secondIds = store.drawnCards.map(c => c.card.id).sort()
 
-      // The store should contain 3 cards after second draw
-      expect(store.drawnCards).toHaveLength(3)
+      // The store should contain 1 card after second draw
+      expect(store.drawnCards).toHaveLength(1)
       // Cards may be the same or different due to randomness, but structure is valid
       secondIds.forEach(id => {
         expect(MOCK_DECK.some(c => c.id === id)).toBe(true)
@@ -475,7 +469,7 @@ describe('tarot store - draw and reading flow', () => {
       // Use the legacy method
       const result = await store.drawCardsAndFetchReading()
 
-      expect(result).toHaveLength(3)
+      expect(result).toHaveLength(1)
       expect(mockFetchReading).toHaveBeenCalled()
       
       // Wait for the async reading to complete
@@ -484,94 +478,21 @@ describe('tarot store - draw and reading flow', () => {
     })
   })
 
-  describe('runtime spread switching', () => {
-    it('has spreadKind initialized from config default', () => {
+  describe('spreadKind (fixed single_card)', () => {
+    it('spreadKind is always single_card', () => {
       const store = useTarotStore()
-      // Config is mocked to three_card in this test file
-      expect(store.spreadKind).toBe('three_card')
-      expect(store.cardCount).toBe(3)
-    })
-
-    it('setSpreadKind updates runtime spread state', () => {
-      const store = useTarotStore()
-      store.allCards = MOCK_DECK
-
-      // Switch to single_card
-      store.setSpreadKind('single_card')
       expect(store.spreadKind).toBe('single_card')
       expect(store.cardCount).toBe(1)
-
-      // Switch to cross_spread
-      store.setSpreadKind('cross_spread')
-      expect(store.spreadKind).toBe('cross_spread')
-      expect(store.cardCount).toBe(5)
-
-      // Switch back to three_card
-      store.setSpreadKind('three_card')
-      expect(store.spreadKind).toBe('three_card')
-      expect(store.cardCount).toBe(3)
     })
 
-    it('drawCards uses current runtime spreadKind (single_card)', () => {
+    it('spreadKind remains single_card after reset', () => {
       const store = useTarotStore()
       store.allCards = MOCK_DECK
-
-      // Switch to single_card and draw
-      store.setSpreadKind('single_card')
-      const drawn = store.drawCards()
-
-      expect(drawn).toHaveLength(1)
-      expect(store.drawnCards).toHaveLength(1)
-    })
-
-    it('drawCards uses current runtime spreadKind (cross_spread)', () => {
-      const store = useTarotStore()
-      store.allCards = MOCK_DECK
-
-      // Switch to cross_spread and draw
-      store.setSpreadKind('cross_spread')
-      const drawn = store.drawCards()
-
-      expect(drawn).toHaveLength(5)
-      expect(store.drawnCards).toHaveLength(5)
-    })
-
-    it('spread state persists across reset for next run', () => {
-      const store = useTarotStore()
-      store.allCards = MOCK_DECK
-
-      // Set to single_card and do a divination
-      store.setSpreadKind('single_card')
       store.startDivination('Test')
       store.drawCards()
-      expect(store.drawnCards).toHaveLength(1)
-
-      // Reset (simulating "再占一次" back to homepage)
       store.reset()
-
-      // spreadKind should persist for next run
       expect(store.spreadKind).toBe('single_card')
       expect(store.cardCount).toBe(1)
-
-      // Next divination should also draw 1 card
-      store.startDivination('Test 2')
-      store.drawCards()
-      expect(store.drawnCards).toHaveLength(1)
-    })
-
-    it('ignores invalid spread kind values', () => {
-      const store = useTarotStore()
-      
-      // Set a valid spread first
-      store.setSpreadKind('three_card')
-      expect(store.spreadKind).toBe('three_card')
-
-      // Attempt to set an invalid spread (should be ignored)
-      // @ts-expect-error Testing invalid input
-      store.setSpreadKind('invalid_spread')
-      
-      // Should retain previous valid value
-      expect(store.spreadKind).toBe('three_card')
     })
   })
 })
