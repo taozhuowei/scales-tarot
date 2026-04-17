@@ -4,6 +4,10 @@
  * Reason: migrated from utils/overlay_animation/phases/shuffle_phase.ts to consume PhaseContext.
  */
 
+// Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
+// already the minimal build without CSSPlugin/DOM-only APIs. Individual
+// function exports (to, timeline, killTweensOf) are not available from
+// gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
 import type { AnimationTimeline } from '../../animation/types'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../types'

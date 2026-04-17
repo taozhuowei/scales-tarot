@@ -72,6 +72,10 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
+// Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
+// already the minimal build without CSSPlugin/DOM-only APIs. Individual
+// function exports (to, timeline, killTweensOf) are not available from
+// gsap-core. Issue mitigated by gsap-core alias.
 import { gsap } from 'gsap'
 import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'

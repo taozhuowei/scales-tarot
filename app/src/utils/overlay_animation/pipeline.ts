@@ -6,6 +6,10 @@
  * Data flow: ordered phase builders + orchestrator flow in; sequential timeline execution flows out.
  */
 
+// Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
+// already the minimal build without CSSPlugin/DOM-only APIs. Individual
+// function exports (to, timeline, killTweensOf) are not available from
+// gsap-core. Issue mitigated by gsap-core alias.
 import type { gsap } from 'gsap'
 import type { OverlayPhase } from './phase_registry'
 import type { TimelineOrchestrator } from './timeline_orchestrator'

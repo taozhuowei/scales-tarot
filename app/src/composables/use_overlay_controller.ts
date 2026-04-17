@@ -7,6 +7,10 @@
 
 import { computed, nextTick, onMounted, onUnmounted, ref, type Ref } from 'vue'
 import { storeToRefs } from 'pinia'
+// Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
+// already the minimal build without CSSPlugin/DOM-only APIs. Individual
+// function exports (to, timeline, killTweensOf) are not available from
+// gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
