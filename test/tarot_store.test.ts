@@ -138,7 +138,7 @@ describe('tarot store - draw and reading flow', () => {
       const result = await store.startReadingRequest()
 
       expect(mockFetchReading).toHaveBeenCalledTimes(1)
-      expect(mockFetchReading).toHaveBeenCalledWith(drawn)
+      expect(mockFetchReading).toHaveBeenCalledWith(drawn, store.spreadKind)
       expect(result).toEqual(mockResult)
       expect(store.readingResult).toEqual(mockResult)
     })

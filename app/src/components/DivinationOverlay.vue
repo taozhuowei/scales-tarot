@@ -22,7 +22,7 @@
               <image
                 class="phase-step-icon"
                 :class="{ 'phase-step-icon-compensated': idx < 2 }"
-                :src="step.isActive || step.isCompleted ? themeStore.getUiAsset(getPhaseStep(step.phase)?.activeIcon || '') || themeStore.getUiAsset(getPhaseStep(step.phase)?.inactiveIcon || '') : themeStore.getUiAsset(getPhaseStep(step.phase)?.inactiveIcon || '') || themeStore.getUiAsset(getPhaseStep(step.phase)?.activeIcon || '')"
+                :src="getPhaseStepIconSrc(step)"
                 mode="aspectFit"
               />
             </view>
@@ -244,6 +244,21 @@ const playbackRates = [0.25, 0.5, 1, 2] as const
 
 const isWide = ref(false)
 const cardCount = computed(() => getSpreadCardCount(tarotStore.spreadKind))
+
+interface PhaseStepPresentation {
+  phase: OverlayPhase
+  isActive: boolean
+  isCompleted: boolean
+}
+
+function getPhaseStepIconSrc(step: PhaseStepPresentation): string {
+  const phaseStep = getPhaseStep(step.phase)
+  if (!phaseStep) return ''
+  const preferActive = step.isActive || step.isCompleted
+  const primary = preferActive ? phaseStep.activeIcon : phaseStep.inactiveIcon
+  const fallback = preferActive ? phaseStep.inactiveIcon : phaseStep.activeIcon
+  return themeStore.getUiAsset(primary) || themeStore.getUiAsset(fallback)
+}
 
 const phaseStepsForDev = PHASE_STEPS.map(s => ({
   phase: s.phase,
@@ -482,6 +497,12 @@ function handleRetry() {
   bottom: 0;
   left: 0;
   pointer-events: none;
+  transform: translateY(0);
+  transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.show-results .draw-container {
+  transform: translateY(calc(-1 * var(--result-card-lift-y, 0px)));
 }
 
 /* Cut pile: a stage-positioned wrapper that holds cardsPerPile stacked cards. */

@@ -88,4 +88,19 @@ describe('TypewriterText', () => {
     await nextTick()
     expect(wrapper.text()).toBe('W')
   })
+
+  it('completes long text without errors', async () => {
+    const longText = '塔罗牌揭示了你内心深处那股强大的创造性力量正如同泉涌一般不断喷发。'.repeat(10)
+    const wrapper = mount(TypewriterText, {
+      props: {
+        text: longText,
+        startDelay: 0,
+        charInterval: 1,
+      },
+    })
+
+    await vi.advanceTimersByTimeAsync(longText.length + 10)
+    await nextTick()
+    expect(wrapper.text()).toBe(longText)
+  })
 })

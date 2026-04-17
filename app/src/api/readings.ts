@@ -12,10 +12,10 @@ interface ReadingRequestCard {
   position: 'upright' | 'reversed'
 }
 
-export function fetchReading(drawn: DrawnResult[]): Promise<ReadingResult> {
+export function fetchReading(drawn: DrawnResult[], spreadKind: string): Promise<ReadingResult> {
   const cards: ReadingRequestCard[] = drawn.map(d => ({
     cardId: d.card.id,
     position: d.position
   }))
-  return request<ReadingResult>('/api/v1/readings', { method: 'POST', data: { cards } })
+  return request<ReadingResult>('/api/v1/readings', { method: 'POST', data: { cards, spreadKind } })
 }

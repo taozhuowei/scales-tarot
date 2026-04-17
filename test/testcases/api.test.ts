@@ -124,6 +124,7 @@ describe('GET /api/v1/cards', () => {
 
 describe('POST /api/v1/readings', () => {
   const VALID_BODY = {
+    spreadKind: 'three_card',
     cards: [
       { cardId: 'the_fool', position: 'upright' },
       { cardId: 'cups_ace', position: 'upright' },
@@ -164,27 +165,43 @@ describe('POST /api/v1/readings', () => {
   it('returns the_fool score of 7 (major ×1.3 multiplier verified end-to-end)', async () => {
     const res = await request(app)
       .post('/api/v1/readings')
-      .send({ cards: [{ cardId: 'the_fool', position: 'upright' }] })
+      .send({ spreadKind: 'single_card', cards: [{ cardId: 'the_fool', position: 'upright' }] })
     expect(res.body.score).toBe(7)
     expect(res.body.result).toBe('positive')
   })
 
   it('returns 400 when cards array is empty', async () => {
-    const res = await request(app).post('/api/v1/readings').send({ cards: [] })
+    const res = await request(app).post('/api/v1/readings').send({ spreadKind: 'three_card', cards: [] })
     expect(res.status).toBe(400)
     expect(typeof res.body.error).toBe('string')
   })
 
   it('returns 400 when cards field is missing', async () => {
-    const res = await request(app).post('/api/v1/readings').send({})
+    const res = await request(app).post('/api/v1/readings').send({ spreadKind: 'three_card' })
     expect(res.status).toBe(400)
     expect(typeof res.body.error).toBe('string')
+  })
+
+  it('returns 400 when spreadKind is missing', async () => {
+    const res = await request(app)
+      .post('/api/v1/readings')
+      .send({ cards: [{ cardId: 'the_fool', position: 'upright' }] })
+    expect(res.status).toBe(400)
+    expect(typeof res.body.error).toBe('string')
+  })
+
+  it('returns 400 when spreadKind card count mismatches', async () => {
+    const res = await request(app)
+      .post('/api/v1/readings')
+      .send({ spreadKind: 'three_card', cards: [{ cardId: 'the_fool', position: 'upright' }] })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/requires exactly 3 cards/)
   })
 
   it('returns 422 when a card id does not exist', async () => {
     const res = await request(app)
       .post('/api/v1/readings')
-      .send({ cards: [{ cardId: 'not_a_real_card', position: 'upright' }] })
+      .send({ spreadKind: 'single_card', cards: [{ cardId: 'not_a_real_card', position: 'upright' }] })
     expect(res.status).toBe(422)
     expect(res.body.error).toMatch('not_a_real_card')
   })

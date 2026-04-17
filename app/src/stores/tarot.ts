@@ -115,7 +115,7 @@ export const useTarotStore = defineStore('tarot', () => {
     readingError.value = null
 
     pendingReadingPromise = (async () => {
-      const result = await fetchReading(drawn)
+      const result = await fetchReading(drawn, spreadKind.value)
 
       if (requestId !== currentReadingRequestId.value) {
         return null

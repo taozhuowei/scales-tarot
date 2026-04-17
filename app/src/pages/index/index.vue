@@ -202,12 +202,25 @@ function startDeckAnimation() {
   idleTimeline.to({}, { duration: 1.0 })
 }
 
-let isStartingDivination = false
+const isStartingDivination = ref(false)
 
 function handleDeckClick() {
-  // Prevent double-trigger during transition
-  if (isStartingDivination || tarotStore.isAnimating) return
-  isStartingDivination = true
+  // Prevent double-trigger during transition with a reactive lock + debounce
+  if (isStartingDivination.value || tarotStore.isAnimating) return
+  isStartingDivination.value = true
+
+  // Safety release: ensure the lock is always cleared even if animations are interrupted.
+  const safetyTimer = setTimeout(() => {
+    isStartingDivination.value = false
+  }, 2000)
+
+  // Auto-release lock after animations settle to prevent stale state
+  const releaseLock = () => {
+    clearTimeout(safetyTimer)
+    setTimeout(() => {
+      isStartingDivination.value = false
+    }, 300)
+  }
 
   // Start divination immediately - don't wait for animations
   tarotStore.startDivination('')
@@ -236,14 +249,15 @@ function handleDeckClick() {
         ease: 'power2.in',
         onUpdate: () => {
           sceneStyle.value = `transform: scale(${_scene.scale}) translateY(${_scene.y}px); opacity: ${_scene.opacity};`
-        }
+        },
+        onComplete: releaseLock,
       })
-    }
+    },
   })
 }
 
 function restartDivination() {
-  isStartingDivination = false
+  isStartingDivination.value = false
   tarotStore.reset()
   nextTick(() => {
     uni.pageScrollTo({ scrollTop: 0, duration: 0 })

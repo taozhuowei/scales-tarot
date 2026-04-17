@@ -147,10 +147,30 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     return 1
   })
 
-  // Enhanced overlay vars style: includes --card-focus-scale so the template's
-  // single :style binding on .divination-overlay propagates it into CSS.
+  // Compute how far to lift the drawn cards when the result panel opens,
+  // so the bottom card isn't occluded by the result sheet.
+  const resultCardLiftY = computed(() => {
+    if (!showResults.value || deps.isWide.value) return 0
+    try {
+      const drawLayout = getSceneLayout('draw_stage')
+      const resultLayout = getSceneLayout('result_stage')
+      const drawBottom = Math.max(...drawLayout.cards.map(c => c.y + c.height / 2))
+      const resultBottom = Math.max(...resultLayout.cards.map(c => c.y + c.height / 2))
+      const margin = 16
+      const lift = drawBottom - resultBottom + margin
+      // Cap the lift so we never shove cards up past the progress header.
+      const { windowHeight } = uni.getWindowInfo()
+      const maxLift = Math.max(0, windowHeight * 0.28)
+      return Math.max(0, Math.min(lift, maxLift))
+    } catch {
+      return 0
+    }
+  })
+
+  // Enhanced overlay vars style: includes --card-focus-scale and --result-card-lift-y
+  // so the template's single :style binding on .divination-overlay propagates them into CSS.
   const overlayVarsStyle = computed(() =>
-    `${_rawOverlayVarsStyle.value}; --card-focus-scale: ${cardFocusScaleValue.value}`,
+    `${_rawOverlayVarsStyle.value}; --card-focus-scale: ${cardFocusScaleValue.value}; --result-card-lift-y: ${resultCardLiftY.value}px`,
   )
 
   const progressHeaderPresentation = computed(() =>

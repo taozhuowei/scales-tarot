@@ -67,5 +67,6 @@ onUnmounted(() => {
 .typewriter-text {
   display: block;
   white-space: pre-wrap;
+  contain: content;
 }
 </style>

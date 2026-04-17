@@ -13,7 +13,7 @@ export class OfflineReadingProvider implements ReadingProvider {
   readonly type = 'offline' as const
 
   async requestReading(request: ReadingRequest): Promise<ReadingResult> {
-    return fetchReading(request.cards)
+    return fetchReading(request.cards, request.spreadKind)
   }
 
   isAvailable(): boolean {
