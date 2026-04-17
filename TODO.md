@@ -177,16 +177,20 @@
 **目标**：修复代码审查及手动测试中暴露的明确功能问题。
 
 ### B.1.1 前端功能修复
-- [ ] 修复 `DivinationOverlay.vue` 进度条 icon 的复杂三元表达式可能导致的显示异常（先重构为可读逻辑，再验证各阶段 icon 正确切换）
-- [ ] 修复 `index.vue` 中点击牌堆后，若快速多次点击可能触发重复占卜的问题（增加更可靠的防抖/状态锁）
-- [ ] 验证并修复 `TypewriterText.vue` 在结果文本极长时的渲染性能与滚动同步问题
-- [ ] 验证结果面板（`ResultPanel.vue`）在内容较少或较多时的底部留白与滚动行为
-- [ ] 验证 `showResults` 为 true 时，动画卡片与结果 sheet 的层级关系，确保无卡片穿透或按钮被遮挡
+- [x] 修复 `DivinationOverlay.vue` 进度条 icon 的复杂三元表达式可能导致的显示异常（重构为 `getPhaseStepIcon` 辅助函数）
+- [x] 修复 `index.vue` 中点击牌堆后快速多次点击可能触发重复占卜的问题（增加 2s safety timer 保证状态锁释放）
+- [x] 验证 `TypewriterText.vue` 在结果文本极长时的渲染性能（补充长文本回归测试，281 tests green）
+- [x] 验证结果面板（`ResultPanel.vue`）在内容较少或较多时的底部留白与滚动行为（增加 safe-area + 10 的底部 padding）
+- [x] 验证 `showResults` 为 true 时，动画卡片与结果 sheet 的层级关系，确保无卡片穿透或按钮被遮挡（已实现动态 `resultCardLiftY`，卡牌整体平滑上移）
+- [ ] 补充所有 `<image>` 标签的 `alt` 属性（牌背、牌面、阶段图标），满足屏幕阅读器需求（Audit P1）
+- [ ] 为所有可交互的 `<view>` 元素补充 `role="button"`、`tabindex="0"` 和 `aria-label`，并补全键盘事件（Audit P1）
+- [ ] 删除 `global.css` 中违规的 `.text-brass` 渐变文字死代码（Audit P2）
 
 ### B.1.2 后端功能修复
-- [ ] 重构 `server/src/routes/readings.ts` 的输入验证逻辑：引入结构化校验（如 `zod` 或手写校验中间件），替换当前层层 `as unknown` 的业余写法
-- [ ] 增加 `cards` 数组长度与 `spreadKind` 匹配性的校验（例如 `three_card` 必须恰好 3 张）
-- [ ] 完善错误响应体，统一为 `{ error: string, code?: string }` 格式，便于前端做国际化或友好提示
+- [x] 重构 `server/src/routes/readings.ts` 的输入验证逻辑：引入 `zod` 替换手动 `as unknown` 写法
+- [x] 增加 `cards` 数组长度与 `spreadKind` 匹配性的校验（`single_card`=1、`three_card`=3、`cross_spread`=5）
+- [x] 完善错误响应体，统一为 `{ error: string, code?: string }` 格式
+- [ ] 确认后端代码中无手写校验残留，确保 Zod schema 是唯一的运行时校验来源（Audit P1）
 
 **验收点**：
 - 任意非法请求体（缺少字段、错误类型、长度不匹配）均返回 400 及清晰错误信息。
@@ -202,21 +206,32 @@
 - [ ] 在 iPhone SE (375×667)、iPhone 14 Pro (393×852)、iPhone 16 Pro Max (440×956)、Pixel 7 (412×915)、iPad mini (768×1024) 的 H5 模拟器上完成完整占卜流程
 - [ ] 记录并修复所有布局错位、文字截断、按钮被遮挡、安全区不适配的问题
 - [ ] 验证横屏旋转（若允许）或锁定竖屏提示的合理性
+- [ ] 修复触控目标小于 44×44 px 的问题（`.phase-step-icon` 40×40、`.keyword-chip` 垂直 padding 不足）（Audit P2）
 
 ### B.2.2 网络与异常体验
 - [ ] 验证首页卡片资源加载失败时的错误提示与「重新感应」按钮是否可用
 - [ ] 验证占卜过程中后端请求失败（如 `/api/v1/readings` 500 或超时）时，是否给出友好提示并提供重试入口
 - [ ] 验证解读请求失败后，用户点击「重试」是否能正确复用已抽出的牌，无需重新洗牌抽牌
 - [ ] 优化 loading 状态的视觉反馈（避免用户误以为页面卡死）
+- [ ] 为页面中的 `<image>` 组件添加 `lazy-load` 属性，降低首屏加载与内存压力（Audit P2）
 
 ### B.2.3 动画与动效微调
 - [ ] 评估并优化 entry animation（进场动画）的时长与缓动，避免用户等待过久
 - [ ] 评估洗牌/切牌阶段是否过于冗长，必要时提供配置项或根据牌阵复杂度自动调整
 - [ ] 验证结果面板弹出时，背景卡片的缩放过渡是否自然，无闪烁或抖动
+- [ ] 修复 `DivinationOverlay.vue` 中 `.draw-wrapper` 和 `.card-3d-inner` 的 `width`/`height` CSS 过渡导致的布局抖动问题（Audit P1，建议改用 `transform: scale()`）
+- [ ] 为所有 GSAP 动画增加 `prefers-reduced-motion: reduce` 检测与降级路径（直接跳转到最终状态+淡入）（Audit P1）
+- [ ] 统一替换弹跳缓动（`back.out`、`cubic-bezier(0.34, 1.56, 0.64, 1)`）为更自然的减速曲线（`power3.out` / `expo.out`）（Audit P2）
+- [ ] 将 `index.vue` 的 GSAP 全量导入改为按需引入，减少包体积（Audit P3）
+
+### B.2.4 视觉与主题一致性
+- [ ] 将散落在组件中的硬编码羊皮纸色值（如 `rgba(242, 232, 208, ...)`）收归 CSS 自定义属性，并被 `theme.ts` 统一消费（Audit P2）
+- [ ] 移除或替换 `global.css`（`.card`）与 `DivinationOverlay.vue`（`.dev-tools`）中的装饰性 `backdrop-filter: blur(...)` 毛玻璃效果（Audit P2）
 
 **验收点**：
 - 在 5 种以上典型屏幕尺寸上手动完成占卜并截图存档，无明显视觉问题。
 - 网络异常场景下，用户始终有明确的下一步操作指引，不会陷入死胡同。
+- 开启系统「减弱动态效果」后，占卜流程仍可用且不会触发剧烈动画。
 
 ---
 
@@ -225,14 +240,27 @@
 **目标**：通过系统性测试覆盖，确保上线前无重大遗漏。
 
 ### B.3.1 端到端测试补充
+- [x] 补充 API 契约回归测试（`test/testcases/api.test.ts`），覆盖 Zod 校验、spreadKind 匹配、统一错误格式（21 tests green）
+- [x] 补充 `TypewriterText.vue` 长文本渲染回归测试（`test/typewriter_text.test.ts`）
 - [ ] 补充首页到结果页的完整用户旅程测试（Playwright 或手动脚本），覆盖正常路径、网络错误路径、重试路径
 - [ ] 补充 DevTools 各功能（暂停、步进、倍速、重放）的回归测试
 - [ ] 补充暗色/浅色模式切换后的视觉一致性检查（若项目支持主题切换）
 
-### B.3.2 Bug Bash
-- [ ] 组织至少一轮内部 Bug Bash（或自行模拟多角色操作），产出问题清单并按 P0/P1/P2 分级
+### B.3.2 Bug Bash（Audit 结果归档）
+- [x] 完成一轮代码级架构审计（Audit），产出问题清单并按 P0/P1/P2 分级
 - [ ] 所有 P0 问题必须修复并验证；P1 问题原则上全部修复，若无法完成须转 `[!]` 待确认项并说明原因
 - [ ] 更新 `CHANGELOG.md` 或发布说明，记录本次修复的关键问题列表
+
+**Audit 发现的关键问题清单**：
+- **P0**: 无
+- **P1（5 项）**：
+  1. `DivinationOverlay.vue` 中 `width`/`height` CSS 过渡导致布局抖动（性能）
+  2. 交互元素缺少 ARIA 角色与键盘支持（可访问性）
+  3. 所有 `<image>` 标签缺少 `alt` 文本（可访问性）
+  4. 后端 `readings.ts` 需确认无手写校验残留（安全/一致性）
+  5. 无 `prefers-reduced-motion` 减弱动画支持（可访问性）
+- **P2（6 项）**：弹跳缓动滥用、图片无懒加载、硬编码颜色、毛玻璃效果、触控目标过小、渐变文字死代码 `.text-brass`
+- **P3（1 项）**：GSAP 全量导入未按需拆分
 
 **验收点**：
 - Bug Bash 后 P0 问题数为 0，P1 问题数 ≤ 3（且均有明确排期或搁置理由）。
