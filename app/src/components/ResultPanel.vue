@@ -1,5 +1,5 @@
 <template>
-  <view class="reading-panel" :class="viewModel.toneClass" data-testid="result-shell">
+  <view class="reading-panel" role="region" aria-label="占卜结果" aria-live="polite" :class="viewModel.toneClass" data-testid="result-shell">
     <view class="result-hero" data-testid="result-hero">
       <TypewriterText
         class="eyebrow font-display text-sm"
@@ -30,6 +30,8 @@
         v-for="(detail, index) in viewModel.cardDetails"
         :key="`${detail.card.name}-${detail.position}-${index}`"
         class="meaning-item"
+        role="article"
+        :aria-label="detail.card.name + ' - ' + detail.positionLabel"
       >
         <TypewriterText
           class="meaning-card-name font-body"
