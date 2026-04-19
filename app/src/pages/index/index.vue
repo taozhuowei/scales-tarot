@@ -136,8 +136,6 @@ const _scene = { scale: 1, y: 0, opacity: 1 }
 const _hint = { opacity: 0 }
 
 let winHeight = 667
-let winWidth = 375
-let spreadFactor = 1
 
 function updateCardsStyle() {
   cardsStyle.value = _cards.map(c => ({ transform: `translate3d(${c.x}px, ${c.y}px, 0) rotate(${c.rotation}deg) scale(${c.scale})`, willChange: _cardsAnimating ? "transform" : "auto" }))
@@ -147,8 +145,6 @@ function calculateLayout() {
   try {
     const winInfo = uni.getWindowInfo()
     winHeight = winInfo.windowHeight
-    winWidth = winInfo.windowWidth
-    spreadFactor = winWidth / 375
     // #ifdef H5
     headerPaddingTop.value = Math.max(20, winInfo.safeArea?.top || 20)
     // #endif

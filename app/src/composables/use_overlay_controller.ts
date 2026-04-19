@@ -21,7 +21,7 @@ import {
   createTimelineOrchestrator,
   killAnimationTargets,
   createPhasePipeline,
-  getDefaultPhaseOrder,
+
   getPhaseIndex,
 } from '../utils/overlay_animation'
 import {
@@ -31,7 +31,6 @@ import {
   presentFooter,
   DEFAULT_OVERLAY_TEXT,
 } from '../utils/overlay_progress'
-import type { SceneLayoutResult } from '../core/layout/scene_layout'
 import { buildOverlaySafeFrame, getFocusScale } from '../utils/overlay_layout/index'
 import { OfflineReadingProvider } from '../utils/reading/offline_reading_provider'
 import { createReadingOrchestrator } from '../utils/reading/reading_orchestrator'
@@ -51,7 +50,6 @@ const MAX_CUT_PILES = 8
 const AUTO_REVEAL_DELAY_MS = 800
 const ENTRY_TO_SHUFFLE_DELAY_MS = 300
 
-const RESULT_SHEET_FRACTION = 0.30
 const RESULT_LIFT_MARGIN_PX = 16
 const RESULT_LIFT_MAX_FRACTION = 0.28
 const DECK_COUNT: number = (overlayConfig as { deckCount?: number }).deckCount ?? 12
@@ -124,7 +122,8 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     drawsStyle, drawsSizeStyle, innersStyle,
     overlayVarsStyle: _rawOverlayVarsStyle,
     refreshBg, refreshStage, refreshHeader, refreshFooter, refreshDeckCtn,
-    refreshInitials, refreshLefts, refreshRights, refreshPiles, refreshDraws, refreshInners,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  refreshInitials, refreshLefts, refreshRights, refreshPiles, refreshDraws, refreshInners,
     resetShuffleVisualState, resetCutVisualState, resetDrawVisualState, resetInitialDeckState,
     setDrawCardSizes,
     getAllTargets,
@@ -617,7 +616,7 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
   // Resize handling
   let resizeHandler: ((res: UniApp.WindowResizeResult) => void) | null = null
 
-  function checkHeight(windowHeight: number) {
+  function checkHeight(_windowHeight: number) {
     if (showResults.value || phase.value === 'drawing' || phase.value === 'revealing') {
       nextTick(() => updateLayout())
     }

@@ -5,6 +5,7 @@
  * Data flow: text and timing config flow in; display state updates flow out via callbacks.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { prefersReducedMotion } from '../accessibility'
 
 export interface TypewriterConfig {

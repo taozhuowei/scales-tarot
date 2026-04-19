@@ -14,7 +14,7 @@ export function prefersReducedMotion(): boolean {
 }
 
 // #ifdef H5
-/* eslint-disable no-restricted-globals, no-undef */
+/* eslint-disable no-restricted-globals */
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
@@ -53,5 +53,5 @@ export function trapFocus(container: HTMLElement, event: KeyboardEvent): void {
     }
   }
 }
-/* eslint-enable no-restricted-globals, no-undef */
+/* eslint-enable no-restricted-globals */
 // #endif

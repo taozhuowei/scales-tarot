@@ -42,6 +42,7 @@ export function createReadingOrchestrator(deps: ReadingOrchestratorDeps): Readin
   const { provider, statusRef, resultRef, errorRef, errorMessage } = deps
   let currentRequest: Promise<ReadingResult | null> | null = null
   let lastRequest: ReadingRequest | null = null
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let destroyed = false
   const pendingTimers: ReturnType<typeof setTimeout>[] = []
 

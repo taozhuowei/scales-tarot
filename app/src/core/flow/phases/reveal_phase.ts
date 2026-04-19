@@ -33,7 +33,7 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
   return {
     name: 'revealing' as OverlayPhase,
     run(context: PhaseContext, onComplete: () => void): AnimationTimeline {
-      const { draws, inners } = context.cardElements
+      const { draws } = context.cardElements
       const { draws: drawsVisible } = context.visible
       const { cardCount, drawLayout } = config
       const targetX = drawLayout.cards.map((c) => c.x)

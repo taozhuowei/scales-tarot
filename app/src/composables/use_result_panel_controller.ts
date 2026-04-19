@@ -10,8 +10,6 @@ import type { ReadingResult } from '../utils/tarotReading'
 import {
   presentReadingResult,
   presentResultHero,
-  presentCardDetail,
-  type ReadingResultViewModel,
   type ResultHeroViewModel,
   type CardDetailViewModel,
 } from '../utils/reading/reading_result_presenter'

@@ -6,7 +6,7 @@
  */
 
 import type { OverlayPhase } from '../overlay_animation/phase_registry'
-import { getPhaseStep, getPhaseSteps } from '../overlay_animation/phase_registry'
+import { getPhaseSteps } from '../overlay_animation/phase_registry'
 
 export interface ProgressBarItem {
   phase: OverlayPhase

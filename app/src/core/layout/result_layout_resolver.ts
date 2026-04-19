@@ -43,7 +43,7 @@ function resolveGenericResult(
   zIndexes?: Record<string, number>,
 ): ResultLayoutResult {
   const { height: containerHeight } = safeFrame
-  const { width: cardWidth, height: cardHeight, gap } = cardSize
+  const { width: cardWidth, height: cardHeight } = cardSize
 
   const maxSlotY = Math.max(...slots.map(s => s.y), 0)
   const minSlotY = Math.min(...slots.map(s => s.y), 0)

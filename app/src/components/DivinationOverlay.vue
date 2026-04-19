@@ -300,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
 import ResultPanel from './ResultPanel.vue'
@@ -407,12 +407,11 @@ function handleRetry() {
 const overlayRef = ref<HTMLElement | null>(null)
 let previousFocusEl: Element | null = null
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handleOverlayKeydown(e: KeyboardEvent) {
   /* eslint-enable no-undef */
   if (!overlayRef.value) return
-  /* eslint-disable no-restricted-globals */
   trapFocus(overlayRef.value, e)
-  /* eslint-enable no-restricted-globals */
 }
 
 onMounted(() => {
@@ -420,12 +419,10 @@ onMounted(() => {
   previousFocusEl = document.activeElement
   /* eslint-enable no-restricted-globals, no-undef */
   nextTick(() => {
-    /* eslint-disable no-restricted-globals, no-undef */
     if (overlayRef.value) {
       const focusable = getFocusableElements(overlayRef.value)
       if (focusable.length > 0) focusable[0].focus()
     }
-    /* eslint-enable no-restricted-globals, no-undef */
   })
 })
 

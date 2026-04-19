@@ -10,7 +10,7 @@ import { resolveSafeFrame, resolveStageMetrics, getDefaultInsets } from '../view
 import type { SpreadId, SpreadScene, CardEnvelope } from '../../utils/overlay_layout/spread_spec'
 import { resolveCardSize as resolveCoreCardSize } from '../sizing/card_size_solver'
 import { resolveDrawLayout, type DrawLayoutResult } from './draw_layout_resolver'
-import { resolveResultLayout, type ResultLayoutResult } from './result_layout_resolver'
+import { resolveResultLayout } from './result_layout_resolver'
 import { getSpreadSlots, resolveSpreadSpec, getSpreadCardCount } from './spread_registry'
 import { getBuiltInEnvelopeRequirement } from '../../utils/overlay_layout/spread_spec'
 import { resolveSpreadSlots } from './spread_layout_calculator'
