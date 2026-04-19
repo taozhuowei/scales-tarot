@@ -5,6 +5,8 @@
  * Data flow: text and timing config flow in; display state updates flow out via callbacks.
  */
 
+import { prefersReducedMotion } from '../accessibility'
+
 export interface TypewriterConfig {
   text: string
   startDelay?: number
