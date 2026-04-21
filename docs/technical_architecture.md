@@ -225,9 +225,15 @@ cd test && npx vitest run
 - `npm ci`
 - `npm run quality`
 
+安全与构建告警策略（G0.5 已补齐）：
+
+- `npm audit` 阻断门禁：`--omit=dev --audit-level=high`（仅阻断 high/critical）
+- 上游 moderate 风险白名单：`docs/AUDIT_WAIVER.md`，按月复查
+- 信息查看命令：`npm run quality:audit:info`（`--audit-level=moderate`，不阻断 CI）
+- H5 生产构建当前无字体告警，无需额外处置
+
 后续主线需要补齐：
 
-- `npm audit` 阈值与上游风险白名单策略
 - 回归验收阶段的脚本化 E2E 与人工验证证据沉淀
 
 ### 10.5 部署治理边界

@@ -13,6 +13,7 @@ const stepsByMode = {
   ],
   staged: [
     { label: 'lint:fix', command: 'npm', args: ['run', 'quality:lint:fix'] },
+    { label: 'type-check', command: 'npm', args: ['run', 'quality:type-check'] },
     { label: 'git add', command: 'git', args: ['add', '-u'] },
   ],
 }

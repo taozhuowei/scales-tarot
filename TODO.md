@@ -22,10 +22,10 @@
 
 ## 已确认的门禁缺口与异常
 
-- [!] 安全门禁阈值与现状不匹配：`npm audit --omit=dev --audit-level=high` 未拦截当前 `esbuild` 链路漏洞，现状仍有上游 `@dcloudio` 依赖带来的风险。
-- [!] 产品口径与实现不一致：`PRD.md` 仍声明支持 `single_card`、`three_card`、`cross_spread`，但 `app/src/stores/tarot.ts` 仍将 `spreadKind` 固定为 `single_card`，对应测试也在固化该行为。
-- [!] 发布配置与主线不一致：`app/src/manifest.json` 仍硬编码 `mp-weixin.appid`，并保留相机权限；与当前 H5 主线不对齐。
-- [!] 可访问性逻辑未真正接线：`DivinationOverlay.vue` 中已有 `overlayRef` / `handleOverlayKeydown` / `trapFocus`，但模板未绑定根节点 `ref` 与对应键盘事件。
+- [x] 安全门禁阈值已明确：`npm audit --omit=dev --audit-level=high` 为阻断门禁；13 个 esbuild moderate 漏洞已评估并接受进入白名单，复查日期 2026-05-21。详见 `docs/AUDIT_WAIVER.md`。
+- [!] 产品口径与实现不一致：`PRD.md` 仍声明支持 `single_card`、`three_card`、`cross_spread`，但 `app/src/stores/tarot.ts` 仍将 `spreadKind` 固定为 `single_card`，对应测试也在固化该行为。（**移至 G1.1 处理**）
+- [!] 发布配置与主线不一致：`app/src/manifest.json` 仍硬编码 `mp-weixin.appid`，并保留相机权限；与当前 H5 主线不对齐。（**移至 G1.3 处理**）
+- [!] 可访问性逻辑未真正接线：`DivinationOverlay.vue` 中已有 `overlayRef` / `handleOverlayKeydown` / `trapFocus`，但模板未绑定根节点 `ref` 与对应键盘事件。（**移至 G1.2 处理**）
 
 ## G0 质量门禁补齐
 
@@ -57,12 +57,19 @@
 - 验收点：组件测试通过且无未处理 warning；`DivinationOverlay` 相关测试结果干净。
 - 验收策略：运行 `npm test`，检查 `divination_overlay_a6.test.ts` 与相关组件测试输出为无 warning 通过。
 
-### [ ] G0.5 明确安全与构建告警策略
+### [x] G0.5 明确安全与构建告警策略
 
 - 目标：把安全漏洞和构建告警从“知道有问题”变成“有结论、有处理路径”。
-- 处理：决定 `npm audit` 阈值、上游依赖风险白名单、复查日期；定义 H5 构建字体告警是必须修复还是允许带说明发布。
+- 处理：
+  - `npm audit` 阻断门禁保持 `--audit-level=high`（仅阻断 high/critical）
+  - 13 个 esbuild moderate 漏洞（GHSA-67mh-4wv8-2f99）经风险评估后接受进入白名单：`docs/AUDIT_WAIVER.md`
+  - 风险分析：仅影响开发服务器，生产构建无暴露面；上游 `@dcloudio` 无修复版本，强制 fix 为 breaking change
+  - 复查日期：2026-05-21
+  - 新增 `npm run quality:audit:info`（`--audit-level=moderate`）供信息查看，不阻断 CI
+  - H5 构建无字体告警，无需额外处置
 - 验收点：安全风险和构建告警都有明确门禁标准；没有默认忽略项。
 - 验收策略：运行 `npm audit --omit=dev` 与 `npm run build:h5`，将当前输出和处置结论写回文档 / 配置。
+- 验收证据：`docs/AUDIT_WAIVER.md` 已建立；`npm run quality:audit` 通过；`npm run quality:audit:info` 可查看 moderate 详情。
 
 ## G1 问题修复
 
