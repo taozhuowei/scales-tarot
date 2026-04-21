@@ -7,6 +7,7 @@
   },
   "scripts": {
     "start": "npm run dev",
+    "prepare": "simple-git-hooks",
     "dev": "node scripts/dev_env.js && npm run type-check && concurrently --kill-others-on-fail -n h5,mp,server \"cross-env NODE_ENV=development UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build --watch --mode development --config app/vite.config.ts\" \"cross-env NODE_ENV=development UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js build -p mp-weixin --watch --mode development --config app/vite.config.ts\" \"cross-env NODE_ENV=development tsx server/src/server.ts\"",
     "dev:h5": "node scripts/dev_env.js && npm run type-check && concurrently --kill-others-on-fail -n h5,server \"cross-env NODE_ENV=development UNI_INPUT_DIR=app/src VITE_ROOT_DIR=app node node_modules/@dcloudio/vite-plugin-uni/bin/uni.js --mode development --config app/vite.config.ts\" \"cross-env NODE_ENV=development tsx server/src/server.ts\"",
     "type-check": "vue-tsc --noEmit -p app/tsconfig.json && tsc --noEmit -p server/tsconfig.json",
@@ -18,7 +19,17 @@
     "build:h5": "npm run type-check && npm run build:app:h5 && npm run build:server",
     "start:prod": "cross-env NODE_ENV=production node server/dist/server.js",
     "test": "npm run test -w test",
-    "lint": "eslint app/src/"
+    "lint": "eslint app/src/ server/src/ test/",
+    "quality:type-check": "npm run type-check",
+    "quality:lint": "npm run lint",
+    "quality:lint:fix": "eslint --fix --cache app/src/ server/src/ test/",
+    "quality:test": "npm test",
+    "quality:build:h5": "npm run build:app:h5 && npm run build:server",
+    "quality:build:server": "npm run build:server",
+    "quality:audit": "npm audit --omit=dev --audit-level=high",
+    "arch:check": "depcruise app/src server/src test --config .dependency-cruiser.js",
+    "quality": "node scripts/quality_gate.js full",
+    "quality:staged": "node scripts/quality_gate.js staged"
   },
   "workspaces": [
     "app",

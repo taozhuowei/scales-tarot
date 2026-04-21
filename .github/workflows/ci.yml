@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, feature-simplify]
+    branches: ['**']
   pull_request:
+    branches: ['**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,11 +29,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npm run type-check
-
-      - name: Unit tests
-        run: npm test
-
-      - name: Build (H5 + server)
-        run: npm run build:h5
+      - name: Quality Gate
+        run: npm run quality

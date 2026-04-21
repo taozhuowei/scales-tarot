@@ -223,8 +223,8 @@ export function getTheme(themeId: string): ThemeData | undefined {
   try {
     const content = fs.readFileSync(themeJsonPath, 'utf-8')
     rawData = JSON.parse(content) as RawThemeData
-  } catch (error) {
-    throw new Error(`Failed to parse theme.json for theme '${themeId}': ${error}`)
+  } catch (error: unknown) {
+    throw new Error(`Failed to parse theme.json for theme '${themeId}'`, { cause: error })
   }
 
   // Resolve all paths and construct ThemeData

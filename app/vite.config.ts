@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production'
 
   return {
+    publicDir: path.resolve(__dirname, '../server/public'),
     plugins: [uni()],
     envDir: path.resolve(__dirname, '..'),
     resolve: {

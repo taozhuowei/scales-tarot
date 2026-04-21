@@ -202,10 +202,7 @@ Browser (H5)
 ### 10.2 常用命令
 
 ```bash
-npm run type-check
-npm run lint
-npm test -w test
-npm run build:h5
+npm run quality
 ```
 
 按测试工作区直接运行：
@@ -226,14 +223,12 @@ cd test && npx vitest run
 当前 GitHub Actions 已覆盖：
 
 - `npm ci`
-- `npm run type-check`
-- `npm test`
-- `npm run build:h5`
+- `npm run quality`
 
 后续主线需要补齐：
 
-- `npm run lint`
-- `npm audit --omit=dev --audit-level=high`
+- `npm audit` 阈值与上游风险白名单策略
+- 回归验收阶段的脚本化 E2E 与人工验证证据沉淀
 
 ### 10.5 部署治理边界
 

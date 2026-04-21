@@ -41,10 +41,7 @@ npm run dev:h5
 基础校验：
 
 ```bash
-npm run type-check
-npm run lint
-npm test -w test
-npm run build:h5
+npm run quality
 ```
 
 运行生产构建产物：
@@ -52,6 +49,20 @@ npm run build:h5
 ```bash
 NODE_ENV=production npm run start:prod
 ```
+
+## 质量保证
+
+当前本地与 CI 统一使用 `npm run quality` 作为全量门禁入口，pre-commit 使用 `npm run quality:staged` 做快速 lint 修复并回写暂存区。
+
+```bash
+# 安装 hooks
+npm run prepare
+
+# 运行全量质量门禁
+npm run quality
+```
+
+`npm run quality` 当前会顺序执行 `lint`、`type-check`、`test`、`build:h5`、`audit`、`arch:check`。
 
 ---
 

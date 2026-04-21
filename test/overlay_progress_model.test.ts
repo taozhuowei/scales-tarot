@@ -5,7 +5,6 @@ import {
   createProgressModel,
   calculatePhaseProgress,
 } from '../app/src/utils/overlay_progress/phase_progress_model'
-import type { OverlayPhase } from '../app/src/utils/overlay_animations/types'
 
 describe('overlay_progress/phase_progress_model', () => {
   describe('createProgressModel', () => {

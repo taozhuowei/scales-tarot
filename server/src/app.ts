@@ -20,7 +20,7 @@
  *   7. Error handler (terminal)
  */
 
-import express, { type NextFunction, type Request, type Response } from 'express'
+import express, { type Request, type Response } from 'express'
 import fs from 'fs'
 import path from 'path'
 import helmet from 'helmet'
@@ -214,7 +214,7 @@ app.get('*', (_req, res) => {
 // 7. Terminal error handler
 // ---------------------------------------------------------------------------
 
-app.use((err: Error & { status?: number; statusCode?: number }, req: Request, res: Response, _next: NextFunction) => {
+app.use((err: Error & { status?: number; statusCode?: number }, req: Request, res: Response) => {
   // pino-http attaches a logger to req; fall back to module logger if absent.
   const log = (req as unknown as { log?: typeof logger }).log ?? logger
   // Middleware like body-parser throws HttpError with .status (e.g. 413 for

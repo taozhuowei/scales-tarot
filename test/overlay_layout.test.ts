@@ -8,7 +8,6 @@ import type { ViewportMetrics } from '../app/src/core/viewport/types'
 function makeViewport(
   windowWidth: number,
   windowHeight: number,
-  _isWide: boolean,
 ): ViewportMetrics {
   return {
     width: windowWidth,

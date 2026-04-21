@@ -118,7 +118,6 @@ describe('Stage C.2: Component - DivinationOverlay A.6 features', () => {
     const handle = wrapper.find('.drag-handle-container')
     expect(handle.exists()).toBe(false)
 
-    const stage = wrapper.find('.stage-container')
     // CSS check: .is-wide.show-results .stage-container { width: 54%; }
     // We can check if the class is present.
     expect(wrapper.classes()).toContain('is-wide')

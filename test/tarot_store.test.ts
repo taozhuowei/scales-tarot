@@ -119,6 +119,7 @@ describe('tarot store - draw and reading flow', () => {
 
       // The store should contain 1 card after second draw
       expect(store.drawnCards).toHaveLength(1)
+      expect(firstIds).toHaveLength(1)
       // Cards may be the same or different due to randomness, but structure is valid
       secondIds.forEach(id => {
         expect(MOCK_DECK.some(c => c.id === id)).toBe(true)

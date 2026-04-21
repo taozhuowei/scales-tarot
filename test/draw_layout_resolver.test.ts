@@ -6,7 +6,6 @@ import type { CardSize } from '../app/src/core/sizing/types'
 
 const cardSize: CardSize = { width: 60, height: 100, gap: 12 }
 const slotPitchY = cardSize.height + cardSize.gap // 112
-const slotPitchX = cardSize.width + cardSize.gap // 72
 
 function makeSafeFrame(w: number, h: number): SafeFrame {
   return {

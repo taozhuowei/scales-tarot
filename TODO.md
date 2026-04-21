@@ -1,6 +1,6 @@
 # TODO — Scales Tarot
 
-> 更新日期：2026-04-20
+> 更新日期：2026-04-21
 > 当前交付范围：H5 + `single_card`
 > 执行顺序：质量门禁 -> 问题修复 -> 回归验收
 
@@ -22,40 +22,35 @@
 
 ## 已确认的门禁缺口与异常
 
-- [!] CI 未覆盖 `lint`、`audit`、架构检查：`.github/workflows/ci.yml` 当前只跑 `type-check`、`test`、`build:h5`。
-- [!] `lint` 口径不一致：`package.json` 的 `lint` 只检查 `app/src/`，`.simple-git-hooks.json` 试图检查 `server/src/`，但当前 ESLint 配置又忽略了 `server/`。
-- [!] 架构门禁不可用：仓库没有稳定的 `arch:check` 脚本；`depcruise` 直接运行时对 workspace / test 依赖产生大量误报，当前结果不可作为硬门禁。
-- [!] 测试门禁不干净：`npm test` 虽然通过，但 `test/divination_overlay_a6.test.ts` 仍出现 `Failed to resolve component: scroll-view` 的 Vue warning。
 - [!] 安全门禁阈值与现状不匹配：`npm audit --omit=dev --audit-level=high` 未拦截当前 `esbuild` 链路漏洞，现状仍有上游 `@dcloudio` 依赖带来的风险。
-- [!] 构建告警未治理：`npm run build:h5` 成功，但字体资源在构建时未解析，当前缺少“允许 / 阻塞”的明确标准。
 - [!] 产品口径与实现不一致：`PRD.md` 仍声明支持 `single_card`、`three_card`、`cross_spread`，但 `app/src/stores/tarot.ts` 仍将 `spreadKind` 固定为 `single_card`，对应测试也在固化该行为。
 - [!] 发布配置与主线不一致：`app/src/manifest.json` 仍硬编码 `mp-weixin.appid`，并保留相机权限；与当前 H5 主线不对齐。
 - [!] 可访问性逻辑未真正接线：`DivinationOverlay.vue` 中已有 `overlayRef` / `handleOverlayKeydown` / `trapFocus`，但模板未绑定根节点 `ref` 与对应键盘事件。
 
 ## G0 质量门禁补齐
 
-### [~] G0.1 统一本地与 CI 质量命令入口
+### [x] G0.1 统一本地与 CI 质量命令入口
 
 - 目标：把 `type-check`、`lint`、`test`、`build:h5`、`build:server`、`audit`、`arch:check` 收敛为一套统一命令，避免本地、hook、CI 三套口径。
-- 处理：新增统一质量脚本；CI、README、技术文档、hook 全部引用同一入口。
-- 验收点：同一套命令可以在本地和 GitHub Actions 中执行；不再存在“本地过 / CI 不跑”或“hook 跑的和 CI 不同”的情况。
-- 验收策略：执行统一质量命令；在 `.github/workflows/ci.yml` 中接入并验证 Node 20 / 22 两个矩阵都使用同一入口。
+- 处理：新增统一质量运行时；本地与 CI 使用 `npm run quality` 全量模式，hook 使用 `npm run quality:staged` 快速模式，但两者必须共用同一个运行时实现；README、技术文档、CI、hook 同步引用这套入口体系。
+- 验收点：`npm run quality` 已串起 `lint -> type-check -> test -> build:h5 -> audit -> arch:check`；`npm run quality:staged` 与其共用同一运行时实现；CI 只调用 `npm run quality`；pre-commit 已安装并调用 `npm run quality:staged`；统一入口返回非 0 时，必须来自真实门禁失败而不是入口缺失。
+- 验收策略：执行 `npm run quality`、`npm run quality:staged`；检查 `.github/workflows/ci.yml`、`.simple-git-hooks.json` 与 `.git/hooks/*` 的实际接线；复核 README 和技术文档是否同步。
 
-### [ ] G0.2 修正 lint 覆盖范围与配置边界
+### [x] G0.2 修正 lint 覆盖范围与配置边界
 
-- 目标：让前端、后端、测试代码的 lint 策略明确且可执行，消除“脚本声称覆盖，配置实际忽略”的假门禁。
+- 目标：让前端、后端、测试代码的 lint 策略明确且可执行，消除"脚本声称覆盖，配置实际忽略"的假门禁。
 - 处理：决定是扩展现有 ESLint 到 `server/src`，还是拆分前后端配置；同步修正 `lint` 脚本与 pre-commit。
 - 验收点：`lint` 覆盖范围与配置一致；执行结果可解释；不会再出现 `server/src` 被声称检查但实际未检查。
 - 验收策略：运行 `npm run lint`，并单独验证 hook 调用路径与 CI 路径一致。
 
-### [ ] G0.3 建立可用的架构门禁
+### [x] G0.3 建立可用的架构门禁
 
 - 目标：让依赖结构检查从“不可用误报”变成“可执行门禁”。
 - 处理：新增 `npm run arch:check`；修正 `.dependency-cruiser.js` 对 workspace、test、类型依赖和允许例外的规则；明确哪些 warning 允许保留、哪些 error 必须阻断。
 - 验收点：`arch:check` 使用仓库本地依赖可稳定执行；结果以真实结构问题为主，不再被 workspace 误报淹没。
 - 验收策略：运行 `./node_modules/.bin/depcruise ...` 对比修复前后输出；保留例外说明和规则注释。
 
-### [ ] G0.4 收紧测试告警门禁
+### [x] G0.4 收紧测试告警门禁
 
 - 目标：测试通过不再等于“带 warning 的假绿”。
 - 处理：为 uni-app 组件测试补齐 `scroll-view` 等运行环境处理；阻断未处理的 Vue warn / console error 静默通过。

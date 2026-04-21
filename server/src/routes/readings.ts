@@ -6,7 +6,7 @@
 
 import { Router, type Request, type Response } from 'express'
 import { z } from 'zod'
-import { generateReading, type DrawnInput } from '../services/tarot_reading'
+import { generateReading } from '../services/tarot_reading'
 
 const router = Router()
 

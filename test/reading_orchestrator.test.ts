@@ -3,7 +3,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { createReadingOrchestrator } from '../app/src/utils/reading/reading_orchestrator'
-import type { ReadingProvider, ReadingRequest } from '../app/src/utils/reading/reading_provider'
+import type { ReadingProvider } from '../app/src/utils/reading/reading_provider'
 import type { ReadingResult } from '../app/src/utils/tarotReading'
 
 function makeMockProvider(result: ReadingResult | null = null, shouldReject = false): ReadingProvider {

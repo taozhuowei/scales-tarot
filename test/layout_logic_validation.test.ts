@@ -13,13 +13,6 @@ const MOBILE_VIEWPORT: ViewportMetrics = {
   dpr: 3,
 }
 
-const TABLET_VIEWPORT: ViewportMetrics = {
-  width: 768,
-  height: 1024,
-  safeAreaTop: 20,
-  safeAreaBottom: 0,
-  dpr: 2,
-}
 
 const DESKTOP_VIEWPORT: ViewportMetrics = {
   width: 1440,

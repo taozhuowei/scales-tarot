@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { describe, expect, it } from 'vitest'
+import { defineComponent, h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { useAnimationState } from '../app/src/composables/use_animation_state'
 

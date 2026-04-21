@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { ReadingResult, TarotCardInfo } from '../app/src/utils/tarotReading'
+import type { TarotCardInfo } from '../app/src/utils/tarotReading'
 
 // Post-d4cd310 the controller calls storeToRefs(tarotStore), which requires
 // a real Pinia store. Mock the cards/readings APIs the store imports at
@@ -90,7 +90,7 @@ vi.mock('gsap', () => {
       },
       to() { return this },
       fromTo() { return this },
-      add(item?: unknown, _position?: number | string) {
+      add() {
         return this
       },
       call(fn: () => void) {
@@ -171,20 +171,6 @@ function makeCard(): TarotCardInfo {
       meaning: 'Test reversed meaning',
       sentiment: 'negative',
     },
-  }
-}
-
-function makeReadingResult(): ReadingResult {
-  return {
-    result: 'positive',
-    score: 3,
-    cardDetails: [
-      {
-        card: makeCard(),
-        position: 'upright',
-        meaning: 'Test meaning',
-      },
-    ],
   }
 }
 
@@ -356,12 +342,11 @@ describe('use_overlay_controller', () => {
 
     expect(lastTimeline).not.toBeNull()
 
-    const initialTime = lastTimeline!._currentTime()
     controller.stepForward()
     expect(timeSpy).toHaveBeenCalled()
 
-    lastTimeline!.time(5)
     timeSpy.mockClear()
+    lastTimeline!.time(5)
     controller.stepBackward()
     expect(timeSpy).toHaveBeenCalled()
   })

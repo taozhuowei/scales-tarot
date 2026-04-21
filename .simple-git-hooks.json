@@ -1,1 +1,1 @@
-﻿{"pre-commit": "npx eslint --fix --cache app/src/ server/src/; git add -u", "commit-msg": "npx commitlint --edit $1"}
+{"pre-commit":"npm run quality:staged","commit-msg":"npx commitlint --edit $1"}

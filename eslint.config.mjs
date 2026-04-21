@@ -19,7 +19,7 @@ const FORBIDDEN_GLOBALS = [
 
 export default tseslint.config(
   // Global ignores
-  { ignores: ['node_modules/', 'dist/', 'server/', 'test/', 'app/dist/'] },
+  { ignores: ['node_modules/', 'dist/', 'app/dist/'] },
 
   // Base recommended rules
   js.configs.recommended,
@@ -53,6 +53,27 @@ export default tseslint.config(
         clearInterval: 'readonly',
         console: 'readonly',
       },
+    },
+  },
+
+  // Node/server and test code should not inherit uni-app runtime restrictions.
+  {
+    files: ['server/**/*.{ts,js}', 'test/**/*.{ts,tsx,js}'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-restricted-globals': 'off',
+      'no-restricted-properties': 'off',
     },
   },
 
