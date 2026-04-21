@@ -7,6 +7,7 @@
 /app/node_modules/
 /server/node_modules/
 /test/node_modules/
+.eslintcache
 CLAUDE.md
 .env*.local
 .env.production
