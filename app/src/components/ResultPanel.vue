@@ -125,11 +125,10 @@ const heroQuestionTiming = {
   --result-tone: var(--color-accent);
   --result-tone-bg: rgba(122, 92, 20, 0.08);
 
-  padding: var(--space-6) var(--space-5) calc(env(safe-area-inset-bottom, 0px) + var(--space-10));
+  padding: var(--space-4) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
-  max-width: 720px;
+  gap: var(--space-6);
   width: 100%;
   box-sizing: border-box;
 }
@@ -154,14 +153,14 @@ const heroQuestionTiming = {
 }
 
 .eyebrow {
-  color: var(--result-tone);
+  color: var(--result-tone, #b8943e);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-size: var(--text-sm);
 }
 
 .hero-title {
-  color: var(--result-tone);
+  color: var(--result-tone, #b8943e);
   line-height: 1.1;
   text-shadow: 0 2rpx 10rpx rgba(74, 52, 40, 0.1);
   margin: var(--space-2) 0;

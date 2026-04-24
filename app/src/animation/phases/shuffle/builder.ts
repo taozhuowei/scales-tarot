@@ -12,13 +12,14 @@ import gsap from 'gsap'
 import type { AnimationTimeline } from '../../../core/animation/types'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../core/flow/types'
 import { prefersReducedMotion } from '../../../utils/accessibility'
+import { SHUFFLE_SPREAD_X } from '../../../core/config/layout_constants'
 
 export interface ShufflePhaseConfig {
   spreadX: number
 }
 
 function createDefaultConfig(): ShufflePhaseConfig {
-  return { spreadX: 120 } // TODO: move to layout_constants once config-driven
+  return { spreadX: SHUFFLE_SPREAD_X }
 }
 
 export function buildShufflePhaseRunner(config?: Partial<ShufflePhaseConfig>): PhaseRunner {

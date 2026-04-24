@@ -143,6 +143,17 @@
   --z-modal: 400;
   --z-toast: 500;
   --z-tooltip: 600;
+
+  /* 动画时长 */
+  --duration-pulse-glow: 2s;
+  --duration-breathe: 3s;
+  --duration-spin: 1s;
+
+  /* 交错延迟基准 */
+  --stagger-base: 100ms;
+
+  /* 焦点态边框 */
+  --color-border-focus: rgba(122, 92, 20, 0.35);
 }
 
 /* H5 专用：响应式字体大小 */

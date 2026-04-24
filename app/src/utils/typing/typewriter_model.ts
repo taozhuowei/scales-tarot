@@ -49,7 +49,7 @@ export function createTypewriterModel(
 
   function prefersReducedMotion(): boolean {
     // #ifdef H5
-      /* eslint-disable no-restricted-globals */
+      /* eslint-disable no-restricted-globals -- reason: H5-only DOM API (window.matchMedia) */
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches
     }
@@ -137,26 +137,26 @@ export interface TypewriterFieldTiming {
 export function calculateFieldTiming(
   cardIndex: number,
   fieldStep: number,
-  baseDelay: number = 620,
-  cardDelay: number = 320,
-  stepDelay: number = 90,
+  baseDelay: number = 100,
+  cardDelay: number = 200,
+  stepDelay: number = 50,
 ): TypewriterFieldTiming {
   return {
     startDelay: baseDelay + cardIndex * cardDelay + fieldStep * stepDelay,
-    charInterval: 24,
+    charInterval: 18,
   }
 }
 
 export function calculateKeywordTiming(
   cardIndex: number,
   keywordIndex: number,
-  baseDelay: number = 620,
-  cardDelay: number = 320,
-  keywordDelay: number = 70,
+  baseDelay: number = 100,
+  cardDelay: number = 200,
+  keywordDelay: number = 40,
 ): TypewriterFieldTiming {
-  const field4Delay = baseDelay + cardIndex * cardDelay + 3 * 90
+  const field4Delay = baseDelay + cardIndex * cardDelay + 3 * 50
   return {
-    startDelay: field4Delay + 90 + keywordIndex * keywordDelay,
-    charInterval: 20,
+    startDelay: field4Delay + 50 + keywordIndex * keywordDelay,
+    charInterval: 16,
   }
 }

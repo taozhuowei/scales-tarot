@@ -76,12 +76,12 @@ export function resolveStageMetrics(
 
   const headerBottom =
     topBarHeight +
-    toPx(insets.headerMarginRpx, width) +
+    Math.min(toPx(insets.headerMarginRpx, width), LC.HEADER_MARGIN_MAX_PX) +
     insets.headerIconSize
 
   const footerReserve = Math.max(
     insets.footerReserveMinPx,
-    toPx(insets.footerReserveRpx, width),
+    Math.min(toPx(insets.footerReserveRpx, width), LC.FOOTER_RESERVE_MAX_PX),
   )
 
   const stageContainerHeight = showResults ? stageHeight : height

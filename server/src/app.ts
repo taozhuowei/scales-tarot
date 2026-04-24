@@ -228,10 +228,9 @@ app.get('*', (_req, res) => {
 // 7. Terminal error handler
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error & { status?: number; statusCode?: number }, req: Request, res: Response, next: express.NextFunction) => {
+app.use((err: Error & { status?: number; statusCode?: number }, req: Request, res: Response, _next: express.NextFunction) => {
   // pino-http attaches a logger to req; fall back to module logger if absent.
-  const log = (req as unknown as { log?: typeof logger }).log ?? logger
+  const log = (req as { log?: typeof logger }).log ?? logger
   // Middleware like body-parser throws HttpError with .status (e.g. 413 for
   // payload-too-large). Preserve 4xx so clients see the right reason;
   // anything else is treated as an internal fault.

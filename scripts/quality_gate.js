@@ -4,6 +4,9 @@ const mode = process.argv[2] || 'full'
 
 const stepsByMode = {
   full: [
+    { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
+    { label: 'pr-size', command: 'node', args: ['scripts/pr_size_gate.js'] },
+    { label: 'test-coupling', command: 'node', args: ['scripts/test_coupling_gate.js'] },
     { label: 'lint', command: 'npm', args: ['run', 'quality:lint'] },
     { label: 'type-check', command: 'npm', args: ['run', 'quality:type-check'] },
     { label: 'test', command: 'npm', args: ['run', 'quality:test'] },
@@ -19,6 +22,7 @@ const stepsByMode = {
     { label: 'arch:check', command: 'npm', args: ['run', 'arch:check'] },
   ],
   staged: [
+    { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
     { label: 'lint:fix', command: 'npm', args: ['run', 'quality:lint:fix'] },
     { label: 'type-check', command: 'npm', args: ['run', 'quality:type-check'] },
     { label: 'git add', command: 'git', args: ['add', '-u'] },

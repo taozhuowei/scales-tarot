@@ -1,41 +1,15 @@
 /**
  * Name: core/sizing/card_size_solver
- * Purpose: compute the maximum safe card size and gap inside a safe frame.
- * Reason: isolate sizing algebra into a single pure module with no external state.
+ * Purpose: compute card size based on the viewport's short side with safety limits.
+ * Reason: implement "short-side sizing" with safety bounds to prevent screen overflow.
  */
 
 import type { CardSize, SpreadEnvelopeRequirement } from './types'
 import type { SafeFrame } from '../viewport/types'
 
-import { DEFAULT_ENVELOPE_GAP, MIN_CARD_WIDTH, MAX_CARD_WIDTH } from '../config/layout_constants'
+import { DEFAULT_ENVELOPE_GAP, MIN_CARD_WIDTH, MAX_CARD_WIDTH, CARD_SIZE_FILL_RATIO } from '../config/layout_constants'
 
 export { DEFAULT_ENVELOPE_GAP }
-
-function constrainedWidth(
-  safeSize: number,
-  slotCount: number,
-  gap: number,
-  focusScale: number,
-  badgeOverflowPx: number,
-): number {
-  const slots = Math.max(1, Math.floor(slotCount))
-  // Original envelope constraint (slots fit edge-to-edge with gaps).
-  const original = (Math.max(0, safeSize) - (slots - 1) * gap) / slots
-
-  if (focusScale <= 1 && badgeOverflowPx <= 0) {
-    return original
-  }
-
-  // Focus constraint: outer cards may scale up and badge may overhang.
-  // halfSpan + (cardSize/2 + badgeOverflow) * focusScale <= safeSize/2
-  // Solving for cardWidth gives:
-  // cardWidth <= (safeSize - (slots-1)*gap - 2*badgeOverflowPx*focusScale) / (slots - 1 + focusScale)
-  const numerator = safeSize - (slots - 1) * gap - 2 * badgeOverflowPx * focusScale
-  const denominator = slots - 1 + focusScale
-  if (numerator <= 0 || denominator <= 0) return 0
-  const focused = numerator / denominator
-  return Math.min(original, focused)
-}
 
 export interface CardSizeInput {
   safeFrame: SafeFrame
@@ -44,16 +18,13 @@ export interface CardSizeInput {
   gap?: number
   minCardWidth?: number
   maxCardWidth?: number
-  /** Focus scale applied during reveal (e.g. 1.42 narrow, 1.2 wide). */
-  focusScale?: number
-  /** Badge overflow in px beyond card edge (e.g. 12rpx converted to px). */
-  badgeOverflowPx?: number
 }
 
 /**
- * Resolve the maximum card size that keeps every animation frame inside the safe frame,
- * including the focused reveal state and badge overflow.
+ * Short-side fill ratio: cards occupy 85% of the short dimension,
+ * leaving safety margins for UI elements and animations.
  */
+
 export function resolveCardSize(input: CardSizeInput): CardSize {
   const {
     safeFrame,
@@ -62,18 +33,25 @@ export function resolveCardSize(input: CardSizeInput): CardSize {
     gap = DEFAULT_ENVELOPE_GAP,
     minCardWidth = MIN_CARD_WIDTH,
     maxCardWidth = MAX_CARD_WIDTH,
-    focusScale = 1,
-    badgeOverflowPx = 0,
   } = input
 
   const hSlots = Math.max(1, Math.floor(requirement.horizontalSlots))
   const vSlots = Math.max(1, Math.floor(requirement.verticalSlots))
 
-  const widthFromHorizontal = constrainedWidth(safeFrame.width, hSlots, gap, focusScale, badgeOverflowPx)
-  const heightFromVertical = constrainedWidth(safeFrame.height, vSlots, gap, focusScale, badgeOverflowPx)
-  const widthFromVertical = heightFromVertical / Math.max(cardAspectRatio, 0.0001)
+  const isPortrait = safeFrame.width <= safeFrame.height
 
-  let cardWidth = Math.min(widthFromHorizontal, widthFromVertical)
+  let cardWidth: number
+
+  if (isPortrait) {
+    // Fit to width: cardWidth * hSlots + gap * (hSlots - 1) = safeFrame.width * fillRatio
+    cardWidth = ((Math.max(0, safeFrame.width) - (hSlots - 1) * gap) / hSlots) * CARD_SIZE_FILL_RATIO
+  } else {
+    // Fit to height: cardHeight * vSlots + gap * (vSlots - 1) = safeFrame.height * fillRatio
+    const cardHeight = ((Math.max(0, safeFrame.height) - (vSlots - 1) * gap) / vSlots) * CARD_SIZE_FILL_RATIO
+    cardWidth = cardHeight / Math.max(cardAspectRatio, 0.0001)
+  }
+
+  // Apply absolute limits
   cardWidth = Math.max(minCardWidth, Math.min(cardWidth, maxCardWidth))
   const cardHeight = cardWidth * cardAspectRatio
 

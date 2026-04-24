@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
+      port: 4123,
       proxy: {
         '/static': 'http://localhost:3000',
         '/api': 'http://localhost:3000',

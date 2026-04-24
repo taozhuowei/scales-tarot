@@ -11,8 +11,6 @@ import {
   resolveOverlayViewport,
   buildOverlaySafeFrame,
   resolveMotionMetrics,
-  getFocusScale,
-  getBadgeOverflowPx,
   type SceneLayoutResult,
 } from '../utils/overlay_layout/index'
 import { WIDE_BREAKPOINT } from '../core/config/layout_constants'
@@ -64,8 +62,6 @@ export function useOverlayLayout(deps: UseOverlayLayoutDeps) {
       viewport,
       isWide: deps.isWide.value,
       cardAspectRatio: 1.6,
-      focusScale: scene === 'draw_stage' ? getFocusScale(deps.isWide.value) : 1,
-      badgeOverflowPx: getBadgeOverflowPx(viewport.stageWidth),
       resultSheetFraction: scene === 'draw_stage' ? RESULT_SHEET_FRACTION : undefined,
     })
   }
@@ -85,8 +81,6 @@ export function useOverlayLayout(deps: UseOverlayLayoutDeps) {
       isWide: deps.isWide.value,
       cutPileCount: deps.cutPileCount,
       deckCount: deps.deckCount,
-      focusScale: getFocusScale(deps.isWide.value),
-      badgeOverflowPx: getBadgeOverflowPx(viewport.stageWidth),
     })
   }
 

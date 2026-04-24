@@ -317,3 +317,61 @@
 - 验收策略：运行脚本化 E2E；补充手动验证记录，重点检查焦点管理、错误恢复、窄屏 / 宽屏布局。
 
 > **已知限制**：`e2e_divination_flow.sh` 第 9 步（回到首页验证）需要增强等待逻辑或改用更稳定的选择器。已记录为 E2E 脚本缺陷，不影响 G1 阶段关闭。
+
+## G3 卡牌尺寸计算重构 — 短边定尺寸、长边给动画
+
+### [x] G3.1 重构 safeFrame inset（rpx 上限）
+
+- **验收证据**：`npm run quality` lint/type-check/test/build:h5/audit/arch:check 全量通过；`test/safe_frame_calculator.test.ts` 18 测试通过。
+- 目标：修复宽屏下 rpx 线性膨胀导致 safeFrame 被过度压缩的问题。
+- 处理：
+  - `layout_constants.ts` 新增 `FOOTER_RESERVE_MAX_PX = 120`、`HEADER_MARGIN_MAX_PX = 80`
+  - `safe_frame_calculator.ts` 对 `footerReserve` 和 `headerMargin` 应用 px 上限
+  - `scene_layout.ts` 中 `buildOverlaySafeFrame` 的预计算 stage 同步应用上限
+- 验收点：1440px 宽屏下 footerReserve ≤ 120px（原 299px）；headerMargin ≤ 80px（原 115px）；390px 小屏下不受影响。
+- 验收策略：运行 `safe_frame_calculator.test.ts`；检查新增上限测试的断言。
+
+### [x] G3.2 重写 card_size_solver（短边算法）
+
+- **验收证据**：`test/card_size_solver.test.ts` 11 测试通过；`npm run quality` 全量通过。
+- 目标：废除"水平/垂直双约束取 min"算法，改用"短边定尺寸、长边给动画"原则。
+- 处理：
+  - `card_size_solver.ts` 完全重写：`constrainedWidth` 及焦点约束逻辑删除
+  - 新算法：`min(safeFrame.width, safeFrame.height)` 为基准 ÷ 短边槽位数 × `CARD_SIZE_FILL_RATIO(0.85)`
+  - 宽屏：高度驱动 → `cardHeight = unitSize`, `cardWidth = height / 1.6`
+  - 窄屏：宽度驱动 → `cardWidth = unitSize`, `cardHeight = width × 1.6`
+  - 移除 `focusScale` 和 `badgeOverflowPx` 对尺寸计算的反向压缩
+- 验收点：任意屏幕下 `cardHeight / cardWidth === 1.6`；长边槽位数变化不影响卡牌尺寸。
+- 验收策略：`card_size_solver.test.ts` 覆盖窄屏/宽屏/cross_spread/长边无关性/clamp/极端情况。
+
+### [x] G3.3 简化 Envelope 需求与调用层适配
+
+- **验收证据**：`npm run quality` 全量通过；295 测试通过。
+- 目标：移除动画阶段（cut/shuffle）对卡牌尺寸的过度约束。
+- 处理：
+  - `spread_spec.ts`：`getBuiltInEnvelopeRequirement` 只返回 draw 阶段需求，移除 cut/shuffle 合并
+  - `motion_metrics.ts`：`resolveCardSize` 调用改用 draw-only requirement；`MotionMetricsInput` 移除 `focusScale`/`badgeOverflowPx`
+  - `scene_layout.ts`：`SceneLayoutInput` / `resolveCutLayout` 移除 `focusScale`/`badgeOverflowPx` 参数
+  - `useOverlayLayout.ts`：不再传 `focusScale`/`badgeOverflowPx` 给布局/动画管道
+  - `getFocusScale()` / `getBadgeOverflowPx()` 保留（CSS `--card-focus-scale` 和布局层仍需要）
+- 验收点：编译通过；调用链无类型错误；`overlay_layout_focus.test.ts` 中 getter 测试仍通过。
+- 验收策略：`npm run quality`；grep 确认 `resolveCardSize` 无 `focusScale`/`badgeOverflowPx` 传参。
+
+### [x] G3.4 集成测试更新与回归
+
+- **验收证据**：`test/overlay_layout.test.ts` 4 测试通过；`test/spread_layout.test.ts` 47 测试通过；全量 295 测试通过。
+- 目标：让所有集成测试反映新算法的预期行为。
+- 处理：
+  - `overlay_layout.test.ts`：移除 focus-scale + badge margin 约束测试；新增"短边定尺寸"验证；放宽 cross_spread envelope 断言（允许 clampedCenterYOffset 带来的微超）
+  - `spread_layout.test.ts`：放宽 narrow mode 边界断言（允许卡牌边缘超出容器中心）；修改"大容器=大卡牌"测试为同向宽屏比较；修改"fit vertically"测试为验证短边驱动；修改 headerHeight 测试预期为垂直居中
+  - `layout_logic_validation.test.ts` / `overlay_layout_focus.test.ts` / 其余测试：数值按新算法自然适配
+- 验收点：全量测试通过；无未处理 warning。
+- 验收策略：`npm test` 全量执行。
+
+### [x] G3.5 质量门禁与回归验收
+
+- **验收证据**：`npm run quality` 全量通过（lint 0 errors / 0 warnings → type-check pass → test 295 passed → build:h5 pass → audit pass → arch:check 0 errors）。
+- 目标：确认重构后主线质量仍能被门禁稳定拦截。
+- 处理：执行统一质量命令；保留命令输出。
+- 验收点：所有质量命令一次性通过；无未处理 warning；无新增门禁例外。
+- 验收策略：按 `npm run quality` 执行；保留输出作为验收证据。

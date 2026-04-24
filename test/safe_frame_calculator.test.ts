@@ -112,6 +112,53 @@ describe('safe_frame_calculator', () => {
       })
       expect(metrics.footerReserve).toBe(100)
     })
+
+    it('caps footerReserve at FOOTER_RESERVE_MAX_PX on wide screens', () => {
+      const wideViewport: ViewportMetrics = { width: 1440, height: 900, safeAreaTop: 0, safeAreaBottom: 0, dpr: 1 }
+      const metrics = resolveStageMetrics(wideViewport, baseInsets, {
+        isWide: false,
+        showResults: false,
+        topBarHeight: 0,
+      })
+      const uncapped = Math.round((164 / 750) * 1440) // 315
+      expect(uncapped).toBeGreaterThan(120)
+      expect(metrics.footerReserve).toBe(120)
+    })
+
+    it('caps header margin at HEADER_MARGIN_MAX_PX on wide screens', () => {
+      const wideViewport: ViewportMetrics = { width: 1440, height: 900, safeAreaTop: 0, safeAreaBottom: 0, dpr: 1 }
+      const metrics = resolveStageMetrics(wideViewport, baseInsets, {
+        isWide: false,
+        showResults: false,
+        topBarHeight: 0,
+      })
+      const uncapped = Math.round((20 / 750) * 1440) // 38
+      expect(uncapped).toBeLessThan(80)
+      // With baseInsets.headerMarginRpx=20, 1440px gives 38px, which is below 80px cap
+      expect(metrics.headerBottom).toBe(0 + 38 + 44)
+
+      // Now test with H5 default margin (60 rpx) which would be 115px on 1440px
+      const h5Insets = { ...baseInsets, headerMarginRpx: 60 }
+      const h5Metrics = resolveStageMetrics(wideViewport, h5Insets, {
+        isWide: false,
+        showResults: false,
+        topBarHeight: 0,
+      })
+      const h5Uncapped = Math.round((60 / 750) * 1440) // 115
+      expect(h5Uncapped).toBeGreaterThan(80)
+      expect(h5Metrics.headerBottom).toBe(0 + 80 + 44) // capped at 80
+    })
+
+    it('does not cap rpx values on small screens', () => {
+      const metrics = resolveStageMetrics(baseViewport, baseInsets, {
+        isWide: false,
+        showResults: false,
+        topBarHeight: 0,
+      })
+      const expectedFooter = Math.max(48, Math.round((164 / 750) * 390)) // 85
+      expect(expectedFooter).toBeLessThan(120)
+      expect(metrics.footerReserve).toBe(expectedFooter)
+    })
   })
 
   describe('resolveSafeFrame', () => {

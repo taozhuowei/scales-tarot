@@ -74,6 +74,15 @@ describe('Stage C.2: Component - DivinationOverlay A.6 features', () => {
       getWindowInfo: () => ({ windowWidth: 390, windowHeight: 844 }),
       onWindowResize: vi.fn(),
       offWindowResize: vi.fn(),
+      createSelectorQuery: () => ({
+        select: () => ({
+          boundingClientRect: (cb: (data: { height: number }) => void) => {
+            cb({ height: 253 })
+            return { exec: () => {} }
+          },
+        }),
+        exec: () => {},
+      }),
     })
   })
 
@@ -85,21 +94,20 @@ describe('Stage C.2: Component - DivinationOverlay A.6 features', () => {
     const wrapper = mount(DivinationOverlay)
     await nextTick()
 
-    const handle = wrapper.find('.drag-handle-container')
+    const handle = wrapper.find('.drag-handle-zone')
     expect(handle.exists()).toBe(true)
 
-    // Initial height is 58vh
-    const resultZone = wrapper.find('.result-zone')
-    expect(resultZone.attributes('style')).toContain('height: 58vh')
+    // Initial state: drawer-sheet uses auto height with min-height
+    const drawerSheet = wrapper.find('.drawer-sheet')
+    expect(drawerSheet.attributes('style')).toContain('height: auto')
 
-    // Simulate drag up
-    // deltaY = -100px. windowHeight = 844. 
-    // vhDelta = -(-100 / 844) * 100 = 11.8vh
-    // newHeight = 58 + 11.8 = 69.8vh
+    // Simulate drag up: touchstart captures current height, touchmove updates it
     await handle.trigger('touchstart', { touches: [{ clientY: 500 }] })
     await handle.trigger('touchmove', { touches: [{ clientY: 400 }] })
-    
-    expect(resultZone.attributes('style')).toContain('height: 69.8')
+
+    // After drag, height is set to px value (startHeight 253 + delta 100 = 353)
+    const updatedSheet = wrapper.find('.drawer-sheet')
+    expect(updatedSheet.attributes('style')).toContain('height: 353px')
   })
 
   it('A.6.5: Wide mode hides drawer handle and uses 54% width for stage', async () => {

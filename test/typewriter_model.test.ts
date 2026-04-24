@@ -141,13 +141,13 @@ describe('typewriter_model', () => {
   describe('calculateFieldTiming', () => {
     it('calculates timing for first card, first field', () => {
       const timing = calculateFieldTiming(0, 0)
-      expect(timing.startDelay).toBe(620)
-      expect(timing.charInterval).toBe(24)
+      expect(timing.startDelay).toBe(100)
+      expect(timing.charInterval).toBe(18)
     })
 
     it('calculates timing for second card, third field', () => {
       const timing = calculateFieldTiming(1, 2)
-      expect(timing.startDelay).toBe(620 + 320 + 2 * 90)
+      expect(timing.startDelay).toBe(100 + 200 + 2 * 50)
     })
 
     it('uses custom delays', () => {
@@ -159,15 +159,15 @@ describe('typewriter_model', () => {
   describe('calculateKeywordTiming', () => {
     it('calculates timing for first keyword', () => {
       const timing = calculateKeywordTiming(0, 0)
-      // baseDelay + cardDelay*0 + stepDelay*3 + 90 + keywordDelay*0
-      expect(timing.startDelay).toBe(620 + 0 + 270 + 90)
-      expect(timing.charInterval).toBe(20)
+      // baseDelay + cardDelay*0 + stepDelay*3 + 50 + keywordDelay*0
+      expect(timing.startDelay).toBe(100 + 0 + 150 + 50)
+      expect(timing.charInterval).toBe(16)
     })
 
     it('calculates timing for second keyword of second card', () => {
       const timing = calculateKeywordTiming(1, 1)
-      // baseDelay + cardDelay*1 + stepDelay*3 + 90 + keywordDelay*1
-      expect(timing.startDelay).toBe(620 + 320 + 270 + 90 + 70)
+      // baseDelay + cardDelay*1 + stepDelay*3 + 50 + keywordDelay*1
+      expect(timing.startDelay).toBe(100 + 200 + 150 + 50 + 40)
     })
   })
 })

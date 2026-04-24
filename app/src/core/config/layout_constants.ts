@@ -17,9 +17,11 @@ export const CARD_ASPECT_RATIO = 1.6
 export const HEADER_ICON_SIZE = 44
 export const HEADER_MARGIN_RPX_H5 = 60
 export const HEADER_MARGIN_RPX_MP = 140
+export const HEADER_MARGIN_MAX_PX = 80
 export const FOOTER_RESERVE_RPX_H5 = 164
 export const FOOTER_RESERVE_RPX_MP = 196
 export const FOOTER_RESERVE_MIN_PX = 48
+export const FOOTER_RESERVE_MAX_PX = 120
 
 export const SIDE_INSET_DRAW = 24
 export const SIDE_INSET_RESULT = 20
@@ -34,6 +36,7 @@ export const BOTTOM_RATIO_RESULT = 0.16
 export const MIN_CARD_WIDTH = 64
 export const MAX_CARD_WIDTH = 512 // 移除188px的人为限制，充分利用安全区宽度
 export const DEFAULT_ENVELOPE_GAP = 16 // 固定卡牌间距常量
+export const CARD_SIZE_FILL_RATIO = 0.85 // 短边填充系数，预留安全边距与动画空间
 
 
 // Entry animation durations (seconds)
@@ -61,6 +64,13 @@ export const RESULT_LIFT_MAX_FRACTION = 0.28
 // Shuffle phase constants
 export const SHUFFLE_SPREAD_X = 120
 export const SHUFFLE_EDGE_MARGIN = 12
+
+// Single-card spread baseline (iPhone 14 Pro Max safe-frame)
+export const SINGLE_CARD_BASELINE_SAFE_WIDTH = 390
+export const SINGLE_CARD_BASELINE_SAFE_HEIGHT = 760
+export const SINGLE_CARD_BASELINE_FILL_RATIO = 0.6
+export const SINGLE_CARD_MAX_WIDTH = 180
+export const SINGLE_CARD_MIN_WIDTH = 100
 
 // Interaction safety
 export const DECK_CLICK_SAFETY_MS = 2000

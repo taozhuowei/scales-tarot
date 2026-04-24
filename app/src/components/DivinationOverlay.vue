@@ -119,6 +119,7 @@
     </view>
 
     <ResultZone
+      class="overlay-result-zone"
       :show-results="controller.showResults.value"
       :is-wide="isWide"
       :is-reading-loading="controller.isReadingLoading.value"
@@ -166,6 +167,17 @@
         </view>
 
         <view class="dev-tools-row">
+          <view
+            class="dev-tools-chip"
+            role="button"
+            tabindex="0"
+            aria-label="跳到解读"
+            @click="controller.skipToReading()"
+            @keydown.enter="controller.skipToReading()"
+            @keydown.space.prevent="controller.skipToReading()"
+          >
+            直接解读
+          </view>
           <view
             v-for="speed in playbackRates"
             :key="`speed-${speed}`"
@@ -372,7 +384,7 @@ function handleRetry() {
   void controller.retryReading()
 }
 
-/* eslint-disable no-undef */
+/* eslint-disable no-undef -- reason: HTMLElement type in H5 runtime */
 const overlayRef = ref<HTMLElement | null>(null)
 let previousFocusEl: Element | null = null
 
@@ -387,7 +399,7 @@ function handleOverlayKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
-  /* eslint-disable no-restricted-globals, no-undef */
+  /* eslint-disable no-restricted-globals, no-undef -- reason: H5 DOM API (document.activeElement) */
   previousFocusEl = document.activeElement
   /* eslint-enable no-restricted-globals, no-undef */
   nextTick(() => {
@@ -399,7 +411,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  /* eslint-disable no-restricted-globals, no-undef */
+  /* eslint-disable no-restricted-globals, no-undef -- reason: H5 DOM API (HTMLElement.focus) */
   if (previousFocusEl instanceof HTMLElement) previousFocusEl.focus()
   /* eslint-enable no-restricted-globals, no-undef */
 })
@@ -462,76 +474,14 @@ onUnmounted(() => {
   width: 54%;
 }
 
-/* Result sheet: absolute bottom sheet that slides up over the cards.
-   Cards are never repositioned or resized — the sheet overlays them. */
-.result-zone {
+.overlay-result-zone {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  /* height is dynamically set via inline style for narrow screens */
-  z-index: 55;
-  background: var(--color-overlay-bg);
-  border-top: 1px solid var(--color-border);
-  border-radius: 32rpx 32rpx 0 0;
-  box-shadow: 0 -8rpx 48rpx rgba(30, 15, 6, 0.1);
-  animation: result-sheet-in 0.52s cubic-bezier(0.32, 0.72, 0, 1) both;
-  transition: height 0.1s ease-out; /* smooth dragging */
-}
-
-.drag-handle-container {
-  width: 100%;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: sticky;
-  top: 0;
-  z-index: 60;
-  background: var(--color-overlay-bg);
-  border-radius: 32rpx 32rpx 0 0;
-}
-
-.drag-handle {
-  width: 80rpx;
-  height: 8rpx;
-  background-color: var(--color-border-strong);
-  border-radius: 4rpx;
-  opacity: 0.5;
-}
-
-/* Wide screens: side panel slides in from the right instead of a bottom sheet. */
-.is-wide .result-zone {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: auto;
-  width: 46%;
-  height: 100%;
-  border-top: none;
-  border-left: 1px solid var(--color-border);
-  border-radius: 0;
-  box-shadow: -8rpx 0 48rpx rgba(30, 15, 6, 0.08);
-  animation-name: result-sheet-in-right;
-}
-
-/* Inner wrapper: natural-height content; bottom padding clears the action bar. */
-.result-zone-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120rpx);
-}
-
-@keyframes result-sheet-in {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-
-@keyframes result-sheet-in-right {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+  z-index: 2000; /* Extremely high to beat any 3D layers */
+  pointer-events: none;
 }
 
 .progress-header {

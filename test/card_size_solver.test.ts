@@ -17,123 +17,122 @@ function makeSafeFrame(w: number, h: number): SafeFrame {
 }
 
 describe('card_size_solver', () => {
-  it('resolves a 1x1 envelope and clamps to default maxCardWidth=512', () => {
-    const safeFrame = makeSafeFrame(600, 1000)
+  it('narrow screen: width is short side, height scales by aspect ratio', () => {
+    // 390x844 narrow, three_card (1x3) → short side = 390, hSlots = 1
+    const safeFrame = makeSafeFrame(390, 844)
     const size = resolveCardSize({
       safeFrame,
       cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 1, verticalSlots: 1 },
+      requirement: { horizontalSlots: 1, verticalSlots: 3 },
     })
-    // unconstrained width would be 600, but default MAX_CARD_WIDTH=512 clamps it
-    expect(size.width).toBe(512)
-    expect(size.height).toBeCloseTo(512 * 1.6, 5)
+    const expectedWidth = (390 - 0) / 1 * 0.85 // 331.5
+    expect(size.width).toBeCloseTo(expectedWidth, 0)
+    expect(size.height).toBeCloseTo(expectedWidth * 1.6, 0)
     expect(size.gap).toBe(16)
   })
 
+  it('wide screen: height is short side, width scales by aspect ratio', () => {
+    // 1366x768 wide, three_card (3x1) → short side = 768, vSlots = 1
+    const safeFrame = makeSafeFrame(1366, 768)
+    const size = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 3, verticalSlots: 1 },
+    })
+    const expectedHeight = (768 - 0) / 1 * 0.85 // 652.8
+    expect(size.height).toBeCloseTo(expectedHeight, 0)
+    expect(size.width).toBeCloseTo(expectedHeight / 1.6, 0)
+  })
+
+  it('preserves fixed aspect ratio on any screen', () => {
+    const narrow = resolveCardSize({
+      safeFrame: makeSafeFrame(375, 812),
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 1, verticalSlots: 1 },
+    })
+    const wide = resolveCardSize({
+      safeFrame: makeSafeFrame(1920, 1080),
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 1, verticalSlots: 1 },
+    })
+    expect(narrow.height / narrow.width).toBeCloseTo(1.6, 5)
+    expect(wide.height / wide.width).toBeCloseTo(1.6, 5)
+  })
+
+  it('cross_spread 3x3 on narrow screen uses width as short side', () => {
+    // 390x844, cross_spread (3x3) → short side = 390, hSlots = 3
+    const safeFrame = makeSafeFrame(390, 844)
+    const size = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 3, verticalSlots: 3 },
+    })
+    const expectedWidth = (390 - 2 * 16) / 3 * 0.85 // 105.8
+    expect(size.width).toBeCloseTo(expectedWidth, 0)
+    expect(size.height).toBeCloseTo(expectedWidth * 1.6, 0)
+  })
+
+  it('cross_spread 3x3 on wide screen uses height as short side', () => {
+    // 1366x768, cross_spread (3x3) → short side = 768, vSlots = 3
+    const safeFrame = makeSafeFrame(1366, 768)
+    const size = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 3, verticalSlots: 3 },
+    })
+    const expectedHeight = (768 - 2 * 16) / 3 * 0.85 // 208.5
+    expect(size.height).toBeCloseTo(expectedHeight, 0)
+    expect(size.width).toBeCloseTo(expectedHeight / 1.6, 0)
+  })
+
+  it('long side slot count does not affect card size (wide three_card)', () => {
+    // 1366x768 wide, three_card (3x1) → short side = 768 (height)
+    // Changing horizontalSlots on the long side should not change card size
+    const safeFrame = makeSafeFrame(1366, 768)
+    const size3 = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 3, verticalSlots: 1 },
+    })
+    const size10 = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 10, verticalSlots: 1 },
+    })
+    // Both should produce the same size because width is the long side
+    expect(size3.width).toBeCloseTo(size10.width, 0)
+    expect(size3.height).toBeCloseTo(size10.height, 0)
+  })
+
   it('respects maxCardWidth clamp', () => {
-    const safeFrame = makeSafeFrame(1000, 1600)
+    const safeFrame = makeSafeFrame(2000, 2000)
     const size = resolveCardSize({
       safeFrame,
       cardAspectRatio: 1.6,
       requirement: { horizontalSlots: 1, verticalSlots: 1 },
-      maxCardWidth: 188,
     })
-    expect(size.width).toBe(188)
-    expect(size.height).toBeCloseTo(188 * 1.6, 5)
+    expect(size.width).toBe(512)
+    expect(size.height).toBeCloseTo(512 * 1.6, 5)
   })
 
   it('respects minCardWidth clamp', () => {
-    const safeFrame = makeSafeFrame(10, 16)
+    const safeFrame = makeSafeFrame(10, 10)
     const size = resolveCardSize({
       safeFrame,
       cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 1, verticalSlots: 1 },
+      requirement: { horizontalSlots: 3, verticalSlots: 3 },
       minCardWidth: 64,
     })
     expect(size.width).toBe(64)
     expect(size.height).toBeCloseTo(64 * 1.6, 5)
   })
 
-  it('chooses vertical constraint when it is tighter', () => {
-    // 400x200 safe frame, 2x1 envelope
-    // horizontal: (400 - 16) / 2 = 192
-    // vertical: (200 - 0) / 1 = 200 -> width from vertical = 200/1.6 = 125
-    const safeFrame = makeSafeFrame(400, 200)
+  it('uses provided gap', () => {
+    const safeFrame = makeSafeFrame(400, 800)
     const size = resolveCardSize({
       safeFrame,
       cardAspectRatio: 1.6,
       requirement: { horizontalSlots: 2, verticalSlots: 1 },
-      gap: 16,
-    })
-    expect(size.width).toBe(125)
-    expect(size.height).toBe(200)
-  })
-
-  it('focusScale > 1 reduces card size to leave room for scaling', () => {
-    // 400x400, 2x1, gap=0
-    // original horizontal: 400/2 = 200
-    // focused: (400 - 0 - 2*0*1.42) / (2 - 1 + 1.42) = 400 / 2.42 ≈ 165.3
-    const safeFrame = makeSafeFrame(400, 400)
-    const size = resolveCardSize({
-      safeFrame,
-      cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 2, verticalSlots: 1 },
-      gap: 0,
-      focusScale: 1.42,
-    })
-    expect(size.width).toBeLessThan(200)
-    expect(size.width).toBeCloseTo(400 / 2.42, 0)
-  })
-
-  it('badgeOverflowPx > 0 reduces card size further', () => {
-    // Use a larger safe frame so maxCardWidth default does not clamp
-    // 800x800, 2x1, gap=0, focusScale=1
-    // original: 400
-    // focused with badge: (800 - 0 - 2*12*1) / (2 - 1 + 1) = (800 - 24) / 2 = 388
-    const safeFrame = makeSafeFrame(800, 800)
-    const sizeWithoutBadge = resolveCardSize({
-      safeFrame,
-      cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 2, verticalSlots: 1 },
-      gap: 0,
-      focusScale: 1,
-      badgeOverflowPx: 0,
-      maxCardWidth: 400,
-    })
-    const sizeWithBadge = resolveCardSize({
-      safeFrame,
-      cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 2, verticalSlots: 1 },
-      gap: 0,
-      focusScale: 1,
-      badgeOverflowPx: 12,
-      maxCardWidth: 400,
-    })
-    expect(sizeWithBadge.width).toBeLessThan(sizeWithoutBadge.width)
-    expect(sizeWithBadge.width).toBe(388)
-  })
-
-  it('combined focusScale and badgeOverflowPx work together', () => {
-    // 400x400, 2x1, gap=0, focusScale=1.2, badge=8
-    // focused: (400 - 0 - 2*8*1.2) / (2 - 1 + 1.2) = (400 - 19.2) / 2.2 ≈ 173.1
-    const safeFrame = makeSafeFrame(400, 400)
-    const size = resolveCardSize({
-      safeFrame,
-      cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 2, verticalSlots: 1 },
-      gap: 0,
-      focusScale: 1.2,
-      badgeOverflowPx: 8,
-    })
-    expect(size.width).toBeCloseTo((400 - 19.2) / 2.2, 0)
-  })
-
-  it('returns gap from input when provided', () => {
-    const safeFrame = makeSafeFrame(200, 320)
-    const size = resolveCardSize({
-      safeFrame,
-      cardAspectRatio: 1.6,
-      requirement: { horizontalSlots: 1, verticalSlots: 1 },
       gap: 32,
     })
     expect(size.gap).toBe(32)
@@ -148,5 +147,18 @@ describe('card_size_solver', () => {
       minCardWidth: 64,
     })
     expect(size.width).toBe(64)
+  })
+
+  it('square safeFrame treats either side as short (width chosen for narrow logic)', () => {
+    const safeFrame = makeSafeFrame(500, 500)
+    const size = resolveCardSize({
+      safeFrame,
+      cardAspectRatio: 1.6,
+      requirement: { horizontalSlots: 1, verticalSlots: 1 },
+    })
+    // width === height, so isWideScreen = false → width drives size
+    const expectedWidth = (500 - 0) / 1 * 0.85 // 425
+    expect(size.width).toBeCloseTo(expectedWidth, 0)
+    expect(size.height).toBeCloseTo(expectedWidth * 1.6, 0)
   })
 })

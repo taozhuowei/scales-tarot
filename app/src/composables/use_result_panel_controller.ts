@@ -5,7 +5,7 @@
  * Data flow: reading result flows in; view-model data flows out.
  */
 
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import type { ReadingResult } from '../utils/tarotReading'
 import {
   presentReadingResult,
@@ -49,6 +49,7 @@ export interface ResultPanelViewModel {
 }
 
 export function useResultPanelController(props: UseResultPanelControllerProps): ResultPanelViewModel {
+  // Keep the raw refs to ensure reactivity
   const readingViewModel = computed(() => presentReadingResult(props.readingResult))
   const heroViewModel = computed(() => presentResultHero(props.readingResult, props.question))
 
@@ -69,25 +70,13 @@ export function useResultPanelController(props: UseResultPanelControllerProps): 
 
   const eyebrowTiming: TypewriterFieldTiming = {
     startDelay: 40,
-    charInterval: 44,
+    charInterval: 24,
   }
 
-  return {
-    hero: heroViewModel.value,
-    toneClass: readingViewModel.value.toneClass,
-    cardDetails: cardDetails.value,
+  return reactive({
+    get hero() { return heroViewModel.value },
+    get toneClass() { return readingViewModel.value.toneClass },
+    get cardDetails() { return cardDetails.value },
     eyebrowTiming,
-  }
-}
-
-export function useTypewriterController(
-  text: string,
-  startDelay: number,
-  charInterval: number,
-) {
-  return {
-    text,
-    startDelay,
-    charInterval,
-  }
+  }) as ResultPanelViewModel
 }

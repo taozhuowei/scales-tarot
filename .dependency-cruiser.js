@@ -53,7 +53,10 @@ module.exports = {
           '(^|/)[.][^/]+[.](?:js|cjs|mjs|ts|cts|mts|json)$',                  // dot files
           '[.]d[.]ts$',                                                       // TypeScript declaration files
           '(^|/)tsconfig[.]json$',                                            // TypeScript config
-          '(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$' // other configs
+          '(^|/)(?:babel|webpack)[.]config[.](?:js|cjs|mjs|ts|cts|mts|json)$', // other configs
+          '(^|/)types[.]ts$',                                                  // type-only barrels
+          '(^|/)(?:app|server|test)/src/.+/types[.]ts$',                        // domain type files
+          '(^|/)viewport_metrics[.]ts$',                                        // legacy utility kept for future use
         ]
       },
       to: {},
@@ -237,6 +240,36 @@ module.exports = {
           'npm-peer'
         ]
       }
+    },
+
+    // ─── Architecture boundary rules (scales-tarot custom) ────────────────
+
+    {
+      name: 'animation-not-to-reading',
+      comment:
+        "Animation engine must not depend on reading logic. " +
+        "This boundary prevents tight coupling between visual orchestration and business rules.",
+      severity: 'error',
+      from: { path: '^app/src/animation/' },
+      to: { path: '^app/src/reading/' }
+    },
+    {
+      name: 'components-not-to-server',
+      comment:
+        "Components must not directly import server-side modules. " +
+        "Use API layer (app/src/api/) or stores for server communication.",
+      severity: 'error',
+      from: { path: '^app/src/components/' },
+      to: { path: '^server/src/' }
+    },
+    {
+      name: 'stores-not-to-components',
+      comment:
+        "Stores must not depend on UI components. " +
+        "Stores are data layer; components consume them, not vice versa.",
+      severity: 'error',
+      from: { path: '^app/src/stores/' },
+      to: { path: '^app/src/components/' }
     }
   ],
   options: {

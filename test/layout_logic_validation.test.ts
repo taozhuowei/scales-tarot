@@ -62,12 +62,12 @@ describe('Stage C.1: Layout Logic Validation (A.6 requirements)', () => {
         deckCount: 78,
       })
 
-      // On 1440px wide screen with isWide: true, card should be large.
-      // requirement = { horizontalSlots: 3, verticalSlots: 1 }
-      // safeFrame.width = 1440 - 24*2 = 1392. (1392-32)/3 = 453.
-      // safeFrame.height = 900 - 171 - 180 = 549. (549-0)/1 = 549. width = 549/1.6 = 343.
-      expect(mm.cardWidth).toBeGreaterThan(188)
-      expect(mm.cardWidth).toBeLessThanOrEqual(512)
+      // Single-card spread uses dedicated baseline-design sizing:
+      // baseline safe-frame 390×760, card height = 60% of safe height,
+      // scaled proportionally by screen width, capped at 180.
+      // On 1440px desktop the cap is hit, so width === 180.
+      expect(mm.cardWidth).toBe(180)
+      expect(mm.cardHeight).toBeCloseTo(180 * 1.6, 0)
     })
   })
 

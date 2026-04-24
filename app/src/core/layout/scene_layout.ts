@@ -9,6 +9,7 @@ import type { ViewportMetrics, SafeFrame } from '../viewport/types'
 import { resolveSafeFrame, resolveStageMetrics, getDefaultInsets } from '../viewport/safe_frame_calculator'
 import type { SpreadId, SpreadScene, CardEnvelope } from '../../utils/overlay_layout/spread_spec'
 import { resolveCardSize as resolveCoreCardSize } from '../sizing/card_size_solver'
+import { resolveSingleCardSize } from '../sizing/single_card_size_solver'
 import { resolveDrawLayout, type DrawLayoutResult } from './draw_layout_resolver'
 import { resolveResultLayout } from './result_layout_resolver'
 import { getSpreadSlots, resolveSpreadSpec, getSpreadCardCount } from './spread_registry'
@@ -138,7 +139,7 @@ export function buildOverlaySafeFrame(
  * Resolve a spread layout inside the overlay safe frame, then map it back into stage coordinates.
  */
 export function resolveSceneLayout(input: SceneLayoutInput): SceneLayoutResult {
-  const { spreadId, scene, viewport, isWide, cardAspectRatio, focusScale, badgeOverflowPx, headerHeight, resultSheetFraction } = input
+  const { spreadId, scene, viewport, isWide, cardAspectRatio, headerHeight, resultSheetFraction } = input
 
   const overlayViewport = resolveOverlayViewport({
     windowWidth: viewport.width,
@@ -149,13 +150,13 @@ export function resolveSceneLayout(input: SceneLayoutInput): SceneLayoutResult {
 
   const safeFrame = buildOverlaySafeFrame(scene, overlayViewport, resultSheetFraction)
 
-  const cardSize = resolveCoreCardSize({
-    safeFrame,
-    cardAspectRatio,
-    requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
-    focusScale,
-    badgeOverflowPx,
-  })
+  const cardSize = spreadId === 'single_card'
+    ? resolveSingleCardSize({ safeFrame })
+    : resolveCoreCardSize({
+        safeFrame,
+        cardAspectRatio,
+        requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
+      })
 
   const spec = resolveSpreadSpec(spreadId, isWide)
   const slotDefs = getSpreadSlots(spreadId, isWide)
@@ -215,7 +216,7 @@ export function resolveCutLayout(input: {
   focusScale?: number
   badgeOverflowPx?: number
 }): CutLayoutResult {
-  const { viewport, isWide, cardAspectRatio, spreadId, focusScale, badgeOverflowPx } = input
+  const { viewport, isWide, cardAspectRatio, spreadId } = input
   const overlayViewport = resolveOverlayViewport({
     windowWidth: viewport.width,
     windowHeight: viewport.height,
@@ -223,13 +224,13 @@ export function resolveCutLayout(input: {
     showResults: false,
   })
   const safeFrame = buildOverlaySafeFrame('draw_stage', overlayViewport)
-  const envelope = resolveCoreCardSize({
-    safeFrame,
-    cardAspectRatio,
-    requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
-    focusScale,
-    badgeOverflowPx,
-  })
+  const envelope = spreadId === 'single_card'
+    ? resolveSingleCardSize({ safeFrame })
+    : resolveCoreCardSize({
+        safeFrame,
+        cardAspectRatio,
+        requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
+      })
 
   const slotPitchX = envelope.width + envelope.gap
   const slotPitchY = envelope.height + envelope.gap

@@ -55,20 +55,43 @@ export function createReadingOrchestrator(deps: ReadingOrchestratorDeps): Readin
     }
   }
 
+  function trackTimer(id: ReturnType<typeof setTimeout>): void {
+    pendingTimers.push(id)
+  }
+
+  function untrackTimer(id: ReturnType<typeof setTimeout>): void {
+    const idx = pendingTimers.indexOf(id)
+    if (idx >= 0) pendingTimers.splice(idx, 1)
+  }
+
+  function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      const id = setTimeout(() => {
+        untrackTimer(id)
+        resolve()
+      }, ms)
+      trackTimer(id)
+    })
+  }
+
   async function doRequest(request: ReadingRequest, retryCount: number): Promise<ReadingResult | null> {
     if (destroyed) return null
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('请求超时，请稍后重试')), TIMEOUT_MS)
+      timeoutId = setTimeout(() => reject(new Error('请求超时，请稍后重试')), TIMEOUT_MS)
     })
 
     try {
       const result = await Promise.race([provider.requestReading(request), timeoutPromise])
+      if (timeoutId) clearTimeout(timeoutId)
       resultRef.value = result
       statusRef.value = 'success'
       return result
     } catch (err: unknown) {
-      if (retryCount < 1) {
-        await new Promise<void>((resolve) => { setTimeout(resolve, RETRY_BACKOFF_MS) })
+      if (timeoutId) clearTimeout(timeoutId)
+      if (retryCount < 1 && !destroyed) {
+        await delay(RETRY_BACKOFF_MS)
         return doRequest(request, retryCount + 1)
       }
       errorRef.value = err instanceof Error ? err.message : errorMessage
@@ -99,6 +122,8 @@ export function createReadingOrchestrator(deps: ReadingOrchestratorDeps): Readin
     },
     async start(request: ReadingRequest) {
       lastRequest = request
+      // If a result already exists, return it without re-requesting.
+      // Callers must call reset() first if they want a fresh reading.
       if (resultRef.value) {
         statusRef.value = 'success'
         return resultRef.value
@@ -129,5 +154,3 @@ export function createReadingOrchestrator(deps: ReadingOrchestratorDeps): Readin
     },
   }
 }
-
-

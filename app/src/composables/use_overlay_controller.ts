@@ -73,18 +73,20 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
       return Math.max(0, Math.min(lift, maxLift))
     } catch { return 0 }
   })
-  const overlayVarsStyle = computed(() =>
-    `${animController.overlayVarsStyle.value}; --card-focus-scale: ${cardFocusScaleValue.value}; --result-card-lift-y: ${resultCardLiftY.value}px`,
-  )
+  const overlayVarsStyle = computed(() => {
+    const base = animController.overlayVarsStyle.value
+    const extra = `--card-focus-scale: ${cardFocusScaleValue.value}; --result-card-lift-y: ${resultCardLiftY.value}px`
+    return base ? `${base}; ${extra}` : extra
+  })
 
   async function finish() {
-    animController.openResultPanel()
-    animController._draws.forEach((draw, index) => {
-      if (index < deps.cardCount.value) draw.scale = 1
-    })
-    animController.refreshDraws()
-    await (currentReadingPromise ?? Promise.resolve(null))
+    try {
+      await (currentReadingPromise ?? Promise.resolve(null))
+    } catch (err) {
+      console.error('[overlay] finish: reading promise rejected', err)
+    }
     currentReadingPromise = null
+    animController.setDrawScales(1)
     if (readingController.readingPanelState.value === 'success' && readingController.readingResult.value) {
       deps.tarotStore.revealResult()
       deps.emit('complete')
@@ -94,17 +96,24 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
   async function retryReading() {
     if (readingController.isReadingLoading.value) return null
     animController.openResultPanel()
-    animController._draws.forEach((draw, index) => {
-      if (index < deps.cardCount.value) draw.scale = 1
-    })
-    animController.refreshDraws()
-    const result = await readingController.retryReading({
-      cards: deps.tarotStore.drawnCards,
-      question: deps.tarotStore.currentQuestion,
-      spreadKind: deps.tarotStore.spreadKind,
-    })
-    if (result) deps.tarotStore.revealResult()
-    return result
+    animController.setDrawScales(1)
+    try {
+      const result = await readingController.retryReading({
+        cards: deps.tarotStore.drawnCards,
+        question: deps.tarotStore.currentQuestion,
+        spreadKind: deps.tarotStore.spreadKind,
+      })
+      if (result) deps.tarotStore.revealResult()
+      return result
+    } catch (err) {
+      console.error('[overlay] retryReading failed', err)
+      return null
+    }
+  }
+
+  function skipToReading() {
+    readingController.resetReading()
+    animController.skipToReading()
   }
 
   function restart() {
@@ -194,6 +203,8 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     setPlaybackRate: animController.setPlaybackRate, pauseAnimations: animController.pauseAnimations,
     resumeAnimations: animController.resumeAnimations, stepForward: animController.stepForward,
     stepBackward: animController.stepBackward, seek: animController.seek,
-    replayFromPhase: animController.replayFromPhase, restart, retryReading,
+    replayFromPhase: animController.replayFromPhase, 
+    skipToReading,
+    restart, retryReading,
   }
 }

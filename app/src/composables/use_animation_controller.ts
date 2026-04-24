@@ -123,11 +123,13 @@ export interface UseAnimationControllerReturn {
   stepBackward: () => void
   seek: (position: number | string) => void
   replayFromPhase: (targetPhase: OverlayPhase) => void
+  skipToReading: () => void
   resetOverlayScene: () => void
   start: () => void
   updateLayout: () => void
   openResultPanel: () => void
   setDrawCardSizes: ReturnType<typeof useAnimationState>['setDrawCardSizes']
+  setDrawScales: (scale: number) => void
   clearTimeline: () => void
   killTimeline: () => void
   killAnimationTargets: () => void
@@ -377,7 +379,7 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
       phase: phaseRunner.name,
       build: (onComplete) => {
         const tl = phaseRunner.run(context, onComplete)
-        return tl as unknown as gsap.core.Timeline | null
+        return tl as gsap.core.Timeline | null
       },
     }
   }
@@ -410,6 +412,37 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
     pipeline.run(startIndex)
   }
 
+  function skipToReading() {
+    interruptCurrentAnimation()
+    entryAnimationComplete.value = true
+    resetOverlayScene()
+    
+    // Force draw cards if not done
+    if (deps.tarotStore.drawnCards.length === 0) {
+      deps.tarotStore.drawCards()
+    }
+    
+    // Jump to revealing phase
+    transitionPhase('revealing')
+    openResultPanel()
+    
+    // Position cards at their final slots for the revealing phase
+    const layout = getSceneLayout('draw_stage')
+    setDrawCardSizes(layout)
+    _draws.forEach((draw, index) => {
+      if (index >= layout.cards.length) return
+      draw.x = layout.cards[index].x
+      draw.y = layout.cards[index].y
+      draw.scale = 1
+      draw.opacity = 1
+    })
+    refreshDraws()
+    
+    // Trigger callbacks
+    deps.callbacks.onDrawingComplete()
+    deps.callbacks.onPipelineComplete()
+  }
+
   function replayFromPhase(targetPhase: OverlayPhase) {
     interruptCurrentAnimation()
     entryAnimationComplete.value = true
@@ -429,8 +462,6 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
   }
 
   function updateLayout() {
-    if (phase.value !== 'revealing' && phase.value !== 'drawing') return
-
     const layout = getSceneLayout('draw_stage')
     setDrawCardSizes(layout)
 
@@ -440,6 +471,13 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
       if (index >= layout.cards.length) return
       draw.x = layout.cards[index].x
       draw.y = layout.cards[index].y
+    })
+    refreshDraws()
+  }
+
+  function setDrawScales(scale: number): void {
+    _draws.forEach((draw, index) => {
+      if (index < deps.cardCount.value) draw.scale = scale
     })
     refreshDraws()
   }
@@ -566,11 +604,13 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
     stepBackward,
     seek,
     replayFromPhase,
+    skipToReading,
     resetOverlayScene,
     start,
     updateLayout,
     openResultPanel,
     setDrawCardSizes,
+    setDrawScales,
     clearTimeline: () => timelineOrchestrator.clear(),
     killTimeline: () => timelineOrchestrator.kill(),
     killAnimationTargets: () => killAnimationTargets(getAllTargets()),

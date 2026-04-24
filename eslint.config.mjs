@@ -46,6 +46,7 @@ export default tseslint.config(
         uni: 'readonly',
         UniApp: 'readonly',
         TouchEvent: 'readonly',
+        KeyboardEvent: 'readonly',
         Touch: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
@@ -74,6 +75,7 @@ export default tseslint.config(
     rules: {
       'no-restricted-globals': 'off',
       'no-restricted-properties': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
 
@@ -92,6 +94,25 @@ export default tseslint.config(
         { object: 'window', property: 'addEventListener', message: 'Use uni.onWindowResize() or similar uni-app API.' },
         { object: 'window', property: 'removeEventListener', message: 'Use uni.offWindowResize() or similar uni-app API.' },
       ],
+    },
+  },
+
+  // Discipline: prevent debug residue and type escape in production code
+  {
+    files: ['app/src/**/*.{ts,vue}', 'server/src/**/*.{ts,js}'],
+    rules: {
+      'no-console': ['error', { allow: ['error', 'warn'] }],
+      'no-debugger': 'error',
+      'no-warning-comments': ['warn', { terms: ['TODO', 'FIXME', 'XXX'], location: 'anywhere' }],
+    },
+  },
+
+  // Allow console in test code
+  {
+    files: ['test/**/*.{ts,tsx,js}', '**/*.test.{ts,tsx,js}'],
+    rules: {
+      'no-console': 'off',
+      'no-warning-comments': 'off',
     },
   },
 

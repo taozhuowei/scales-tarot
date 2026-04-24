@@ -22,16 +22,16 @@ export function resolveViewportMetrics(): ViewportMetrics {
     }
   } catch {
     // #ifdef H5
-    // eslint-disable-next-line no-restricted-globals
+    // eslint-disable-next-line no-restricted-globals -- reason: H5 fallback using window
     if (typeof window !== 'undefined') {
       return {
-        /* eslint-disable no-restricted-globals, no-restricted-properties */
+        /* eslint-disable no-restricted-globals, no-restricted-properties -- reason: H5 fallback using window.innerWidth/Height */
         width: window.innerWidth,
         height: window.innerHeight,
         /* eslint-enable no-restricted-globals, no-restricted-properties */
         safeAreaTop: 0,
         safeAreaBottom: 0,
-        // eslint-disable-next-line no-restricted-globals
+        // eslint-disable-next-line no-restricted-globals -- reason: H5 fallback using window.devicePixelRatio
         dpr: window.devicePixelRatio || 1,
       }
     }

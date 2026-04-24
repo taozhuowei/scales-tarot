@@ -44,13 +44,17 @@ function createModel() {
 
 // Watch for prop changes and restart animation
 watch(
-  () => [props.text, props.startDelay, props.charInterval, props.instant],
-  () => {
+  () => props.text,
+  (newText) => {
     if (typewriterModel) {
       typewriterModel.stop()
     }
-    createModel()
-    typewriterModel?.start()
+    if (newText) {
+      createModel()
+      typewriterModel?.start()
+    } else {
+      displayed_text.value = ''
+    }
   },
 )
 
