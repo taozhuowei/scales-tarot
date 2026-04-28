@@ -16,7 +16,6 @@ const mockController = {
   readingPanelState: ref('idle'),
   cardsDocked: ref(false),
   cardsFocused: ref(false),
-  cardFocusScaleValue: ref(1),
   overlayText: {
     positionReversed: '逆',
     positionUpright: '正',

@@ -38,7 +38,7 @@
           @keydown.space.prevent="handleDeckClick"
         >
           <!-- 空闲牌堆 -->
-          <view class="idle-deck">
+          <view class="idle-deck" :style="deckContainerStyle">
             <image
               v-for="i in 12"
               :key="i"
@@ -91,12 +91,20 @@ import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'
 import { useThemeStore } from '../../stores/theme'
 import { prefersReducedMotion } from '../../utils/accessibility'
-import { DECK_CLICK_SAFETY_MS } from '../../core/config/layout_constants'
+import { DECK_CLICK_SAFETY_MS, CARD_ASPECT_RATIO, WIDE_BREAKPOINT } from '../../core/config/layout_constants'
+import { resolveSceneLayout } from '../../core/layout/scene_layout'
 
 const DECK_CLICK_RELEASE_MS = 300
 
 const tarotStore = useTarotStore()
 const themeStore = useThemeStore()
+
+const cardWidth = ref(100)
+const cardHeight = ref(160)
+const deckContainerStyle = computed(() => ({
+  width: `${cardWidth.value}px`,
+  height: `${cardHeight.value}px`
+}))
 
 // All assets are served by the API; while the theme is still loading these
 // resolve to empty strings and the tags just don't render an image.
@@ -145,6 +153,26 @@ function calculateLayout() {
   try {
     const winInfo = uni.getWindowInfo()
     winHeight = winInfo.windowHeight
+
+    // Sync card size with overlay algorithm
+    const isWide = winInfo.windowWidth >= WIDE_BREAKPOINT
+    const layout = resolveSceneLayout({
+      spreadId: 'single_card',
+      scene: 'draw_stage',
+      viewport: {
+        width: winInfo.windowWidth,
+        height: winInfo.windowHeight,
+        safeAreaTop: winInfo.safeArea?.top || 0,
+        safeAreaBottom: winInfo.safeArea?.bottom || 0,
+        dpr: winInfo.pixelRatio || 1
+      },
+      isWide,
+      cardAspectRatio: CARD_ASPECT_RATIO
+    })
+
+    cardWidth.value = layout.drawCardWidth
+    cardHeight.value = layout.drawCardHeight
+
     // #ifdef H5
     headerPaddingTop.value = Math.max(20, winInfo.safeArea?.top || 20)
     // #endif
@@ -434,9 +462,6 @@ onUnmounted(() => {
 
 .idle-deck {
   position: relative;
-  /* 使用自适应的尺寸，确保不会太大遮挡标题 */
-  width: clamp(80px, 18vw, 120px);
-  height: calc(clamp(80px, 18vw, 120px) * 1.6);
   z-index: 10;
 }
 

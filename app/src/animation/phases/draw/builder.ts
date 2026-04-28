@@ -188,7 +188,7 @@ export function buildDrawPhaseRunner(config: DrawPhaseConfig): PhaseRunner {
         }, '>')
       }
 
-      // Notify when last card settles — used to trigger CSS focus-scale early
+      // Notify when last card settles — drives cardsFocused / cardsDocked state
       if (onCardsLanded) {
         timeline.add(() => { onCardsLanded() }, lastCardLandingTime)
       }

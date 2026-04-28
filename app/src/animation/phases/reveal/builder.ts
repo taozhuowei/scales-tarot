@@ -1,16 +1,10 @@
 /**
  * Name: core/flow/phases/reveal_phase
  * Purpose: PhaseRunner implementation for the reveal phase.
- * Reason: migrated from utils/overlay_animation/phases/reveal_phase.ts to consume PhaseContext.
- * Data flow: draw phase has already flipped cards (rotationY=180); this phase confirms final
- * visible state, then waits for the CSS --card-focus-scale spring animation to settle before
- * signalling completion (which triggers the result panel to open).
+ * Reason: implementation of smooth scale-up from base size to result size.
+ * Data flow: draws cards from base size and smoothly scales to result size.
  */
 
-// Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
-// already the minimal build without CSSPlugin/DOM-only APIs. Individual
-// function exports (to, timeline, killTweensOf) are not available from
-// gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
 import type { AnimationTimeline } from '../../../core/animation/types'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../core/flow/types'
@@ -18,16 +12,13 @@ import { prefersReducedMotion } from '../../../utils/accessibility'
 
 export interface RevealPhaseConfig {
   cardCount: number
+  drawCardWidth: number
+  resultCardWidth: number
   drawLayout: {
     stageShiftY: number
     cards: { x: number; y: number }[]
   }
 }
-
-// Time to wait after the phase begins before calling onComplete.
-// Must be long enough for the CSS --card-focus-scale spring (≈0.55 s) to settle
-// plus a brief hold so the user can see the enlarged card before results slide in.
-const FOCUS_SETTLE_DELAY = 0.7
 
 export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
   return {
@@ -35,15 +26,22 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
     run(context: PhaseContext, onComplete: () => void): AnimationTimeline {
       const { draws } = context.cardElements
       const { draws: drawsVisible } = context.visible
-      const { cardCount, drawLayout } = config
+      const { cardCount, drawLayout, drawCardWidth, resultCardWidth } = config
       const targetX = drawLayout.cards.map((c) => c.x)
       const targetY = drawLayout.cards.map((c) => c.y)
 
-      const timeline = gsap.timeline()
+      // Reveal animates from the draw-stage card size to the result-stage card
+      // size (which is independently solved per spread). No extra emphasis
+      // scale — the result size IS the target.
+      const finalScale = resultCardWidth / Math.max(drawCardWidth, 1)
 
-      // Confirm final card state — draw_phase already flipped cards (rotationY=180)
-      // and animated them to target positions, so we only need to ensure visibility
-      // and snap any residual drift to exact positions.
+      const timeline = gsap.timeline({
+        onComplete: () => {
+          onComplete()
+        }
+      })
+
+      // Ensure initial visibility and positions (at base scale 1)
       timeline.add(() => {
         const visible = [...drawsVisible.value]
         draws.forEach((state, index) => {
@@ -52,11 +50,10 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
               x: targetX[index],
               y: targetY[index],
               rotation: 0,
-              scale: 1,
+              scale: 1, // Start from base scale
               opacity: 1,
               zIndex: 20 - index,
             })
-            // Do NOT reset inners[index].rotationY — draw_phase already set it to 180.
             visible[index] = true
           } else {
             state.opacity = 0
@@ -67,17 +64,16 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
       })
 
       if (prefersReducedMotion()) {
-        timeline.add(() => {
-          onComplete()
-        }, 0.1)
+        timeline.set(draws.slice(0, cardCount), { scale: finalScale })
         return timeline 
       }
 
-      // Wait for the CSS --card-focus-scale spring to settle before signalling
-      // completion, which triggers openResultPanel().
-      timeline.add(() => {
-        onComplete()
-      }, FOCUS_SETTLE_DELAY)
+      // Smooth scale-up for all revealed cards
+      timeline.to(draws.slice(0, cardCount), {
+        scale: finalScale,
+        duration: 0.75,
+        ease: 'power2.out',
+      }, "+=0.1")
 
       return timeline 
     },

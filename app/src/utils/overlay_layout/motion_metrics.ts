@@ -7,9 +7,8 @@
 
 import type { SafeFrame } from '../../core/viewport/types'
 import type { CardEnvelope, SpreadId } from './spread_spec'
-import { getBuiltInEnvelopeRequirement } from './spread_spec'
+import { getBaseEnvelopeRequirement } from './spread_spec'
 import { resolveCardSize } from '../../core/sizing/card_size_solver'
-import { resolveSingleCardSize } from '../../core/sizing/single_card_size_solver'
 import { SHUFFLE_EDGE_MARGIN } from '../../core/config/layout_constants'
 
 export type CutAxis = 'horizontal' | 'vertical'
@@ -44,68 +43,43 @@ import { clamp } from '../math'
  * Resolve every distance the overlay's animations need from the single safe frame.
  */
 export function resolveMotionMetrics(input: MotionMetricsInput): MotionMetrics {
-  const { safeFrame, cardAspectRatio, spreadId, isWide, cutPileCount, deckCount } = input
+  const { safeFrame, cardAspectRatio, isWide, cutPileCount, deckCount } = input
   const { width: safeWidth, height: safeHeight } = safeFrame
 
-  const spreadRequirement = getBuiltInEnvelopeRequirement(spreadId, isWide)
+  // CRITICAL: Animations (Shuffle/Cut) MUST use the process-stage BASE requirement (3 slots)
+  // to ensure they match the physical card dimensions used in those phases.
+  const baseRequirement = getBaseEnvelopeRequirement(isWide)
   const cutAxis: CutAxis = isWide ? 'horizontal' : 'vertical'
-  const cutHorizontalSlots = cutAxis === 'horizontal' ? Math.max(cutPileCount, 1) : 1
-  const cutVerticalSlots = cutAxis === 'vertical' ? Math.max(cutPileCount, 1) : 1
 
-  // Card size: single-card uses its own dedicated solver; multi-card spreads
-  // continue to use the envelope-based solver.
-  let envelope: CardEnvelope
-  if (spreadId === 'single_card') {
-    const singleSize = resolveSingleCardSize({ safeFrame })
-    const { width: cw, height: ch, gap: g } = singleSize
-    const spx = cw + g
-    const spy = ch + g
-    const hSlots = Math.max(1, cutHorizontalSlots)
-    const vSlots = Math.max(1, cutVerticalSlots)
-    envelope = {
-      cardWidth: cw,
-      cardHeight: ch,
-      gap: g,
-      horizontalSlots: hSlots,
-      verticalSlots: vSlots,
-      slotPitchX: spx,
-      slotPitchY: spy,
-      halfSpanX: ((hSlots - 1) * spx) / 2,
-      halfSpanY: ((vSlots - 1) * spy) / 2,
-      fullSpanX: hSlots * cw + (hSlots - 1) * g,
-      fullSpanY: vSlots * ch + (vSlots - 1) * g,
-    }
-  } else {
-    const size = resolveCardSize({
-      safeFrame,
-      cardAspectRatio,
-      requirement: spreadRequirement,
-    })
-    const { width: cw, height: ch, gap: g } = size
-    const spx = cw + g
-    const spy = ch + g
-    const hSlots = Math.max(spreadRequirement.horizontalSlots, cutHorizontalSlots)
-    const vSlots = Math.max(spreadRequirement.verticalSlots, cutVerticalSlots)
-    envelope = {
-      cardWidth: cw,
-      cardHeight: ch,
-      gap: g,
-      horizontalSlots: hSlots,
-      verticalSlots: vSlots,
-      slotPitchX: spx,
-      slotPitchY: spy,
-      halfSpanX: ((hSlots - 1) * spx) / 2,
-      halfSpanY: ((vSlots - 1) * spy) / 2,
-      fullSpanX: hSlots * cw + (hSlots - 1) * g,
-      fullSpanY: vSlots * ch + (vSlots - 1) * g,
-    }
-  }
-
-  const { cardWidth, cardHeight, gap } = envelope
+  // Card size: unified solver based on the 3-slot base requirement.
+  const size = resolveCardSize({
+    safeFrame,
+    cardAspectRatio,
+    requirement: baseRequirement,
+  })
+  
+  const { width: cardWidth, height: cardHeight, gap } = size
   const slotPitchX = cardWidth + gap
   const slotPitchY = cardHeight + gap
   const safeHalfWidth = safeWidth / 2
   const safeHalfHeight = safeHeight / 2
+
+  const hSlots = Math.max(baseRequirement.horizontalSlots, isWide ? cutPileCount : 1)
+  const vSlots = Math.max(baseRequirement.verticalSlots, isWide ? 1 : cutPileCount)
+  
+  const envelope: CardEnvelope = {
+    cardWidth,
+    cardHeight,
+    gap,
+    horizontalSlots: hSlots,
+    verticalSlots: vSlots,
+    slotPitchX,
+    slotPitchY,
+    halfSpanX: ((hSlots - 1) * slotPitchX) / 2,
+    halfSpanY: ((vSlots - 1) * slotPitchY) / 2,
+    fullSpanX: hSlots * cardWidth + (hSlots - 1) * gap,
+    fullSpanY: vSlots * cardHeight + (vSlots - 1) * gap,
+  }
 
   // Shuffle spread
   const shuffleEdgeMargin = SHUFFLE_EDGE_MARGIN
@@ -118,7 +92,7 @@ export function resolveMotionMetrics(input: MotionMetricsInput): MotionMetrics {
   const pilesAlongAxis = Math.max(1, cutPileCount)
   const cutAxisCardSize = cutAxis === 'horizontal' ? cardWidth : cardHeight
   
-  // 固定间距：无论屏幕多大，移动距离仅为牌的尺寸 + 卡牌间距常量 (gap)
+  // Fixed Spacing: pitch must be card dimension + gap to prevent overlap.
   const cutPileSpacing = cutAxisCardSize + gap
 
   const halfRange = ((pilesAlongAxis - 1) / 2) * cutPileSpacing
@@ -132,19 +106,7 @@ export function resolveMotionMetrics(input: MotionMetricsInput): MotionMetrics {
   const cardsPerPile = Math.max(1, Math.floor(Math.max(1, deckCount) / pilesAlongAxis))
 
   return {
-    envelope: {
-      cardWidth,
-      cardHeight,
-      gap,
-      horizontalSlots: Math.max(spreadRequirement.horizontalSlots, cutHorizontalSlots),
-      verticalSlots: Math.max(spreadRequirement.verticalSlots, cutVerticalSlots),
-      slotPitchX,
-      slotPitchY,
-      halfSpanX: ((Math.max(spreadRequirement.horizontalSlots, cutHorizontalSlots) - 1) * slotPitchX) / 2,
-      halfSpanY: ((Math.max(spreadRequirement.verticalSlots, cutVerticalSlots) - 1) * slotPitchY) / 2,
-      fullSpanX: Math.max(spreadRequirement.horizontalSlots, cutHorizontalSlots) * cardWidth + (Math.max(spreadRequirement.horizontalSlots, cutHorizontalSlots) - 1) * gap,
-      fullSpanY: Math.max(spreadRequirement.verticalSlots, cutVerticalSlots) * cardHeight + (Math.max(spreadRequirement.verticalSlots, cutVerticalSlots) - 1) * gap,
-    },
+    envelope,
     cardWidth,
     cardHeight,
     gap,

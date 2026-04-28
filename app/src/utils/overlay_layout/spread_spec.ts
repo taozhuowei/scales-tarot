@@ -83,22 +83,20 @@ export interface SpreadSpec {
 }
 
 /**
- * Built-in envelope constraints.
- * - Shuffle always spreads two card widths horizontally.
- * - Cut dictates 3 slots along the active axis.
- * - Draw stacks the spread's full layout.
- * The solver picks a card size that satisfies both the horizontal and
- * vertical slot constraints, taking the stricter of the two.
+ * Base envelope requirements for process phases (Shuffle, Cut, Home).
+ * Always dictates 3 slots along the active axis to ensure cut piles fit.
  */
-export function getBuiltInEnvelopeRequirement(
-  spreadId: SpreadId,
-  isWide: boolean,
-): SpreadEnvelopeRequirement {
-  const cutH = isWide ? 3 : 1
-  const cutV = isWide ? 1 : 3
-  const shuffleH = 2
-  const shuffleV = 1
+export function getBaseEnvelopeRequirement(isWide: boolean): SpreadEnvelopeRequirement {
+  return {
+    horizontalSlots: isWide ? 3 : 1,
+    verticalSlots: isWide ? 1 : 3,
+  }
+}
 
+/**
+ * Result envelope requirements for final spread display.
+ */
+export function getResultEnvelopeRequirement(spreadId: SpreadId, isWide: boolean): SpreadEnvelopeRequirement {
   let drawH: number
   let drawV: number
 
@@ -116,13 +114,29 @@ export function getBuiltInEnvelopeRequirement(
       drawV = 3
       break
     default:
-      // Future custom spreads default to a conservative 3x3 envelope
       drawH = 3
       drawV = 3
   }
 
   return {
-    horizontalSlots: Math.max(cutH, shuffleH, drawH),
-    verticalSlots: Math.max(cutV, shuffleV, drawV),
+    horizontalSlots: drawH,
+    verticalSlots: drawV,
   }
 }
+
+/**
+ * Legacy getter - no longer used by core but kept for type compatibility if needed.
+ */
+export function getBuiltInEnvelopeRequirement(
+  spreadId: SpreadId,
+  isWide: boolean,
+): SpreadEnvelopeRequirement {
+  const base = getBaseEnvelopeRequirement(isWide)
+  const result = getResultEnvelopeRequirement(spreadId, isWide)
+
+  return {
+    horizontalSlots: Math.max(base.horizontalSlots, result.horizontalSlots, 2), // 2 for shuffle
+    verticalSlots: Math.max(base.verticalSlots, result.verticalSlots, 1),
+  }
+}
+

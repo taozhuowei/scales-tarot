@@ -356,10 +356,12 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
       {
         name: 'revealing',
         run(context: PhaseContext, onComplete: () => void) {
-          const { drawLayout } = layoutApi.getOverlayLayouts()
+          const { drawLayout, resultLayout } = layoutApi.getOverlayLayouts()
           setDrawCardSizes(drawLayout)
           const runner = buildRevealPhaseRunner({
             cardCount: deps.cardCount.value,
+            drawCardWidth: drawLayout.drawCardWidth,
+            resultCardWidth: resultLayout.cardWidth,
             drawLayout: {
               stageShiftY: drawLayout.stageShiftY,
               cards: drawLayout.cards.map((c) => ({ x: c.x, y: c.y })),

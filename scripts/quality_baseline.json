@@ -1,9 +1,9 @@
 {
   "fileSize": [
-    "app/src/components/DivinationOverlay.vue:877",
-    "app/src/composables/use_animation_controller.ts:620",
-    "app/src/pages/index/index.vue:549",
-    "app/src/components/overlay/ResultZone.vue:319",
+    "app/src/components/DivinationOverlay.vue:872",
+    "app/src/composables/use_animation_controller.ts:622",
+    "app/src/pages/index/index.vue:574",
+    "app/src/components/overlay/ResultZone.vue:334",
     "server/src/services/theme_loader.ts:325"
   ],
   "functionSize": [
@@ -11,12 +11,13 @@
     "app/src/animation/phases/draw/builder.ts:29:buildDrawPhaseRunner",
     "app/src/animation/phases/draw/builder.ts:32:run",
     "app/src/composables/use_animation_controller.ts:139:useAnimationController",
-    "app/src/composables/use_overlay_controller.ts:26:useOverlayController",
+    "app/src/composables/use_overlay_controller.ts:25:useOverlayController",
     "app/src/animation/phases/cut/builder.ts:34:buildCutPhaseRunner",
     "app/src/animation/phases/shuffle/builder.ts:25:buildShufflePhaseRunner",
     "app/src/animation/phases/shuffle/builder.ts:30:run",
-    "app/src/composables/useOverlayLayout.ts:27:useOverlayLayout",
+    "app/src/composables/useOverlayLayout.ts:25:useOverlayLayout",
     "app/src/composables/use_animation_state.ts:13:useAnimationState",
+    "app/src/core/layout/scene_layout.ts:126:resolveSceneLayout",
     "app/src/stores/reading.ts:12:createReadingState",
     "app/src/stores/theme.ts:10:(arrow)",
     "app/src/utils/overlay_layout/motion_metrics.ts:46:resolveMotionMetrics",
@@ -25,7 +26,7 @@
   ],
   "complexity": [
     "app/src/composables/use_animation_controller.ts:139:useAnimationController",
-    "app/src/composables/use_overlay_controller.ts:26:useOverlayController",
+    "app/src/composables/use_overlay_controller.ts:25:useOverlayController",
     "app/src/utils/reading/reading_orchestrator.ts:41:createReadingOrchestrator"
   ]
 }

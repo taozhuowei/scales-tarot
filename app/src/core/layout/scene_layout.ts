@@ -9,11 +9,10 @@ import type { ViewportMetrics, SafeFrame } from '../viewport/types'
 import { resolveSafeFrame, resolveStageMetrics, getDefaultInsets } from '../viewport/safe_frame_calculator'
 import type { SpreadId, SpreadScene, CardEnvelope } from '../../utils/overlay_layout/spread_spec'
 import { resolveCardSize as resolveCoreCardSize } from '../sizing/card_size_solver'
-import { resolveSingleCardSize } from '../sizing/single_card_size_solver'
 import { resolveDrawLayout, type DrawLayoutResult } from './draw_layout_resolver'
 import { resolveResultLayout } from './result_layout_resolver'
 import { getSpreadSlots, resolveSpreadSpec, getSpreadCardCount } from './spread_registry'
-import { getBuiltInEnvelopeRequirement } from '../../utils/overlay_layout/spread_spec'
+import { getBaseEnvelopeRequirement, getResultEnvelopeRequirement } from '../../utils/overlay_layout/spread_spec'
 import { resolveSpreadSlots } from './spread_layout_calculator'
 import { resolveMotionMetrics, type MotionMetrics } from '../../utils/overlay_layout/motion_metrics'
 import * as LC from '../config/layout_constants'
@@ -24,8 +23,6 @@ export interface SceneLayoutInput {
   viewport: ViewportMetrics
   isWide: boolean
   cardAspectRatio: number
-  focusScale?: number
-  badgeOverflowPx?: number
   headerHeight?: number
   resultSheetFraction?: number
 }
@@ -33,6 +30,8 @@ export interface SceneLayoutInput {
 export interface SceneLayoutResult extends DrawLayoutResult {
   cardWidth: number
   cardHeight: number
+  drawCardWidth: number
+  drawCardHeight: number
   safeTopInset: number
   safeBottomInset: number
   safeSideInset: number
@@ -41,20 +40,6 @@ export interface SceneLayoutResult extends DrawLayoutResult {
 
 /** Backward-compatible alias used by controller. */
 export type SceneLayout = SceneLayoutResult
-
-export interface CutLayoutResult {
-  leadingOffsetX: number
-  leadingOffsetY: number
-  trailingOffsetX: number
-  trailingOffsetY: number
-}
-
-export interface RevealMotionPlan {
-  focusScale: number
-  dockScale: number
-}
-
-import { clamp } from './card_position_calculator'
 
 export function resolveOverlayViewport(input: {
   windowWidth: number
@@ -150,144 +135,94 @@ export function resolveSceneLayout(input: SceneLayoutInput): SceneLayoutResult {
 
   const safeFrame = buildOverlaySafeFrame(scene, overlayViewport, resultSheetFraction)
 
-  // Use draw_stage safe frame (with result-sheet reservation) for sizing, so both
-  // draw_stage and result_stage produce the same card size. Pre-shrink by focus
-  // scale so that CSS scale-up during revealing still fits inside the safe frame.
-  const drawSafeFrame = buildOverlaySafeFrame('draw_stage', overlayViewport, resultSheetFraction ?? LC.RESULT_SHEET_FRACTION)
-  const focusScale = getFocusScale(isWide)
-  const sizingSafeFrame: SafeFrame = {
-    ...drawSafeFrame,
-    width: drawSafeFrame.width / focusScale,
-    height: drawSafeFrame.height / focusScale,
-  }
+  // Base sizing: use the full-screen view (showResults=false) for stability,
+  // but reserve the result-sheet bottom inset so the draw layout already knows
+  // the drawer space and never gets occluded by it.
+  const baseOverlayViewport = resolveOverlayViewport({
+    windowWidth: viewport.width,
+    windowHeight: viewport.height,
+    isWide,
+    showResults: false,
+  })
+  const drawSizingFrame = buildOverlaySafeFrame(
+    'draw_stage',
+    baseOverlayViewport,
+    resultSheetFraction ?? LC.RESULT_SHEET_FRACTION,
+  )
+  const drawCardSize = resolveCoreCardSize({
+    safeFrame: drawSizingFrame,
+    cardAspectRatio,
+    requirement: getBaseEnvelopeRequirement(isWide),
+  })
 
-  const cardSize = spreadId === 'single_card'
-    ? resolveSingleCardSize({ safeFrame: sizingSafeFrame })
-    : resolveCoreCardSize({
-        safeFrame: sizingSafeFrame,
+  // Result sizing: independently calculated based on the actual spread slots.
+  const isResult = scene === 'result_stage'
+  const resultCardSize = isResult
+    ? resolveCoreCardSize({
+        safeFrame, // Use current (potentially shrunk) safeFrame for result display
         cardAspectRatio,
-        requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
+        requirement: getResultEnvelopeRequirement(spreadId, isWide),
       })
+    : drawCardSize
+
+  const currentCardSize = isResult ? resultCardSize : drawCardSize
 
   const spec = resolveSpreadSpec(spreadId, isWide)
   const slotDefs = getSpreadSlots(spreadId, isWide)
   const slots = resolveSpreadSlots(
     { ...spec, slots: slotDefs, wideSlots: isWide ? slotDefs : (spec.wideSlots ?? slotDefs) },
     isWide,
-    cardSize,
+    currentCardSize,
   )
 
   const spread = scene === 'draw_stage'
-    ? resolveDrawLayout(spreadId, slots, safeFrame, cardSize, spec.zIndexes)
-    : resolveResultLayout(spreadId, slots, safeFrame, cardSize, headerHeight, spec.zIndexes)
+    ? resolveDrawLayout(spreadId, slots, safeFrame, currentCardSize, spec.zIndexes)
+    : resolveResultLayout(spreadId, slots, safeFrame, currentCardSize, headerHeight, spec.zIndexes)
 
-  const halfSafeHeight = safeFrame.height / 2
-  const envelopeFullSpanY = cardSize.height * spec.verticalSlots + (spec.verticalSlots - 1) * cardSize.gap
-  const halfLayoutHeight = envelopeFullSpanY / 2
-  const maxYOffset = Math.max(0, halfSafeHeight - halfLayoutHeight)
-  const clampedCenterYOffset = Math.max(-maxYOffset, Math.min(maxYOffset, safeFrame.centerY))
+  // In result_stage, the result_layout_resolver already handles vertical positioning.
+  // We only apply the centering clamp for the draw_stage (to center cards in the stage).
+  if (scene === 'draw_stage') {
+    const halfSafeHeight = safeFrame.height / 2
+    const envelopeFullSpanY = currentCardSize.height * spec.verticalSlots + (spec.verticalSlots - 1) * currentCardSize.gap
+    const halfLayoutHeight = envelopeFullSpanY / 2
+    const maxYOffset = Math.max(0, halfSafeHeight - halfLayoutHeight)
+    const clampedCenterYOffset = Math.max(-maxYOffset, Math.min(maxYOffset, safeFrame.centerY))
 
-  const mappedCards = spread.cards.map(card => ({
-    ...card,
-    y: card.y + clampedCenterYOffset,
-  }))
+    const mappedCards = spread.cards.map(card => ({
+      ...card,
+      y: card.y + clampedCenterYOffset,
+    }))
+    
+    spread.cards = mappedCards
+  }
 
   return {
-    cards: mappedCards,
+    cards: spread.cards,
     stageShiftY: spread.stageShiftY,
-    cardWidth: spread.cards[0]?.width ?? cardSize.width,
-    cardHeight: spread.cards[0]?.height ?? cardSize.height,
+    cardWidth: currentCardSize.width,
+    cardHeight: currentCardSize.height,
+    drawCardWidth: drawCardSize.width,
+    drawCardHeight: drawCardSize.height,
     safeTopInset: safeFrame.y,
     safeBottomInset: safeFrame.bottomInset,
     safeSideInset: safeFrame.x,
     envelope: {
-      cardWidth: cardSize.width,
-      cardHeight: cardSize.height,
-      gap: cardSize.gap,
+      cardWidth: currentCardSize.width,
+      cardHeight: currentCardSize.height,
+      gap: currentCardSize.gap,
       horizontalSlots: spec.horizontalSlots,
       verticalSlots: spec.verticalSlots,
-      slotPitchX: cardSize.width + cardSize.gap,
-      slotPitchY: cardSize.height + cardSize.gap,
-      halfSpanX: ((spec.horizontalSlots - 1) * (cardSize.width + cardSize.gap)) / 2,
-      halfSpanY: ((spec.verticalSlots - 1) * (cardSize.height + cardSize.gap)) / 2,
-      fullSpanX: spec.horizontalSlots * cardSize.width + (spec.horizontalSlots - 1) * cardSize.gap,
-      fullSpanY: spec.verticalSlots * cardSize.height + (spec.verticalSlots - 1) * cardSize.gap,
+      slotPitchX: currentCardSize.width + currentCardSize.gap,
+      slotPitchY: currentCardSize.height + currentCardSize.gap,
+      halfSpanX: ((spec.horizontalSlots - 1) * (currentCardSize.width + currentCardSize.gap)) / 2,
+      halfSpanY: ((spec.verticalSlots - 1) * (currentCardSize.height + currentCardSize.gap)) / 2,
+      fullSpanX: spec.horizontalSlots * currentCardSize.width + (spec.horizontalSlots - 1) * currentCardSize.gap,
+      fullSpanY: spec.verticalSlots * currentCardSize.height + (spec.verticalSlots - 1) * currentCardSize.gap,
     },
   }
 }
 
-/**
- * Resolve cut offsets that stay inside the safe frame, anchored on the shared envelope.
- */
-export function resolveCutLayout(input: {
-  viewport: ViewportMetrics
-  isWide: boolean
-  cardAspectRatio: number
-  spreadId: SpreadId
-  focusScale?: number
-  badgeOverflowPx?: number
-}): CutLayoutResult {
-  const { viewport, isWide, cardAspectRatio, spreadId } = input
-  const overlayViewport = resolveOverlayViewport({
-    windowWidth: viewport.width,
-    windowHeight: viewport.height,
-    isWide,
-    showResults: false,
-  })
-  const safeFrame = buildOverlaySafeFrame('draw_stage', overlayViewport)
-  const envelope = spreadId === 'single_card'
-    ? resolveSingleCardSize({ safeFrame })
-    : resolveCoreCardSize({
-        safeFrame,
-        cardAspectRatio,
-        requirement: getBuiltInEnvelopeRequirement(spreadId, isWide),
-      })
-
-  const slotPitchX = envelope.width + envelope.gap
-  const slotPitchY = envelope.height + envelope.gap
-
-  if (isWide) {
-    return {
-      leadingOffsetX: -slotPitchX,
-      leadingOffsetY: 0,
-      trailingOffsetX: slotPitchX,
-      trailingOffsetY: 0,
-    }
-  }
-
-  return {
-    leadingOffsetX: 0,
-    leadingOffsetY: -slotPitchY,
-    trailingOffsetX: 0,
-    trailingOffsetY: slotPitchY,
-  }
-}
-
-/**
- * Resolve the flip emphasis scale before cards are collected into the result layout.
- * The CSS focus scale is the real source of truth; this helper just mirrors it for JS bounds.
- */
-export function resolveRevealMotion(input: {
-  drawCardWidth: number
-  resultCardWidth: number
-}): RevealMotionPlan {
-  const { drawCardWidth, resultCardWidth } = input
-  const preferredReadableWidth = clamp(
-    Math.max(drawCardWidth * 1.12, resultCardWidth * 1.12),
-    144,
-    188,
-  )
-
-  return {
-    focusScale: clamp(preferredReadableWidth / Math.max(drawCardWidth, 1), 1.08, 1.18),
-    dockScale: 1,
-  }
-}
-
-/** Focus scale used by CSS; layout must reserve bounds for this. */
-export function getFocusScale(isWide: boolean): number {
-  return isWide ? LC.FOCUS_SCALE_WIDE : LC.FOCUS_SCALE_NARROW
-}
+export { getBaseEnvelopeRequirement, getResultEnvelopeRequirement }
 
 /** Badge overflow in px beyond card edge (12rpx). */
 export function getBadgeOverflowPx(windowWidth: number): number {

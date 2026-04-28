@@ -35,15 +35,10 @@ export type {
   SceneLayoutInput,
   SceneLayoutResult,
   SceneLayoutResult as SceneLayout,
-  CutLayoutResult,
-  RevealMotionPlan,
 } from '../../core/layout/scene_layout'
 
 export {
   resolveSceneLayout,
-  resolveCutLayout,
-  resolveRevealMotion,
-  getFocusScale,
   getBadgeOverflowPx,
   resolveOverlayViewport,
   buildOverlaySafeFrame,

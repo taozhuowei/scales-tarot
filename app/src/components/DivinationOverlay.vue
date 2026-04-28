@@ -420,7 +420,6 @@ onUnmounted(() => {
 
 <style scoped>
 .divination-overlay {
-  --card-focus-scale: 1;
   --color-overlay-bg: rgba(242, 232, 208, 0.97);
   --color-overlay-bg-fade: rgba(242, 232, 208, 0.96);
   --color-overlay-bg-transparent: rgba(242, 232, 208, 0);
@@ -581,15 +580,12 @@ onUnmounted(() => {
   position: absolute;
 }
 
-/* Focus frame: pure CSS scale that enlarges drawn cards after deal+flip and shrinks
-   them once the reading text arrives. No JS scale tweens. */
+/* Card frame: a transparent wrapper around the 3D card. Sizing and animated
+   scaling are driven entirely by JS (GSAP) on the parent .card element. */
 .card-focus-frame {
   width: 100%;
   height: 100%;
   position: relative;
-  transform: scale(var(--card-focus-scale, 1));
-  transform-origin: center center;
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
@@ -864,7 +860,6 @@ onUnmounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-focus-frame,
   .result-zone,
   .result-hero,
   .meaning-list,

@@ -210,56 +210,24 @@ describe('use_overlay_controller result-zone sizing', () => {
     expect(controller.overlayVarsStyle).toBeDefined()
     expect(controller.overlayVarsStyle.value).toContain('--card-width:')
     expect(controller.overlayVarsStyle.value).toContain('--card-height:')
-    // --card-focus-scale must be present so .card-focus-frame scales correctly
-    expect(controller.overlayVarsStyle.value).toContain('--card-focus-scale:')
+    expect(controller.overlayVarsStyle.value).toContain('--result-card-lift-y:')
   })
 
-  it('focusScale adapts to viewport width', async () => {
+  it('overlayVarsStyle reflects result-card lift state', async () => {
     const isWideRef = ref(false)
     const { controller } = await mountHarness(isWideRef)
 
-    // Narrow mode focus scale
-    const narrowFocusScale = controller.focusScale.value
-    expect(narrowFocusScale).toBe(1.42)
-
-    // Switch to wide mode
-    isWideRef.value = true
-    await nextTick()
-
-    expect(controller.focusScale.value).toBe(1.2)
-    expect(controller.focusScale.value).not.toBe(narrowFocusScale)
-  })
-
-  it('overlayVarsStyle reflects focus scale and result state', async () => {
-    const isWideRef = ref(false)
-    const { controller } = await mountHarness(isWideRef)
-
-    // Default: no results, cards not landed -> focus scale is 1
     const defaultStyle = controller.overlayVarsStyle.value
-    expect(defaultStyle).toContain('--card-focus-scale: 1')
     expect(defaultStyle).toContain('--result-card-lift-y: 0px')
 
-    // Simulate cards landed (but results not shown) -> focus scale applies
-    controller.showResults.value = false
-    // cardsLanded is internal to animController; we simulate the observable effect
-    // by checking that when showResults becomes true, the style changes accordingly
-    await nextTick()
-
-    // Simulate result phase (showResults = true)
     controller.showResults.value = true
     await nextTick()
 
-    // When showResults is true, focus scale should be 1
-    expect(controller.overlayVarsStyle.value).toContain('--card-focus-scale: 1')
-
-    // result-card-lift-y should be present (non-zero in narrow mode with results)
-    expect(controller.overlayVarsStyle.value).toContain('--result-card-lift-y:')
     const liftMatch = controller.overlayVarsStyle.value.match(/--result-card-lift-y: ([\d.]+)px/)
     expect(liftMatch).not.toBeNull()
     const liftY = parseFloat(liftMatch![1])
     expect(liftY).toBeGreaterThan(0)
 
-    // In wide mode, lift should be 0
     isWideRef.value = true
     await nextTick()
     expect(controller.overlayVarsStyle.value).toContain('--result-card-lift-y: 0px')

@@ -144,13 +144,19 @@ function resolveCrossSpreadResult(
   headerHeight: number,
   zIndexes?: Record<string, number>,
 ): ResultLayoutResult {
-  const { height: containerHeight } = safeFrame
+  const { width: containerWidth, height: containerHeight } = safeFrame
   const { width: cardWidth, height: cardHeight } = cardSize
   const slotPitchX = cardWidth + cardSize.gap
   const slotPitchY = cardHeight + cardSize.gap
-  const centerY = clamp(headerHeight / 2, -containerHeight * 0.1, containerHeight * 0.1)
-  const hOffset = slotPitchX
-  const vOffset = slotPitchY
+
+  // Adaptive spacing: ensure card centers + half-cards + margin fit in container
+  const hMargin = Math.max(cardWidth * 0.05, 8)
+  const vMargin = Math.max(cardHeight * 0.05, 8)
+  
+  const hOffset = Math.min(slotPitchX, Math.max(0, containerWidth / 2 - cardWidth / 2 - hMargin))
+  const vOffset = Math.min(slotPitchY, Math.max(0, containerHeight / 2 - cardHeight / 2 - vMargin))
+  
+  const centerY = clamp(headerHeight / 2, -containerHeight * 0.05, containerHeight * 0.05)
 
   return {
     cards: [
@@ -163,3 +169,4 @@ function resolveCrossSpreadResult(
     stageShiftY: 0,
   }
 }
+

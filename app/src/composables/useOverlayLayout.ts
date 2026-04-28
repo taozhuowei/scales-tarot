@@ -47,11 +47,10 @@ export function useOverlayLayout(deps: UseOverlayLayoutDeps) {
   }
 
   /**
-   * Resolve the unified scene layout for the current spread and viewport.
-   * Both draw_stage and result_stage share an identical card size: sizing uses
-   * the draw_stage safe frame (with sheet reservation) pre-shrunk by the focus
-   * scale so the CSS --card-focus-scale scale-up still fits inside the safe
-   * frame. Positioning still uses the scene-specific safe frame.
+   * Resolve the scene layout for the current spread and viewport.
+   * Draw and result stages each solve their own card size against their own
+   * safe frame and slot grid. The reveal animation transitions between the two
+   * sizes — there is no shared/master size and no CSS focus-scale.
    */
   function getSceneLayout(scene: 'draw_stage' | 'result_stage'): SceneLayoutResult {
     const viewport = getViewportMetrics(scene === 'result_stage')
@@ -86,7 +85,8 @@ export function useOverlayLayout(deps: UseOverlayLayoutDeps) {
   function getOverlayLayouts() {
     const drawViewport = getViewportMetrics(false)
     const drawLayout = getSceneLayout('draw_stage')
-    return { drawViewport, drawLayout }
+    const resultLayout = getSceneLayout('result_stage')
+    return { drawViewport, drawLayout, resultLayout }
   }
 
   function checkWidth(windowWidth: number): boolean {

@@ -9,8 +9,6 @@ export const RESULT_WIDE_WIDTH_FRACTION = 0.54
 export const RESULT_SHEET_FRACTION = 0.30
 
 // Card visual constants
-export const FOCUS_SCALE_WIDE = 1.2
-export const FOCUS_SCALE_NARROW = 1.42
 export const CARD_ASPECT_RATIO = 1.6
 
 // Viewport / safe-frame insets (px unless noted)
@@ -23,20 +21,21 @@ export const FOOTER_RESERVE_RPX_MP = 196
 export const FOOTER_RESERVE_MIN_PX = 48
 export const FOOTER_RESERVE_MAX_PX = 120
 
-export const SIDE_INSET_DRAW = 24
-export const SIDE_INSET_RESULT = 20
-export const TOP_EXTRA_DRAW = 12
-export const TOP_EXTRA_RESULT = 8
-export const BOTTOM_MIN_DRAW = 56
-export const BOTTOM_MIN_RESULT = 44
-export const BOTTOM_RATIO_DRAW = 0.2
-export const BOTTOM_RATIO_RESULT = 0.16
+export const SIDE_INSET_DRAW = 20 // 稍微收紧侧边距
+export const SIDE_INSET_RESULT = 16
+export const TOP_EXTRA_DRAW = 8 // 减少顶部额外留白
+export const TOP_EXTRA_RESULT = 4
+export const BOTTOM_MIN_DRAW = 40
+export const BOTTOM_MIN_RESULT = 32
+export const BOTTOM_RATIO_DRAW = 0.12 // 从 0.2 下调，释放更多垂直空间
+export const BOTTOM_RATIO_RESULT = 0.1 // 从 0.16 下调
 
 // Rounding / clamping
 export const MIN_CARD_WIDTH = 64
-export const MAX_CARD_WIDTH = 512 // 移除188px的人为限制，充分利用安全区宽度
-export const DEFAULT_ENVELOPE_GAP = 16 // 固定卡牌间距常量
-export const CARD_SIZE_FILL_RATIO = 0.85 // 短边填充系数，预留安全边距与动画空间
+export const MAX_CARD_WIDTH = 512
+// Inter-card gap and edge margin share the same pixel value so the safe frame
+// looks visually balanced (2 edge margins + (n-1) inter-card gaps + n cards).
+export const DEFAULT_ENVELOPE_GAP = 16
 
 
 // Entry animation durations (seconds)
@@ -64,13 +63,6 @@ export const RESULT_LIFT_MAX_FRACTION = 0.28
 // Shuffle phase constants
 export const SHUFFLE_SPREAD_X = 120
 export const SHUFFLE_EDGE_MARGIN = 12
-
-// Single-card spread baseline (iPhone 14 Pro Max safe-frame)
-export const SINGLE_CARD_BASELINE_SAFE_WIDTH = 390
-export const SINGLE_CARD_BASELINE_SAFE_HEIGHT = 760
-export const SINGLE_CARD_BASELINE_FILL_RATIO = 0.6
-export const SINGLE_CARD_MAX_WIDTH = 180
-export const SINGLE_CARD_MIN_WIDTH = 100
 
 // Interaction safety
 export const DECK_CLICK_SAFETY_MS = 2000

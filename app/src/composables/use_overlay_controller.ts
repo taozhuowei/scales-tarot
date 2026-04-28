@@ -7,7 +7,6 @@
 import { computed, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
-import { getFocusScale } from '../utils/overlay_layout/index'
 import { RESULT_LIFT_MARGIN_PX, RESULT_LIFT_MAX_FRACTION } from '../core/config/layout_constants'
 import { DEFAULT_OVERLAY_TEXT } from '../utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
@@ -54,12 +53,6 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
   const cardsDocked = computed(() =>
     animController.showResults.value && readingController.readingPanelState.value === 'success',
   )
-  const focusScale = computed(() => getFocusScale(deps.isWide.value))
-  const cardFocusScaleValue = computed(() => {
-    if (animController.showResults.value) return 1
-    if (animController.cardsLanded.value) return focusScale.value
-    return 1
-  })
   const resultCardLiftY = computed(() => {
     if (!animController.showResults.value || deps.isWide.value) return 0
     try {
@@ -75,7 +68,7 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
   })
   const overlayVarsStyle = computed(() => {
     const base = animController.overlayVarsStyle.value
-    const extra = `--card-focus-scale: ${cardFocusScaleValue.value}; --result-card-lift-y: ${resultCardLiftY.value}px`
+    const extra = `--result-card-lift-y: ${resultCardLiftY.value}px`
     return base ? `${base}; ${extra}` : extra
   })
 
@@ -186,7 +179,7 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
     readingErrorMessage: readingController.readingErrorMessage,
     isReadingFailed: readingController.isReadingFailed,
     isReadingLoading: readingController.isReadingLoading,
-    cardsFocused, cardsDocked, focusScale,
+    cardsFocused, cardsDocked,
 
     progressHeaderPresentation: animController.progressHeaderPresentation,
     footerPresentation: animController.footerPresentation,

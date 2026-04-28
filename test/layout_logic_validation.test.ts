@@ -62,12 +62,12 @@ describe('Stage C.1: Layout Logic Validation (A.6 requirements)', () => {
         deckCount: 78,
       })
 
-      // Single-card spread uses dedicated baseline-design sizing:
-      // baseline safe-frame 390×760, card height = 60% of safe height,
-      // scaled proportionally by screen width, capped at 180.
-      // On 1440px desktop the cap is hit, so width === 180.
-      expect(mm.cardWidth).toBe(180)
-      expect(mm.cardHeight).toBeCloseTo(180 * 1.6, 0)
+      // Single-card spread now uses the unified short-side sizing algorithm.
+      // On 1440px desktop, card width should be significantly larger than 180px,
+      // limited only by safeFrame height or the 512px absolute cap.
+      expect(mm.cardWidth).toBeGreaterThan(300)
+      expect(mm.cardWidth).toBeLessThanOrEqual(512)
+      expect(mm.cardHeight).toBeCloseTo(mm.cardWidth * 1.6, 0)
     })
   })
 
