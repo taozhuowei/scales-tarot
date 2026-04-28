@@ -3,7 +3,7 @@
     "app/src/components/DivinationOverlay.vue:872",
     "app/src/composables/use_animation_controller.ts:622",
     "app/src/pages/index/index.vue:574",
-    "app/src/components/overlay/ResultZone.vue:334",
+    "app/src/components/overlay/ResultZone.vue:338",
     "server/src/services/theme_loader.ts:325"
   ],
   "functionSize": [

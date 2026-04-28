@@ -225,6 +225,11 @@ function onDrawerKeydown(e: KeyboardEvent) {
   overflow: hidden;
   border: 1rpx solid var(--color-border);
   margin: 0 auto;
+  /* Establish a named container so descendants can size text against the
+     drawer's actual inline width (cqi) instead of the viewport. On wide
+     layouts the drawer is only 46% of the viewport, so viewport-based
+     clamps misjudged the readable column. */
+  container: result-drawer / inline-size;
 }
 
 .is-wide .drawer-container {

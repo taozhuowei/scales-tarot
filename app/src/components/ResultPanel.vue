@@ -125,6 +125,18 @@ const heroQuestionTiming = {
   --result-tone: var(--color-accent);
   --result-tone-bg: rgba(122, 92, 20, 0.08);
 
+  /* Override the global text-size tokens with container-query-driven values
+     so font size scales with the drawer's actual inline width, not the
+     viewport. Falls back to the global tokens on engines that don't
+     support cqi (the whole clamp() resolves invalid and is ignored).
+     Lower bounds chosen for comfortable CJK reading at 320px screens;
+     upper bounds prevent oversized text in wide drawers. */
+  --text-xs: clamp(12px, 2.9cqi, 13px);
+  --text-sm: clamp(12.5px, 3.2cqi, 14px);
+  --text-base: clamp(13px, 3.8cqi, 17px);
+  --text-lg: clamp(15px, 4.4cqi, 20px);
+  --text-3xl: clamp(22px, 7cqi, 32px);
+
   padding: var(--space-4) 0;
   display: flex;
   flex-direction: column;
