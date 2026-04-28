@@ -15,3 +15,8 @@ CLAUDE.md
 # Dependencies
 node_modules/
 /output/
+
+# Playwright artifacts
+/test/test-results/
+/test/playwright-report/
+/playwright-report/
