@@ -6,7 +6,7 @@
 
 import { computed, ref, watch } from 'vue'
 import type { Ref, ComputedRef } from 'vue'
-import type { SceneLayoutResult } from '../../core/layout/scene_layout'
+import type { SceneLayout as SceneLayoutResult } from '../../core/sizing/layout_solver'
 import type { AnimationState } from './animation_state'
 
 export interface StyleReconcilerOptions {

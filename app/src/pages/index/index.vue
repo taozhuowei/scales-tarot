@@ -91,8 +91,9 @@ import DivinationOverlay from '../../components/DivinationOverlay.vue'
 import { useTarotStore } from '../../stores/tarot'
 import { useThemeStore } from '../../stores/theme'
 import { prefersReducedMotion } from '../../utils/accessibility'
-import { DECK_CLICK_SAFETY_MS, CARD_ASPECT_RATIO, WIDE_BREAKPOINT } from '../../core/config/layout_constants'
-import { resolveSceneLayout } from '../../core/layout/scene_layout'
+import { DECK_CLICK_SAFETY_MS } from '../../core/config/layout_constants'
+import { solveLayout } from '../../core/sizing/layout_solver'
+import { getDefaultReservations, getViewport } from '../../core/sizing/physical_reservations'
 
 const DECK_CLICK_RELEASE_MS = 300
 
@@ -154,20 +155,19 @@ function calculateLayout() {
     const winInfo = uni.getWindowInfo()
     winHeight = winInfo.windowHeight
 
-    // Sync card size with overlay algorithm
-    const isWide = winInfo.windowWidth >= WIDE_BREAKPOINT
-    const layout = resolveSceneLayout({
-      spreadId: 'single_card',
+    // Sync the home-page card size with the overlay algorithm by going
+    // through the same layout solver. The home page only renders draw-
+    // stage cards, so we always ask for `draw_stage` here.
+    const viewport = getViewport({
+      windowWidth: winInfo.windowWidth,
+      windowHeight: winInfo.windowHeight,
+      safeAreaInsets: winInfo.safeAreaInsets,
+      topBarHeight: 0,
+    })
+    const layout = solveLayout({
+      viewport,
+      reservations: getDefaultReservations(),
       scene: 'draw_stage',
-      viewport: {
-        width: winInfo.windowWidth,
-        height: winInfo.windowHeight,
-        safeAreaTop: winInfo.safeArea?.top || 0,
-        safeAreaBottom: winInfo.safeArea?.bottom || 0,
-        dpr: winInfo.pixelRatio || 1
-      },
-      isWide,
-      cardAspectRatio: CARD_ASPECT_RATIO
     })
 
     cardWidth.value = layout.drawCardWidth

@@ -6,22 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { TarotCardInfo } from '../app/src/utils/tarot_reading'
 
-// Post-d4cd310 the controller calls storeToRefs(tarotStore), which requires
-// a real Pinia store. Mock the cards/readings APIs the store imports at
-// module load so useTarotStore() is constructible without hitting the
-// network, then use setActivePinia in beforeEach.
+// The controller calls storeToRefs(tarotStore), which requires a real Pinia
+// store. Mocking the cards API the deck store reads at module init keeps
+// useTarotStore() constructible without hitting the network. The reading +
+// draw paths are not exercised by these tests, so they need no further
+// mocking. setActivePinia runs in beforeEach.
 const mockFetchAllCards = vi.hoisted(() => vi.fn().mockResolvedValue([]))
-const mockFetchReading = vi.hoisted(() => vi.fn().mockResolvedValue({
-  result: 'positive',
-  score: 3,
-  cardDetails: [],
-}))
 
 vi.mock('../app/src/api/cards', () => ({
   fetchAllCards: mockFetchAllCards,
-}))
-vi.mock('../app/src/api/readings', () => ({
-  fetchReading: mockFetchReading,
 }))
 
 // Track all mock function calls
@@ -243,7 +236,6 @@ describe('use_overlay_controller', () => {
     const tarotStore = useTarotStore()
     tarotStore.drawnCards = [{ card: makeCard(), position: 'upright' }]
     tarotStore.currentQuestion = 'Test question'
-    tarotStore.drawCards = vi.fn() as never
     tarotStore.setPhase = vi.fn() as never
     tarotStore.revealResult = vi.fn() as never
 

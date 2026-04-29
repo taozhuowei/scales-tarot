@@ -7,7 +7,7 @@
 import { computed, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
-import { RESULT_LIFT_MARGIN_PX, RESULT_LIFT_MAX_FRACTION } from '../core/config/layout_constants'
+import { RESULT_LIFT_MARGIN_PX } from '../core/config/layout_constants'
 import { DEFAULT_OVERLAY_TEXT } from '../utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
 
@@ -60,10 +60,12 @@ export function useOverlayController(deps: UseOverlayControllerDeps) {
       const resultLayout = animController.getSceneLayout('result_stage')
       const drawBottom = Math.max(...drawLayout.cards.map(c => c.y + c.height / 2))
       const resultBottom = Math.max(...resultLayout.cards.map(c => c.y + c.height / 2))
+      // The solver places both stages deterministically, so the lift is just
+      // the geometric difference plus a small visual margin. The previous
+      // 0.28 × viewport cap is no longer needed — both positions are bounded
+      // by the same `availableH` budget, so the difference cannot blow up.
       const lift = drawBottom - resultBottom + RESULT_LIFT_MARGIN_PX
-      const { windowHeight } = uni.getWindowInfo()
-      const maxLift = Math.max(0, windowHeight * RESULT_LIFT_MAX_FRACTION)
-      return Math.max(0, Math.min(lift, maxLift))
+      return Math.max(0, lift)
     } catch { return 0 }
   })
   const overlayVarsStyle = computed(() => {

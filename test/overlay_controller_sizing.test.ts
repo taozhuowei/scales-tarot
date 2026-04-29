@@ -7,20 +7,14 @@ import type { Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import type { TarotCardInfo } from '../app/src/utils/tarot_reading'
 
-// Post-d4cd310 the controller calls storeToRefs(tarotStore); mock the
-// store's API dependencies so useTarotStore() is constructible.
+// The controller calls storeToRefs(tarotStore); mocking the cards API the
+// deck store reads at module init keeps useTarotStore() constructible
+// without hitting the network. The reading + draw paths are not exercised
+// by these tests, so they need no further mocking.
 const mockFetchAllCards = vi.hoisted(() => vi.fn().mockResolvedValue([]))
-const mockFetchReading = vi.hoisted(() => vi.fn().mockResolvedValue({
-  result: 'positive',
-  score: 3,
-  cardDetails: [],
-}))
 
 vi.mock('../app/src/api/cards', () => ({
   fetchAllCards: mockFetchAllCards,
-}))
-vi.mock('../app/src/api/readings', () => ({
-  fetchReading: mockFetchReading,
 }))
 
 vi.mock('gsap', () => ({
@@ -143,7 +137,6 @@ describe('use_overlay_controller result-zone sizing', () => {
     const tarotStore = useTarotStore()
     tarotStore.drawnCards = [{ card: makeCard(), position: 'upright' }]
     tarotStore.currentQuestion = 'Test question'
-    tarotStore.drawCards = vi.fn() as never
     tarotStore.setPhase = vi.fn() as never
     tarotStore.revealResult = vi.fn() as never
 
