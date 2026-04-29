@@ -31,9 +31,18 @@ export default defineConfig({
     // The product is H5 mobile only (PRD §3). The codebase has a wide-layout
     // branch for browser windows >= 768px, but it's a responsive courtesy,
     // not a delivery target — we don't gate on it here.
+    //
+    // Why the explicit `browserName: 'chromium'` override:
+    //   `devices['iPhone 13']` ships `defaultBrowserType: 'webkit'`, so
+    //   without the override the project name is misleading and CI
+    //   (which only installs the chromium browser pack) crashes on
+    //   "webkit executable doesn't exist". We take the iPhone 13 user-
+    //   agent + viewport for realistic mobile rendering, then run them
+    //   inside Chromium since that's both the H5 target engine class
+    //   (Edge, mini-program webview) and the only browser CI installs.
     {
       name: 'chromium-mobile',
-      use: { ...devices['iPhone 13'] },
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
     },
   ],
 
