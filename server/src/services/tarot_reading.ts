@@ -116,6 +116,15 @@ function getCardScore(card: TarotCard, position: 'upright' | 'reversed'): number
  * depend on it; do not collapse into performDivination.
  */
 export function generateReading(inputs: DrawnInput[]): ReadingResult {
+  // Guard against the empty-array edge case. Without this, the function
+  // walks through fine and the tie-break branch produces a misleading
+  // `{ result: 'positive', score: 1 }` from zero cards. The route layer
+  // currently never calls us with `[]` (every spread maps to ≥ 1 cards),
+  // but exporting this function makes that an enforceable contract.
+  if (inputs.length === 0) {
+    throw new Error('generateReading requires at least one drawn card')
+  }
+
   const resolved = inputs.map(({ cardId, position }) => {
     const card = getCardById(cardId)
     if (!card) throw new Error(`Card not found: ${cardId}`)

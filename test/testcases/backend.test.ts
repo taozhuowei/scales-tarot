@@ -216,3 +216,18 @@ describe('generateReading — tie-break', () => {
     expect(r.result).toBe('positive')
   })
 })
+
+describe('generateReading — input contract', () => {
+  it('throws on empty input rather than silently returning a tie-break result', () => {
+    // Before the explicit guard, [] walked through the function and the
+    // tie-break branch produced { result: 'positive', score: 1 } from zero
+    // cards — a misleading "yes" from no evidence. This test pins the
+    // contract: zero cards is a programmer error, not a divination.
+    expect(() => generateReading([])).toThrow(/at least one drawn card/i)
+  })
+
+  it('throws on unknown cardId', () => {
+    expect(() => generateReading([{ cardId: 'no_such_card', position: 'upright' }]))
+      .toThrow(/card not found/i)
+  })
+})
