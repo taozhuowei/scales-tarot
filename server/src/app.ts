@@ -48,6 +48,19 @@ app.disable('x-powered-by')
 // helmet defaults; CSP is configured with a baseline policy that allows
 // the SPA's inline scripts/styles and GSAP. Nginx can layer a stricter
 // policy per-deployment if needed.
+//
+// Two helmet defaults we explicitly opt out of:
+//   - `upgrade-insecure-requests` (CSP directive): helmet adds this to
+//     every directives map by default. It tells the browser to rewrite
+//     all sub-resource URLs from http:// to https://. We don't want the
+//     app layer to enforce that — production traffic terminates TLS at
+//     nginx and reverse-proxies plain HTTP to this process; the directive
+//     would either double-upgrade or, on local HTTP runs (Playwright,
+//     dev), break the SPA outright.
+//   - `Strict-Transport-Security` in non-prod: HSTS is sticky in browsers
+//     and pollutes localhost HTTP debugging across all of `localhost:*`.
+//     Production keeps the default HSTS so the reverse proxy + app are
+//     defense-in-depth.
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -60,9 +73,11 @@ app.use(helmet({
       frameAncestors: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
+      upgradeInsecureRequests: null,
     },
   },
   ...(config.isProd ? {} : {
+    strictTransportSecurity: false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' as const },
   }),
