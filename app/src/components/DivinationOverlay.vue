@@ -128,7 +128,7 @@
       :overlay-text="controller.overlayText"
       :reading-result="tarotStore.readingResult"
       :current-question="tarotStore.currentQuestion"
-      :card-height="resultCardHeight"
+      :drawer-geometry="resultDrawerGeometry"
       @retry="handleRetry"
       @restart="handleRestart"
     />
@@ -363,11 +363,10 @@ const phaseAnnouncement = computed(() => {
   return label ? `当前阶段：${label}` : ''
 })
 
-// Result-stage card height feeds the result drawer's initial height calc
-// so the drawer covers just the bottom of the spread by `CARD_OVERLAP_PX`.
-const resultCardHeight = computed(() => {
-  if (!controller.showResults.value) return 0
-  return controller.getSceneLayout('result_stage').cardHeight
+// Result-stage drawer geometry from the layout solver — initial height,
+// max height, and side-anchor flag. The drawer never re-derives these.
+const resultDrawerGeometry = computed(() => {
+  return controller.getSceneLayout('result_stage').drawer
 })
 
 function handlePlaybackRate(rate: number) { controller.setPlaybackRate(rate) }

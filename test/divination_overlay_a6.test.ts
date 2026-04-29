@@ -60,7 +60,39 @@ const mockController = {
   seek: vi.fn(),
   restart: vi.fn(),
   retryReading: vi.fn(),
-  getSceneLayout: vi.fn(() => ({ cardWidth: 200, cardHeight: 320, cards: [], stageShiftY: 0 })),
+  // Drawer geometry now arrives pre-computed from the layout solver. The
+  // narrow-mode default (windowHeight 844, cardHeight 320) historically
+  // resolved to a 286px initial drawer height; we keep that value here so
+  // the legacy assertions in A.6.4 stay meaningful.
+  getSceneLayout: vi.fn(() => ({
+    cardWidth: 200,
+    cardHeight: 320,
+    drawCardWidth: 200,
+    drawCardHeight: 320,
+    cards: [],
+    stageShiftY: 0,
+    stage: { x: 0, y: 0, width: 390, height: 844 },
+    drawer: {
+      initialTop: 558,
+      initialHeight: 286,
+      maxHeight: 844,
+      width: 390,
+      rightAligned: false,
+    },
+    envelope: {
+      cardWidth: 200,
+      cardHeight: 320,
+      gap: 16,
+      horizontalSlots: 1,
+      verticalSlots: 3,
+      slotPitchX: 216,
+      slotPitchY: 336,
+      halfSpanX: 100,
+      halfSpanY: 504,
+      fullSpanX: 200,
+      fullSpanY: 1008,
+    },
+  })),
 }
 
 vi.mock('../app/src/composables/use_overlay_controller', () => ({
