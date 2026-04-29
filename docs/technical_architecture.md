@@ -107,17 +107,18 @@ Browser (H5)
 
 ### 6.2 占卜流程
 
-1. 洗牌
-2. 切牌
-3. 抽牌
-4. 翻牌
-5. 发起解读请求
-6. 展示结果与逐张牌义
+1. 洗牌（前端动画，纯视觉）
+2. 切牌（前端动画，纯视觉）
+3. 抽牌阶段开始：前端立即向后端发起 `POST /api/v1/divinations`，后端在一次事务里完成 shuffle + draw + 解读，返回 `{ spreadKind, drawn, reading }`
+4. 翻牌（前端动画，使用响应里的 `drawn` 渲染牌面）
+5. 揭示阶段：消费响应里的 `reading` 渲染结果与逐张牌义
+
+注：客户端不再持有任何随机源；`secure_random` 的 CSPRNG 实现位于服务端 `server/src/utils/secure_random.ts`，前端同名模块只服务于纯视觉的卡面抖动等装饰性随机。
 
 ### 6.3 结果恢复
 
-1. 当解读失败时，前端应提供重试入口。
-2. 重试应尽量复用已抽出的牌。
+1. 当解读失败（即 `/divinations` 调用失败或超时）时，前端应提供重试入口。
+2. 重试直接重新调用 `/divinations`：协议把抽牌和解读合并成一次原子事务，所以重试必然换一组新牌——这是协议层一致性，不再尝试在客户端"复用已抽到的牌"。
 3. 当用户选择再占一次时，界面需要回到可再次开始的初始状态。
 
 ---
@@ -127,15 +128,19 @@ Browser (H5)
 | 术语 | 说明 |
 |---|---|
 | `idle` | 首页待机状态 |
-| `shuffling` | 洗牌阶段 |
-| `cutting` | 切牌阶段 |
-| `drawing` | 抽牌阶段 |
+| `shuffling` | 洗牌阶段（纯前端动画） |
+| `cutting` | 切牌阶段（纯前端动画） |
+| `drawing` | 抽牌阶段；前端发起 `/divinations` 请求 |
 | `revealing` | 翻牌与结果揭示阶段 |
 | `result` | 结果阅读状态 |
+| `divination` | 服务端单次端到端动作：shuffle + draw + 解读，对应 `POST /api/v1/divinations` |
 | `deck` | 尚未发出的牌堆 |
 | `pile` | 切牌后分出的牌堆 |
-| `spread` | 牌阵布局 |
-| `safe frame` | 扣除安全区和界面保留区后的有效布局区域 |
+| `spreadKind` | 牌阵种类。当前唯一取值 `single_card`；类型别名定义在 `app/src/api/types.ts` 与服务端 `server/src/routes/divinations.ts` 的 zod 枚举共同维护 |
+| `viewport` | 物理像素视口（width / height / safe-area / topBar），由 `getViewport()` 从平台 window-info 派生 |
+| `reservations` | UI 像素预算（header、动作栏、卡牌间距、抽屉覆盖等），由 `getDefaultReservations()` 提供 |
+| `solveLayout` | 纯函数布局求解器，输入 `viewport + reservations + scene`，输出 `SceneLayout`（卡牌、抽屉几何、stage 矩形、动画 envelope） |
+| `drawer geometry` | `DrawerGeometry { initialTop, initialHeight, maxHeight, width, rightAligned }`，由 solver 计算后由 `ResultZone` 直接消费 |
 | `result zone` | 结果展示区域 |
 
 ---
@@ -145,9 +150,11 @@ Browser (H5)
 ### 8.1 架构约束
 
 1. 产品需求不写进技术文档，技术实现不写进 PRD。
-2. 新增常量必须集中管理，禁止散落魔法数字。
-3. 纯计算优先放在 `core/`，避免和框架状态强耦合。
-4. 兼容层和重复类型定义不能长期保留在主线上。
+2. 新增常量必须集中管理，禁止散落魔法数字。布局相关的物理像素预留集中在 `app/src/core/sizing/physical_reservations.ts`；时长 / 阈值 / 计数集中在 `app/src/core/config/layout_constants.ts`。
+3. 纯计算优先放在 `core/`，避免和框架状态强耦合。布局求解 (`solveLayout`) 必须保持纯函数：无 DOM、无全局、无窗口读取——所有输入由调用方收集后传入。
+4. 兼容层和重复类型定义不能长期保留在主线上。当前仅 `app/src/utils/tarot_reading.ts` 作为类型 re-export shim 存在，新代码不允许向其新增导出，剩余消费者迁移完后即可删除。
+5. 协议类型在 `app/src/api/types.ts` 单点定义，前后端共享通过结构匹配（不共享代码）。多牌阵扩展时，`SpreadKind` 联合分支与服务端 `SUPPORTED_SPREADS` zod 枚举必须保持同步。
+6. 客户端禁止持有任何业务相关的随机源；shuffle / 卡面正逆位等随机性由服务端 `node:crypto` CSPRNG 完成，前端 `secure_random` 仅服务于纯视觉装饰。
 
 ### 8.2 前端约束
 
@@ -155,12 +162,16 @@ Browser (H5)
 2. 动画相关实现禁止长期挂载 `will-change`。
 3. 关键错误路径必须有明确恢复动作。
 4. 组件优先保持展示职责，复杂状态尽量下沉到 composable 或纯逻辑模块。
+5. 布局相关比例值禁止使用语义化的 0.x 视口分数（如 `viewport.h * 0.28` 等）；任何"应留多少空间"必须以物理像素表达，新增预留进 `physical_reservations.ts`。
+6. 宽屏/窄屏分支的具体宽度由 solver 输出 + JS 注入 CSS 变量（`--stage-width` / `--drawer-width` / `--card-width` 等）驱动；CSS 内只能保留同等语义的回退值，不允许出现脱离 solver 的新百分比硬编码。
 
 ### 8.3 后端约束
 
 1. 路由层负责输入输出边界，不把复杂业务散落到 handler。
-2. 输入校验必须统一、显式。
+2. 输入校验必须统一、显式（zod）。
 3. 健康检查、静态资源、业务接口职责要清晰分开。
+4. 业务级随机必须使用 `server/src/utils/secure_random.ts` 暴露的 helper（`randomBelow` / `randomBool`），底层走 `node:crypto`，禁止直接调用全局 PRNG。
+5. helmet 配置中 `upgradeInsecureRequests` 显式置 `null`：HTTPS 强制由反向代理完成，应用层不重写资源 URL；HSTS 仅在生产环境启用，其他环境关闭以避免 localhost 被锁。
 
 ### 8.4 文档约束
 
