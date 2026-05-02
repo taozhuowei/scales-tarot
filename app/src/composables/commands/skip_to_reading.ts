@@ -6,6 +6,7 @@
  */
 
 import type { Ref } from 'vue'
+import type { DrawCardState } from '../../animation/types'
 import type { OverlayPhase } from '../../core/flow/types'
 import type { SceneKind, SceneLayout } from '../../core/sizing/layout_solver'
 
@@ -17,7 +18,7 @@ export interface SkipToReadingCommandDeps {
   openReadingPanel: () => void
   getSceneLayout: (scene: SceneKind) => SceneLayout
   setDrawCardSizes: (layout: SceneLayout) => void
-  draws: { x: number; y: number; rotation: number; scale: number; opacity: number; zIndex: number }[]
+  draws: DrawCardState[]
   refreshDraws: () => void
   onPipelineComplete: () => void
 }

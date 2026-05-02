@@ -4,7 +4,7 @@
  * Reason: these pure factories are consumed by use_animation_state.ts.
  */
 
-import type { CardState, CenterCardState, InnerState } from './types'
+import type { CardState, CenterCardState, DrawCardState, InnerState } from './types'
 
 export interface ShuffleInitialStates {
   initials: CardState[]
@@ -64,18 +64,20 @@ export function createCutInitialStates(maxCutPiles: number = 3): CutInitialState
 }
 
 export interface DrawInitialStates {
-  draws: CenterCardState[]
+  draws: DrawCardState[]
   inners: InnerState[]
 }
 
 export function createDrawInitialStates(maxCardCount: number = 10): DrawInitialStates {
-  const draws: CenterCardState[] = Array.from({ length: maxCardCount }, (_, i) => ({
+  const draws: DrawCardState[] = Array.from({ length: maxCardCount }, (_, i) => ({
     x: 0,
     y: 0,
     rotation: 0,
     scale: 1,
     opacity: 0,
     zIndex: 20 - i,
+    width: 0,
+    height: 0,
   }))
 
   const inners: InnerState[] = Array.from({ length: maxCardCount }, () => ({

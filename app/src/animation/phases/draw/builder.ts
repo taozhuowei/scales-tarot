@@ -25,6 +25,9 @@ function jitterDeg(min: number, max: number): number {
 
 export interface DrawPhaseConfig {
   cardCount: number
+  /** Draw-stage card width. Used to set draws[i].width on entry so the
+   *  DOM real size equals the solver-computed size before any tween runs. */
+  cardWidth: number
   cardHeight: number
   stageHeight: number
   liftY: number
@@ -43,6 +46,7 @@ export function buildDrawPhaseRunner(config: DrawPhaseConfig): PhaseRunner {
       const { draws: drawsVisible } = context.visible
       const {
         cardCount,
+        cardWidth,
         cardHeight,
         stageHeight,
         liftY,
@@ -69,6 +73,8 @@ export function buildDrawPhaseRunner(config: DrawPhaseConfig): PhaseRunner {
               scale: 1,
               opacity: 1,
               zIndex: 20 - i,
+              width: cardWidth,
+              height: cardHeight,
             })
             Object.assign(inners[i], { rotationY: 180 })
             visible[i] = true
@@ -158,6 +164,8 @@ export function buildDrawPhaseRunner(config: DrawPhaseConfig): PhaseRunner {
             scale: 0.98,
             opacity: 1,
             zIndex: 20 - i,
+            width: cardWidth,
+            height: cardHeight,
           })
           const visible = [...drawsVisible.value]
           visible[i] = true

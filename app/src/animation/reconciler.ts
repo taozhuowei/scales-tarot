@@ -75,10 +75,6 @@ function _centerStyleObj(state: {
   }
 }
 
-function _cardSizeStyleStr(width: number, height: number): { width: string; height: string } {
-  return { width: `${width}px`, height: `${height}px` }
-}
-
 function _innerStyleObj(state: { rotationY: number }): Record<string, string> {
   return { transform: `rotateY(${state.rotationY}deg)` }
 }
@@ -157,15 +153,20 @@ export function createStyleReconciler(
   }
   const refreshDraws = () => {
     drawsStyle.value = state.draws.map(_centerStyleObj)
+    drawsSizeStyle.value = state.draws.map((d) => ({
+      width: `${d.width}px`,
+      height: `${d.height}px`,
+    }))
   }
   const refreshInners = () => {
     innersStyle.value = state.inners.map(_innerStyleObj)
   }
 
   function setDrawCardSizes(layout: SceneLayoutResult) {
-    drawsSizeStyle.value = Array.from({ length: opts.maxCardCount }, (_, index) => {
+    state.draws.forEach((d, index) => {
       const card = layout.cards[index]
-      return _cardSizeStyleStr(card?.width ?? layout.cardWidth, card?.height ?? layout.cardHeight)
+      d.width = card?.width ?? layout.cardWidth
+      d.height = card?.height ?? layout.cardHeight
     })
     layoutCardWidth.value = layout.cardWidth
     layoutCardHeight.value = layout.cardHeight

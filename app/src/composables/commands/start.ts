@@ -21,7 +21,7 @@ export interface RunPipelineCommandDeps {
   getOverlayLayouts: () => {
     drawViewport: { stageHeight: number }
     drawLayout: SceneLayout
-    resultLayout: { cardWidth: number }
+    resultLayout: { cardWidth: number; cardHeight: number }
   }
   getMotionMetrics: (scene: SceneKind) => MotionMetrics
   cardElements: PhaseContext['cardElements']

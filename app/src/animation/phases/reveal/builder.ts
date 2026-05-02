@@ -1,8 +1,12 @@
 /**
  * Name: core/flow/phases/reveal_phase
  * Purpose: PhaseRunner implementation for the reveal phase.
- * Reason: implementation of smooth scale-up from base size to result size.
- * Data flow: draws cards from base size and smoothly scales to result size.
+ * Reason: animate the card's DOM real width/height (not transform scale)
+ *         from draw-stage size to result-stage size, so the rendered box
+ *         and the layout solver agree at every frame. Transform scale
+ *         stays at 1 throughout — it is only used by the draw phase for
+ *         the ±10% wobble FX.
+ * Data flow: draws cards at draw size; tweens width/height to result size.
  */
 
 import gsap from 'gsap'
@@ -13,7 +17,9 @@ import { prefersReducedMotion } from '../../../utils/accessibility'
 export interface RevealPhaseConfig {
   cardCount: number
   drawCardWidth: number
+  drawCardHeight: number
   resultCardWidth: number
+  resultCardHeight: number
   drawLayout: {
     stageShiftY: number
     cards: { x: number; y: number }[]
@@ -26,14 +32,16 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
     run(context: PhaseContext, onComplete: () => void): AnimationTimeline {
       const { draws } = context.cardElements
       const { draws: drawsVisible } = context.visible
-      const { cardCount, drawLayout, drawCardWidth, resultCardWidth } = config
+      const {
+        cardCount,
+        drawLayout,
+        drawCardWidth,
+        drawCardHeight,
+        resultCardWidth,
+        resultCardHeight,
+      } = config
       const targetX = drawLayout.cards.map((c) => c.x)
       const targetY = drawLayout.cards.map((c) => c.y)
-
-      // Reveal animates from the draw-stage card size to the result-stage card
-      // size (which is independently solved per spread). No extra emphasis
-      // scale — the result size IS the target.
-      const finalScale = resultCardWidth / Math.max(drawCardWidth, 1)
 
       const timeline = gsap.timeline({
         onComplete: () => {
@@ -41,7 +49,8 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
         }
       })
 
-      // Ensure initial visibility and positions (at base scale 1)
+      // Ensure initial visibility and positions (at draw-stage real size).
+      // scale stays at 1 — size is encoded in width/height, not transform.
       timeline.add(() => {
         const visible = [...drawsVisible.value]
         draws.forEach((state, index) => {
@@ -50,9 +59,11 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
               x: targetX[index],
               y: targetY[index],
               rotation: 0,
-              scale: 1, // Start from base scale
+              scale: 1,
               opacity: 1,
               zIndex: 20 - index,
+              width: drawCardWidth,
+              height: drawCardHeight,
             })
             visible[index] = true
           } else {
@@ -64,18 +75,23 @@ export function buildRevealPhaseRunner(config: RevealPhaseConfig): PhaseRunner {
       })
 
       if (prefersReducedMotion()) {
-        timeline.set(draws.slice(0, cardCount), { scale: finalScale })
-        return timeline 
+        // Snap to final size; scale untouched at 1.
+        timeline.set(draws.slice(0, cardCount), {
+          width: resultCardWidth,
+          height: resultCardHeight,
+        })
+        return timeline
       }
 
-      // Smooth scale-up for all revealed cards
+      // Animate DOM real width/height from draw size to result size.
       timeline.to(draws.slice(0, cardCount), {
-        scale: finalScale,
+        width: resultCardWidth,
+        height: resultCardHeight,
         duration: 0.75,
         ease: 'power2.out',
-      }, "+=0.1")
+      }, '+=0.1')
 
-      return timeline 
+      return timeline
     },
   }
 }

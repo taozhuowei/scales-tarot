@@ -6,6 +6,7 @@
 
 import type { Ref } from 'vue'
 import type { TimelineOrchestrator } from '../animation/adapters/gsap'
+import type { DrawCardState } from '../animation/types'
 import type { OverlayPhase } from '../core/flow/types'
 import type { PhaseContext } from '../core/flow/types'
 import type { SceneKind, SceneLayout } from '../core/sizing/layout_solver'
@@ -19,7 +20,7 @@ export interface LifecycleAnimState {
   footer: { y: number; opacity: number }
   deckCtn: { x: number }
   initials: { x: number; y: number; rotation: number; scale: number; scaleY: number; opacity: number }[]
-  draws: { x: number; y: number; rotation: number; scale: number; opacity: number; zIndex: number }[]
+  draws: DrawCardState[]
   refreshBg(): void
   refreshStage(): void
   refreshHeader(): void
@@ -48,7 +49,7 @@ export interface LifecycleDeps {
   getOverlayLayouts: () => {
     drawViewport: { stageHeight: number }
     drawLayout: SceneLayout
-    resultLayout: { cardWidth: number }
+    resultLayout: { cardWidth: number; cardHeight: number }
   }
   getMotionMetrics: (scene: SceneKind) => MotionMetrics
   getSceneLayout: (scene: SceneKind) => SceneLayout

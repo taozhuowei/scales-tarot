@@ -10,7 +10,7 @@ import {
   createCutInitialStates,
   createDrawInitialStates,
 } from './initial_states'
-import type { CardState, CenterCardState, InnerState } from './types'
+import type { CardState, CenterCardState, DrawCardState, InnerState } from './types'
 
 export interface AnimationStateOptions {
   deckCount: number
@@ -29,7 +29,7 @@ export interface AnimationState {
   lefts: CardState[]
   rights: CardState[]
   piles: CenterCardState[]
-  draws: CenterCardState[]
+  draws: DrawCardState[]
   inners: InnerState[]
   resetShuffleVisualState(): void
   resetCutVisualState(): void
@@ -75,7 +75,16 @@ export function createAnimationState(opts: AnimationStateOptions): AnimationStat
 
   function resetDrawVisualState() {
     _draws.forEach((state, index) => {
-      Object.assign(state, { x: 0, y: 0, rotation: 0, scale: 1, opacity: 0, zIndex: 20 - index })
+      Object.assign(state, {
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scale: 1,
+        opacity: 0,
+        zIndex: 20 - index,
+        width: 0,
+        height: 0,
+      })
     })
     _inners.forEach((state) => {
       state.rotationY = 0

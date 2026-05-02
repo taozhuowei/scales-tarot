@@ -50,7 +50,7 @@ export function buildPhaseRunners(deps: {
   getOverlayLayouts: () => {
     drawViewport: { stageHeight: number }
     drawLayout: SceneLayout
-    resultLayout: { cardWidth: number }
+    resultLayout: { cardWidth: number; cardHeight: number }
   }
   setDrawCardSizes: (layout: SceneLayout) => void
   cutPileCount: number
@@ -75,6 +75,7 @@ export function buildPhaseRunners(deps: {
         deps.setDrawCardSizes(drawLayout)
         const runner = buildDrawPhaseRunner({
           cardCount: deps.cardCountRef.value,
+          cardWidth: drawLayout.drawCardWidth,
           cardHeight: drawLayout.cardHeight,
           stageHeight: drawViewport.stageHeight,
           liftY: drawLayout.stageShiftY,
@@ -94,7 +95,9 @@ export function buildPhaseRunners(deps: {
         const runner = buildRevealPhaseRunner({
           cardCount: deps.cardCountRef.value,
           drawCardWidth: drawLayout.drawCardWidth,
+          drawCardHeight: drawLayout.drawCardHeight,
           resultCardWidth: resultLayout.cardWidth,
+          resultCardHeight: resultLayout.cardHeight,
           drawLayout: {
             stageShiftY: drawLayout.stageShiftY,
             cards: drawLayout.cards.map((c) => ({ x: c.x, y: c.y })),

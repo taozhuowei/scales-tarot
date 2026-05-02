@@ -22,6 +22,17 @@ export interface CenterCardState {
   zIndex: number
 }
 
+/**
+ * DrawCardState — extends CenterCardState with first-class width/height
+ * so the reveal phase animates DOM real size (not transform scale).
+ * The size fields are written through the reconciler into a separate
+ * `:style` binding, while x/y/rotation/scale go to the transform binding.
+ */
+export interface DrawCardState extends CenterCardState {
+  width: number
+  height: number
+}
+
 export interface InnerState {
   rotationY: number
 }

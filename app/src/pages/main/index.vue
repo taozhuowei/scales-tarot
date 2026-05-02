@@ -259,7 +259,6 @@ async function settlePipeline(): Promise<void> {
     console.error('[main] settlePipeline failed', err)
   }
   currentReadingPromise = null
-  animationController.setDrawScales(1)
   if (
     readingController.readingPanelState.value === 'success' &&
     readingController.readingResult.value

@@ -10,6 +10,7 @@
 import { ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import gsap from 'gsap'
+import type { DrawCardState } from '../animation/types'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
 import overlayConfig from '../config.json'
@@ -92,7 +93,7 @@ export interface UseAnimationControllerReturn {
   shuffleHalfCount: number
   cutPileCount: number
   cardsPerPile: number
-  draws: { x: number; y: number; rotation: number; scale: number; opacity: number; zIndex: number }[]
+  draws: DrawCardState[]
   refreshDraws: () => void
   setPlaybackRate: (rate: number) => void
   pauseAnimations: () => void
@@ -107,7 +108,6 @@ export interface UseAnimationControllerReturn {
   updateLayout: () => void
   openReadingPanel: () => void
   setDrawCardSizes: ReturnType<typeof useAnimationState>['setDrawCardSizes']
-  setDrawScales: (scale: number) => void
   clearTimeline: () => void
   killTimeline: () => void
   killAnimationTargets: () => void
@@ -227,13 +227,6 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
     refreshDraws()
   }
 
-  function setDrawScales(scale: number): void {
-    draws.forEach((draw, index) => {
-      if (index < deps.cardCount.value) draw.scale = scale
-    })
-    refreshDraws()
-  }
-
   function openReadingPanel() {
     if (showResults.value) return
     showResults.value = true
@@ -261,7 +254,7 @@ export function useAnimationController(deps: UseAnimationControllerDeps): UseAni
     resetOverlayScene: lifecycle.resetOverlayScene,
     start: lifecycle.start,
     updateLayout, openReadingPanel,
-    setDrawCardSizes, setDrawScales,
+    setDrawCardSizes,
     clearTimeline,
     killTimeline,
     killAnimationTargets: () => killAnimationTargets(getAllTargets()),

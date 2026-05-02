@@ -108,7 +108,6 @@ export function useOverlay(deps: UseOverlayDeps) {
       console.error('[overlay] finish: reading promise rejected', err)
     }
     currentReadingPromise = null
-    animController.setDrawScales(1)
     if (readingController.readingPanelState.value === 'success' && readingController.readingResult.value) {
       deps.tarotStore.revealResult()
       deps.emit('complete')
@@ -118,7 +117,6 @@ export function useOverlay(deps: UseOverlayDeps) {
   async function retryReading() {
     if (readingController.isReadingLoading.value) return null
     animController.openReadingPanel()
-    animController.setDrawScales(1)
     try {
       const result = await readingController.retryReading({})
       if (result) deps.tarotStore.revealResult()
