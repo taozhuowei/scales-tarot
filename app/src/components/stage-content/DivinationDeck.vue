@@ -82,17 +82,6 @@
               />
             </view>
           </view>
-          <view
-            v-if="animCtrl.showResults.value"
-            class="position-badge"
-            :class="tarotStore.drawnCards[idx]?.position ?? 'upright'"
-          >
-            <text class="badge-label font-display">
-              {{ tarotStore.drawnCards[idx]?.position === 'reversed'
-                  ? overlayText.positionReversed
-                  : overlayText.positionUpright }}
-            </text>
-          </view>
         </view>
       </view>
     </view>
@@ -113,12 +102,10 @@ import { computed, inject, nextTick, onMounted, onUnmounted } from 'vue'
 import type { UseAnimationControllerReturn } from '../../composables/use_animation_controller'
 import { useTarotStore } from '../../stores/tarot'
 import { useThemeStore } from '../../stores/theme'
-import { DEFAULT_OVERLAY_TEXT } from '../../utils/overlay_progress'
 
 const animCtrl = inject<UseAnimationControllerReturn>('animationController')!
 const tarotStore = useTarotStore()
 const themeStore = useThemeStore()
-const overlayText = DEFAULT_OVERLAY_TEXT
 
 const cardBack = computed(() => themeStore.cardBackImage)
 
@@ -272,41 +259,4 @@ onUnmounted(() => {
   object-fit: cover;
 }
 
-.position-badge {
-  position: absolute;
-  top: -12rpx;
-  right: -12rpx;
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.25);
-  z-index: 30;
-  animation: badge-pop-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.position-badge.upright {
-  background: linear-gradient(145deg, var(--color-accent-light, #f0d080), var(--color-accent, #b8943e));
-}
-
-.position-badge.reversed {
-  background: linear-gradient(145deg, var(--color-badge-reversed-from), var(--color-badge-reversed-to));
-}
-
-.badge-label {
-  font-size: 22rpx;
-  color: #fff;
-  font-weight: 600;
-}
-
-@keyframes badge-pop-in {
-  from { opacity: 0; transform: scale(0.4); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .position-badge { animation: none !important; }
-}
 </style>
