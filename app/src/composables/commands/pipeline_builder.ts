@@ -76,7 +76,7 @@ export function buildPhaseRunners(deps: {
         const runner = buildDrawPhaseRunner({
           cardCount: deps.cardCountRef.value,
           cardWidth: drawLayout.drawCardWidth,
-          cardHeight: drawLayout.cardHeight,
+          cardHeight: drawLayout.drawCardHeight,
           stageHeight: drawViewport.stageHeight,
           liftY: drawLayout.stageShiftY,
           targetX: drawLayout.cards.map((c) => c.x),
