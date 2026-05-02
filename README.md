@@ -62,7 +62,33 @@ npm run prepare
 npm run quality
 ```
 
-`npm run quality` 当前会顺序执行 `lint`、`type-check`、`test`、`build:h5`、`audit`、`arch:check`。
+`npm run quality` 当前会顺序执行 `lint`、`type-check`、`test`、`build:h5`、`audit`、`arch:check`、`dead-code` (knip)、`duplicate-code` (jscpd)。
+
+### Git 钩子
+
+本仓库通过 `simple-git-hooks` 注册三个钩子：
+
+| 钩子 | 命令 | 速度 | 用途 |
+|---|---|---|---|
+| `pre-commit` | `npm run quality:staged` | < 5 s | 增量 lint 修复 + 静态扫描，自动写回暂存区 |
+| `commit-msg` | `npx commitlint --edit $1` | < 1 s | 强制 conventional commit 格式 |
+| `pre-push` | `npm run quality` | 1–3 min | 全量门禁兜底，远端入门关 |
+
+#### 紧急绕过
+
+正常流程下钩子不应被绕过；以下两种情况是允许的逃生口：
+
+```bash
+# 1) simple-git-hooks 官方环境变量（跳过 pre-commit / pre-push / commit-msg）
+SKIP_SIMPLE_GIT_HOOKS=1 git commit ...
+SKIP_SIMPLE_GIT_HOOKS=1 git push ...
+
+# 2) Git 原生跳过（与 hook 系统无关，所有 hook 都会被跳过）
+git commit --no-verify ...
+git push --no-verify ...
+```
+
+CI (`.github/workflows/ci.yml`) 与 pre-push 跑同一套 `npm run quality`，**绕过本地钩子的提交在 CI 阶段仍会被拦下**。建议仅在已知本地工具链短暂故障且修复成本高于风险时使用，且事后必须补跑一次 `npm run quality` 验证。
 
 ---
 

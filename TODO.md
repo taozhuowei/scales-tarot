@@ -58,34 +58,34 @@
 
 ### 7.1 架构债清理（P1）
 
-`[ ]` **7.1.1 提取 parseServerError 辅助函数**
+`[x]` **7.1.1 提取 parseServerError 辅助函数**
 - 文件：`app/src/api/client.ts:64`
 - 做什么：将 3 层嵌套三元抽出独立函数 `parseServerError(data)`，提升可读性
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：15 min
 - 依赖：7.0.6 完成（push 解锁后再做）
 
-`[ ]` **7.1.2 提取 initPilesAtRest 辅助函数**
+`[x]` **7.1.2 提取 initPilesAtRest 辅助函数**
 - 文件：`app/src/animation/phases/cut/builder.ts:47-72`
 - 做什么：将 piles 初始化重复段抽出 `initPilesAtRest(piles, pilesVisible, N)`
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：15 min
 - 依赖：7.0.6（与 7.1.1 并行）
 
-`[ ]` **7.1.3 StyleReconciler 接口去重**
+`[x]` **7.1.3 StyleReconciler 接口去重**
 - 文件：`app/src/composables/use_animation_controller.ts`（参考 `app/src/composables/use_overlay_layout.ts:84` 已有 extends 模式）
 - 做什么：让 `UseAnimationControllerReturn` 用 `extends StyleReconciler` 消除 13 行字段重复
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：20 min
 - 依赖：7.0.6
 
-`[ ]` **7.1.4 重新评估 106 处未使用类型导出**
+`[x]` **7.1.4 重新评估 106 处未使用类型导出**
 - 做什么：在 7.0.4 修复 knip 配置后重跑 `npm run quality`，对剩余条目逐一核验（架构师抽样命中 100% 误报，仅处理真实未用项）
 - Agent：`engineering/engineering-code-reviewer.md`
 - 工时：30 min
 - 依赖：7.0.4 + 7.1.1 ~ 7.1.3 完成
 
-`[ ]` **7.1.5 atom 测试补强（fakeTimers + 边界）**
+`[x]` **7.1.5 atom 测试补强（fakeTimers + 边界）**
 - 文件：现有 4 个 atom 测试文件（具体路径以 `test/` 目录为准）
 - 做什么：将 `setTimeout` 替换为 `vi.useFakeTimers()`，补充边界用例
 - Agent：`engineering/engineering-frontend-developer.md`
@@ -94,47 +94,39 @@
 
 ### 7.2 配置精修 + 文档 + CI 优化（P2）
 
-`[ ]` **7.2.1 jscpd 阈值收紧 + 补 server/src 扫描**
+`[x]` **7.2.1 jscpd 阈值收紧 + 补 server/src 扫描**
 - 文件：`.jscpd.json`、`scripts/quality_gate.js`
 - 做什么：阈值从 5% 调至 1.5%（适配 6.1k LoC）；`quality_gate.js` 中 jscpd 命令补充扫描 `server/src`
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：5 min
 - 依赖：7.0.6
 
-`[ ]` **7.2.2 pre-commit 提速：移除 type-check**
+`[x]` **7.2.2 pre-commit 提速：移除 type-check**
 - 文件：`.simple-git-hooks` 配置或 `package.json` 中 hook 定义
 - 做什么：将 `type-check`（vue-tsc + tsc 全量）从 pre-commit 移至 pre-push 唯一执行
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：10 min
 - 依赖：7.0.6
 
-`[ ]` **7.2.3 新增 theme_store 测试（如保留 themeBase 简化版）**
-- 前置条件：仅当 7.0.3 决定保留简化正则版而非整体删除
-- 文件：`test/theme_store.test.ts`（新建）
-- 做什么：3 个用例覆盖正则边界（合法 hex / 非法输入 / 空值）
-- Agent：`engineering/engineering-frontend-developer.md`
-- 工时：20 min
-- 依赖：7.0.3 决议
+`[x]` **7.2.3 新增 theme_store 测试（如保留 themeBase 简化版）** — 已废弃，7.0.3 选择整体删除 themeBase getter，无需测试
 
-`[ ]` **7.2.4 README 补充 hook bypass 文档**
+`[x]` **7.2.4 README 补充 hook bypass 文档**
 - 文件：`README.md`
 - 做什么：新增章节说明 `SKIP_SIMPLE_GIT_HOOKS=1` 用法及使用前提
 - Agent：`engineering/engineering-frontend-developer.md`
 - 工时：10 min
 - 依赖：7.0.6
 
-`[ ]` **7.2.5 sonarjs warn 规则 ratchet 计划立项**
-- 文件：`TODO.md`（追加阶段 8 占位）+ ESLint 配置注释
-- 做什么：列出当前 warn 规则清单 + 拟定逐步升 error 的 deadline（需用户确认）
-- Agent：`engineering/engineering-code-reviewer.md`
-- 工时：15 min
-- 依赖：7.0.6 + 用户确认
+`[x]` **7.2.5 sonarjs warn 规则 ratchet 计划立项** — `eslint.config.mjs` 已加入 ratchet 注释 + 占位条件（每条规则升 error 的触发条件）；具体 deadline 待用户拍板后回填到下方阶段 8
 
-`[ ]` **7.2.6 GitHub 分支保护配置立项（待管理员）**
-- 做什么：拟定 `main` 分支保护策略（required status checks = `quality` job、PR review、禁止 force-push），交付清单交用户在 GitHub 后台启用
-- Agent：`engineering/engineering-code-reviewer.md`
-- 工时：15 min
-- 依赖：7.0.6
+`[!]` **7.2.6 GitHub 分支保护配置（待用户在 GitHub 后台启用）**
+- 拟定 `main` 分支保护策略：
+  - Required status checks: `verify` job（运行 `npm run quality`）必须 pass
+  - 禁止 force push 到 main
+  - 禁止删除 main
+  - PR 必须经过至少 1 名审阅者批准
+- 落实方式：仓库管理员在 `Settings → Branches → Branch protection rules` 中配置
+- 依赖：用户具备仓库管理员权限
 
 ---
 

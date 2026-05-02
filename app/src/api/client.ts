@@ -49,6 +49,19 @@ function isApiErrorBody(val: unknown): val is ApiErrorBody {
   return typeof val === 'object' && val !== null && ('error' in val || 'message' in val)
 }
 
+/**
+ * Extract a human-readable error message from a server response body.
+ * Returns the first defined string field in priority order: `error`, then
+ * `message`. Returns `undefined` when the body has neither (caller should
+ * fall back to a generic "API <status>: <path>" message).
+ */
+function parseServerError(data: unknown): string | undefined {
+  if (!isApiErrorBody(data)) return undefined
+  if (typeof data.error === 'string') return data.error
+  if (typeof data.message === 'string') return data.message
+  return undefined
+}
+
 export function request<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
   return new Promise((resolve, reject) => {
     uni.request({
@@ -60,10 +73,7 @@ export function request<TResponse>(path: string, options: RequestOptions = {}): 
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data as TResponse)
         } else {
-          const serverError = isApiErrorBody(res.data)
-            ? (typeof res.data.error === 'string' ? res.data.error : typeof res.data.message === 'string' ? res.data.message : undefined)
-            : undefined
-          const message = serverError || `API ${res.statusCode}: ${path}`
+          const message = parseServerError(res.data) ?? `API ${res.statusCode}: ${path}`
           reject(new Error(message))
         }
       },

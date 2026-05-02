@@ -11,6 +11,7 @@ import { ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import gsap from 'gsap'
 import type { DrawCardState } from '../animation/types'
+import type { StyleReconciler } from '../animation/reconciler'
 import { useTarotStore } from '../stores/tarot'
 import { useThemeStore } from '../stores/theme'
 import overlayConfig from '../config.json'
@@ -57,32 +58,34 @@ export interface UseAnimationControllerDeps {
   callbacks: UseAnimationControllerCallbacks
 }
 
-export interface UseAnimationControllerReturn {
+/**
+ * Style fields the controller passes through from the StyleReconciler.
+ * Using Pick (not full `extends StyleReconciler`) because the controller
+ * intentionally hides the internal `refresh*` methods (refreshBg / refreshStage
+ * / refreshLefts / etc.) — only `refreshDraws` is part of the public surface
+ * (consumed by DivinationDeck.vue when the layout reflows mid-pipeline).
+ * Adding a new style ref to StyleReconciler still needs to be added here,
+ * but the field shape (Ref<...>) stays in lockstep automatically.
+ */
+type ReconcilerPublic = Pick<StyleReconciler,
+  | 'bgStyle' | 'stageStyle' | 'headerStyle' | 'footerStyle' | 'deckCtnStyle'
+  | 'initialsStyle' | 'leftsStyle' | 'rightsStyle' | 'pilesStyle'
+  | 'drawsStyle' | 'drawsSizeStyle' | 'innersStyle' | 'overlayVarsStyle'
+  | 'layoutCardWidth' | 'layoutCardHeight'
+  | 'refreshDraws' | 'setDrawCardSizes'
+>
+
+export interface UseAnimationControllerReturn extends ReconcilerPublic {
   phase: Ref<OverlayPhase>
   showResults: Ref<boolean>
   entryAnimationComplete: Ref<boolean>
   isPaused: Ref<boolean>
   playbackRate: Ref<number>
   cardsLanded: Ref<boolean>
-  bgStyle: Ref<Record<string, string>>
-  stageStyle: Ref<Record<string, string>>
-  headerStyle: Ref<Record<string, string>>
-  footerStyle: Ref<Record<string, string>>
-  deckCtnStyle: Ref<Record<string, string>>
-  initialsStyle: Ref<Record<string, string>[]>
-  leftsStyle: Ref<Record<string, string>[]>
-  rightsStyle: Ref<Record<string, string>[]>
-  pilesStyle: Ref<Record<string, string>[]>
-  drawsStyle: Ref<Record<string, string>[]>
-  drawsSizeStyle: Ref<{ width: string; height: string }[]>
-  innersStyle: Ref<Record<string, string>[]>
   leftsVisible: Ref<boolean>
   rightsVisible: Ref<boolean>
   pilesVisible: Ref<boolean[]>
   drawsVisible: Ref<boolean[]>
-  overlayVarsStyle: ComputedRef<string>
-  layoutCardWidth: Ref<number>
-  layoutCardHeight: Ref<number>
   progressHeaderPresentation: ComputedRef<ReturnType<typeof presentProgressHeader>>
   footerPresentation: ComputedRef<ReturnType<typeof presentFooter>>
   phaseSteps: ComputedRef<ReturnType<typeof calculatePhaseProgress>>

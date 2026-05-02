@@ -36,25 +36,3 @@ export interface DrawCardState extends CenterCardState {
 export interface InnerState {
   rotationY: number
 }
-
-export interface BackgroundState {
-  opacity: number
-}
-
-export interface StageState {
-  y: number
-}
-
-export interface HeaderState {
-  y: number
-  opacity: number
-}
-
-export interface FooterState {
-  y: number
-  opacity: number
-}
-
-export interface DeckContainerState {
-  x: number
-}

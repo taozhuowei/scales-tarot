@@ -41,15 +41,3 @@ export interface PhaseRunner {
   name: OverlayPhase
   run(context: PhaseContext, onComplete: () => void): unknown
 }
-
-export interface FlowOrchestrator {
-  run(fromIndex?: number): void
-  replayFrom(phaseName: OverlayPhase): void
-  currentPhase(): OverlayPhase | null
-}
-
-export interface FlowOrchestratorCallbacks {
-  onPhaseStart?: (phase: OverlayPhase) => void
-  onPhaseComplete?: (phase: OverlayPhase) => void
-  onPipelineComplete?: () => void
-}

@@ -33,14 +33,31 @@ export default tseslint.config(
 
   // SonarJS — cognitive complexity, code smells, SOLID-adjacent rules.
   // Applied to source code only (skips tests / configs).
-  // Initial integration: most rules at 'warn' so the existing baseline
-  // doesn't block CI; ratchet to 'error' once the codebase is cleaned up.
+  //
+  // Ratchet plan (TODO.md 阶段 8):
+  // The five rules below are at 'warn' to keep the existing baseline from
+  // blocking CI. Each will be ratcheted to 'error' on a fixed date once the
+  // remaining warnings are resolved (currently: ~9 across app/src + server/src).
+  // The ratchet schedule lives in TODO.md so the deadline is auditable; do
+  // not silently leave 'warn' here forever.
+  //
+  //   void-use                      → error after the 3 fire-and-forget sites
+  //                                   are reviewed (real intent vs missing await).
+  //   no-small-switch               → error after the legacy switch in
+  //                                   reading_provider.ts is fully retired.
+  //   no-nested-conditional         → error after parseServerError-style
+  //                                   refactors land for the remaining 4 hits.
+  //   no-all-duplicated-branches    → error after no-small-switch is fixed
+  //                                   (paired finding).
+  //   slow-regex                    → error after the theme.ts regex is
+  //                                   already removed (now down to 0 hits;
+  //                                   keep guarding for future regressions).
   {
     files: ['app/src/**/*.{ts,vue}', 'server/src/**/*.ts'],
     plugins: { sonarjs: sonarjs },
     rules: {
       ...sonarjs.configs.recommended.rules,
-      // Downgraded to 'warn' for existing-codebase tolerance; revisit later:
+      // Existing-codebase grandfather list. Track upgrades in TODO.md 阶段 8.
       'sonarjs/void-use': 'warn',
       'sonarjs/no-small-switch': 'warn',
       'sonarjs/no-nested-conditional': 'warn',

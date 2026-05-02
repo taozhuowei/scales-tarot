@@ -36,14 +36,19 @@ const stepsByMode = {
     {
       label: 'duplicate-code',
       command: 'npx',
-      args: ['jscpd', 'app/src', '--silent'],
+      args: ['jscpd', 'app/src', 'server/src', '--silent'],
       quietOnSuccess: true,
     },
   ],
   staged: [
+    // pre-commit: must stay fast (target < 5s).
+    // type-check moved to pre-push only — full vue-tsc + tsc on staged
+    // commits added 8-20s and slowed the dev loop. The pre-push hook still
+    // runs the full check, and CI (.github/workflows/ci.yml) mirrors it,
+    // so type errors can't reach origin/main even if a developer commits
+    // them locally.
     { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
     { label: 'lint:fix', command: 'npm', args: ['run', 'quality:lint:fix'] },
-    { label: 'type-check', command: 'npm', args: ['run', 'quality:type-check'] },
     { label: 'git add', command: 'git', args: ['add', '-u'] },
   ],
 }

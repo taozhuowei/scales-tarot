@@ -13,7 +13,6 @@
 // gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
 import type { AnimationState } from '../state'
-import type { OverlayPhase } from '../../core/flow/types'
 
 /* ── getAllTargets ────────────────────────────────────────────────── */
 
@@ -116,11 +115,6 @@ export function createTimelineOrchestrator(
       return masterTimeline.add(child, position)
     },
   }
-}
-
-export interface PhaseTransitionHandlers {
-  onPhaseChange: (phase: OverlayPhase) => void
-  onComplete: () => void
 }
 
 /**

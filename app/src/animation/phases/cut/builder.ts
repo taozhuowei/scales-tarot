@@ -31,6 +31,23 @@ function getCutPileRestPosition(
   return axis === 'horizontal' ? { x: offset, y: 0 } : { x: 0, y: offset }
 }
 
+/**
+ * Reset N piles to centred-stack rest state and toggle visibility for the
+ * first N. Both the reduced-motion and the normal entry path call this
+ * before their respective animations diverge — extracted to keep the two
+ * branches honest about sharing the same starting state.
+ */
+function initPilesAtRest(
+  piles: PhaseContext['cardElements']['piles'],
+  pilesVisible: PhaseContext['visible']['piles'],
+  N: number,
+): void {
+  for (let i = 0; i < N; i++) {
+    Object.assign(piles[i], { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, zIndex: 10 + i })
+  }
+  pilesVisible.value = Array.from({ length: piles.length }, (_, i) => i < N)
+}
+
 export function buildCutPhaseRunner(config: CutPhaseConfig): PhaseRunner {
   return {
     name: 'cutting' as OverlayPhase,
@@ -45,31 +62,19 @@ export function buildCutPhaseRunner(config: CutPhaseConfig): PhaseRunner {
 
       if (prefersReducedMotion()) {
         const timeline = gsap.timeline({ onComplete })
-        timeline.add(() => {
-          for (let i = 0; i < N; i++) {
-            Object.assign(piles[i], { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, zIndex: 10 + i })
-          }
-          const visible = Array.from({ length: piles.length }, (_, i) => i < N)
-          pilesVisible.value = visible
-        }, 0)
+        timeline.add(() => initPilesAtRest(piles, pilesVisible, N), 0)
         timeline.to({}, { duration: 0.1 })
         timeline.add(() => {
           pilesVisible.value = piles.map(() => false)
         })
-        return timeline 
+        return timeline
       }
 
       const timeline = gsap.timeline({
         onComplete,
       })
 
-      timeline.add(() => {
-        for (let i = 0; i < N; i++) {
-          Object.assign(piles[i], { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, zIndex: 10 + i })
-        }
-        const visible = Array.from({ length: piles.length }, (_, i) => i < N)
-        pilesVisible.value = visible
-      })
+      timeline.add(() => initPilesAtRest(piles, pilesVisible, N))
 
       timeline.to(piles.slice(0, N), {
         x: (i: number) => restPositions[i].x,
