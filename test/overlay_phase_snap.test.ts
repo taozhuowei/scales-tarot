@@ -233,5 +233,62 @@ describe('overlay_phase_snap', () => {
       // deps.draws — assert the contract holds for our test fixture.
       expect(deps.draws).toBe(deps.cardElements.draws)
     })
+
+    it('hides every draw and clears piles when cardCount is 0', () => {
+      // Edge case: zero-card spread. Solver still produces a drawLayout
+      // (cards: []), but no draw should be visible and the snap must not
+      // attempt to read drawLayout.cards[i] for any i.
+      const deps = makeSnapDeps({ cardCount: 0 })
+      // Override drawLayout to have an empty cards array (matches the real
+      // solver's output for a 0-card scene).
+      ;(deps as { drawLayout: SceneLayout }).drawLayout = {
+        ...(deps.drawLayout as object),
+        cards: [],
+      } as SceneLayout
+
+      expect(() => getPhaseSnap('revealing')(deps)).not.toThrow()
+
+      // setDrawCardSizes still called once with the (empty-cards) layout.
+      expect(deps.setDrawCardSizes).toHaveBeenCalledWith(deps.drawLayout)
+      // No draw is visible.
+      expect(deps.visible.draws.value.every((v) => v === false)).toBe(true)
+      // All draws hidden (opacity 0).
+      deps.draws.forEach((d) => expect(d.opacity).toBe(0))
+      // Piles cleared regardless.
+      expect(deps.visible.piles.value.every((v) => v === false)).toBe(true)
+    })
+
+    it('ignores cardCount entries beyond drawLayout.cards length without throwing', () => {
+      // Edge case: cardCount overshoots the layout's available slots (would
+      // happen if a layout solver mismatch slipped through). The snap's
+      // `if (!target) continue` guard must skip those rather than crash.
+      const deps = makeSnapDeps({ cardCount: 5 }) // factory layout has 3 cards
+      // Trim the factory layout to fewer cards than cardCount.
+      ;(deps as { drawLayout: SceneLayout }).drawLayout = {
+        ...(deps.drawLayout as object),
+        cards: (deps.drawLayout as { cards: { x: number; y: number; width: number; height: number }[] }).cards.slice(0, 2),
+      } as SceneLayout
+      ;(deps as { cardCount: number }).cardCount = 5
+
+      expect(() => getPhaseSnap('revealing')(deps)).not.toThrow()
+
+      // First 2 draws positioned at the layout targets and visible.
+      expect(deps.draws[0].opacity).toBe(1)
+      expect(deps.draws[1].opacity).toBe(1)
+      // Draws 2..4 had no target — the loop continued past them so they were
+      // never written and never marked visible. Subsequent indices fall into
+      // the cleanup loop (i >= cardCount), which expects them hidden.
+      // The 2..4 indices are in a "neither initialised nor cleaned" middle
+      // zone; assert visibility still defaults to false (factory state).
+      const visibleDraws = deps.visible.draws.value
+      expect(visibleDraws[0]).toBe(true)
+      expect(visibleDraws[1]).toBe(true)
+      // The cleanup loop runs from cardCount (5) onward, so indices 2..4
+      // remain at their factory default (false) — this verifies the snap
+      // doesn't accidentally mark them true.
+      expect(visibleDraws[2]).toBe(false)
+      expect(visibleDraws[3]).toBe(false)
+      expect(visibleDraws[4]).toBe(false)
+    })
   })
 })
