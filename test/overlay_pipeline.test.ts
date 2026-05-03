@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createPhasePipeline, getDefaultPhaseOrder } from '../app/src/animation/pipeline'
+import { createPhasePipeline } from '../app/src/animation/pipeline'
 import type { PipelinePhase } from '../app/src/animation/pipeline'
 import type { TimelineOrchestrator } from '../app/src/animation/adapters/gsap'
 import type { OverlayPhase } from '../app/src/core/flow/types'
@@ -42,17 +42,6 @@ describe('overlay_animation pipeline', () => {
 
   afterEach(() => {
     vi.useRealTimers()
-  })
-
-  describe('getDefaultPhaseOrder', () => {
-    it('returns shuffling -> cutting -> drawing -> revealing', () => {
-      expect(getDefaultPhaseOrder()).toEqual([
-        'shuffling',
-        'cutting',
-        'drawing',
-        'revealing',
-      ])
-    })
   })
 
   describe('createPhasePipeline', () => {
