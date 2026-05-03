@@ -55,6 +55,12 @@ export default tseslint.config(
       'sonarjs/no-all-duplicated-branches': 'error',
       'sonarjs/slow-regex': 'error',
       // Already covered by `no-warning-comments`, mute duplicate.
+      // Permanent: test files have `no-warning-comments` disabled to allow
+      // intentionally-pending TODOs in fixtures/scaffolds, so muting the
+      // sonarjs duplicate keeps a single source of truth (no-warning-comments)
+      // for production code without false positives in tests. Evaluation
+      // closed (TODO 8.1.G) — do not re-enable without first re-enabling
+      // no-warning-comments project-wide.
       'sonarjs/todo-tag': 'off',
     },
   },
