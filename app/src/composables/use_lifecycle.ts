@@ -136,7 +136,12 @@ export function useLifecycle(deps: LifecycleDeps) {
   }
 
   function replayFromPhase(targetPhase: OverlayPhase): void {
-    void replayFromPhaseCommand(targetPhase, {
+    // The command is async (it awaits nextTick before runPipeline so the
+    // visible-flag mutations flush). We can't await here — the lifecycle
+    // surface is sync — but a `void` swallow would silently drop any
+    // rejection from the command's internals (snap helpers, runPipeline).
+    // Surface them via console.error so dev-tool failures aren't invisible.
+    replayFromPhaseCommand(targetPhase, {
       interruptCurrentAnimation,
       entryAnimationComplete: deps.entryAnimationComplete,
       resetOverlayScene,
@@ -145,6 +150,8 @@ export function useLifecycle(deps: LifecycleDeps) {
       onPhaseChange: (p) => deps.transitionPhase(p, deps.callbacks.onPhaseChange),
       runPipelineFn: runPipeline,
       getPhaseSnapDeps,
+    }).catch((err) => {
+      console.error('[lifecycle] replayFromPhase failed', err)
     })
   }
 
