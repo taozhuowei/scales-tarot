@@ -31,6 +31,19 @@ export interface PhaseStep {
  * The replay / skip commands construct one of these and pass it to the
  * matching snap helper; each helper writes the minimum shared visual state
  * its phase's builder *expects to see when run() is called*.
+ *
+ * Style refresh contract: the snap helpers mutate plain objects inside
+ * `cardElements.lefts/rights/piles` and `draws`. The style reconciler
+ * (createStyleReconciler) installs `watch(..., { deep: true })` on every
+ * one of these arrays, so any field write is auto-picked-up on the next
+ * tick — no explicit `refreshLefts/refreshRights/refreshPiles/refreshDraws`
+ * call is required from the snap path. The replay command's `await
+ * nextTick()` before `runPipelineFn` guarantees those reactive updates
+ * have flushed to the DOM before phase builders read element refs.
+ *
+ * `setDrawCardSizes` is the one exception: it ALSO writes to `layoutCard*`
+ * refs (not to `state.draws`), so it must be called explicitly when a snap
+ * needs to set draw sizes (see snapToRevealingEntry).
  */
 export interface PhaseSnapDeps {
   cardElements: PhaseContext['cardElements']
@@ -62,11 +75,15 @@ export interface PhaseManifest {
 /**
  * Snap to the cutting-phase entry visual state.
  *
- * After resetOverlayScene() everything is at the post-entry state with
- * lefts/rights hidden. Cutting itself only animates piles; we expose
- * lefts/rights at the spread positions to mirror the visual state at the
- * tail of shuffle so the user perceives continuity when replaying from
- * cutting.
+ * NOT a strict mirror of shuffle's tail state: shuffling actually ends
+ * with lefts/rights hidden (the merge atom collapses the two halves back
+ * onto the deck and `visible.lefts/rights` flip false). But the cut
+ * builder is written assuming the two halves are still visible and spread
+ * apart — its first add() animates them inward to form the cut piles.
+ * So when a dev replay drops in at `cutting`, we synthesise the "halves
+ * spread, ready to be cut" entry state directly: visible + at the spread
+ * X, regardless of what shuffling's actual exit state would have been.
+ * This is a phase-builder contract, not a shuffle-tail contract.
  *
  * Invariants written:
  *   visible.lefts.value = true
