@@ -16,6 +16,7 @@
 
 import type { PhysicalViewport, ResponsiveSizes } from './scale'
 import { CARD_ASPECT_RATIO } from './scale'
+import { INITIAL_DRAWER_HEIGHT_RATIO } from '../config/layout_constants'
 import type { DrawerGeometry, LayoutEnvelope, StageRect } from './layout_solver_types'
 
 /**
@@ -79,6 +80,12 @@ export function computeDrawCardSize(stage: StageRect, sizes: ResponsiveSizes): {
  * shift it), so cardTop = stage.y + (stage.height - cardHeight) / 2 and
  * cardBottom = cardTop + cardHeight, which simplifies to
  *   stage.y + (stage.height + cardHeight) / 2.
+ *
+ * Per requirement N3: `initialHeight` is decoupled from `initialTop` and
+ * fixed at `viewport.height * INITIAL_DRAWER_HEIGHT_RATIO`. The drawer is
+ * therefore free to overlap the result card on first reveal — the user
+ * drags it down to inspect the card if needed. `maxHeight` is unchanged
+ * (still represents the fully expanded sheet bounded by safeAreaBottom).
  */
 export function computeDrawer(
   viewport: PhysicalViewport,
@@ -86,7 +93,7 @@ export function computeDrawer(
   cardHeight: number,
 ): DrawerGeometry {
   const initialTop = stage.y + (stage.height + cardHeight) / 2
-  const initialHeight = viewport.height - initialTop - viewport.safeAreaBottom
+  const initialHeight = Math.round(viewport.height * INITIAL_DRAWER_HEIGHT_RATIO)
   const maxHeight = viewport.height - viewport.safeAreaBottom
   return {
     initialTop,

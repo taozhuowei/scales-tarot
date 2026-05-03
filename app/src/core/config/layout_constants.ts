@@ -31,6 +31,21 @@ export const MAX_CUT_PILES = 8
 /** Delay between the draw landing and the auto-flip kick-off (ms). */
 export const AUTO_REVEAL_DELAY_MS = 800
 
+/**
+ * Initial drawer height as a fraction of the viewport height (0..1).
+ *
+ * The drawer's top edge anchors to the result card's bottom so the drawer
+ * naturally hugs the card. Historically `initialHeight` filled the entire
+ * gap between that anchor and the safe-area bottom, which left the sheet
+ * extremely shallow on tall phones (the card pushed the drawer down to a
+ * sliver). Per new product requirement N3 the initial height now equals a
+ * fixed fraction of the viewport — the drawer is allowed to overlap the
+ * card on first reveal because the user can drag it back down to inspect
+ * the card if needed. `maxHeight` still represents "fully expanded sheet"
+ * and remains capped at viewport.height − safeAreaBottom.
+ */
+export const INITIAL_DRAWER_HEIGHT_RATIO = 0.4
+
 /** Vertical margin added to the result-card lift transform so the bottom
  *  of the card never touches the drawer's top edge during the reveal. */
 export const RESULT_LIFT_MARGIN_PX = 16

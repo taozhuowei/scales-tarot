@@ -24,6 +24,7 @@ import {
   RESULT_CARD_FILL_RATIO,
   type PhysicalViewport,
 } from '../app/src/core/sizing/scale'
+import { INITIAL_DRAWER_HEIGHT_RATIO } from '../app/src/core/config/layout_constants'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -141,12 +142,19 @@ describe('layout_solver — proportional-sizes layout solver', () => {
 
         // -------------------------------------------------------------------
         // (5) Drawer geometry: bottom-sheet anchored to the result card's
-        //     bottom edge. On the reading scene the card is shrunk to
-        //     RESULT_CARD_FILL_RATIO of the stage so the drawer rises to
-        //     hug the card; on the draw scene the card height equals the
-        //     stage height (drawer keeps its old "stage bottom" anchor).
+        //     bottom edge for `initialTop`. On the reading scene the card
+        //     is shrunk to RESULT_CARD_FILL_RATIO of the stage so the
+        //     anchor sits higher; on the draw scene the card height equals
+        //     the stage height (anchor at stage bottom).
         //
         //     Formula: cardBottom = stage.y + (stage.height + cardHeight) / 2
+        //
+        //     Per requirement N3, `initialHeight` is decoupled from
+        //     `initialTop` and fixed at INITIAL_DRAWER_HEIGHT_RATIO of the
+        //     viewport — the drawer may overlap the card on first reveal.
+        //     `maxHeight` still represents the fully-expanded sheet bound
+        //     by safeAreaBottom and is the reference for the upper bound
+        //     of the drawer span.
         // -------------------------------------------------------------------
         expect(layout.drawer.rightAligned).toBe(false)
         expect(layout.drawer.width).toBeCloseTo(viewport.width, 5)
@@ -156,9 +164,8 @@ describe('layout_solver — proportional-sizes layout solver', () => {
         const expectedDrawerTop =
           layout.stage.y + (layout.stage.height + expectedCardHeight) / 2
         expect(layout.drawer.initialTop).toBeCloseTo(expectedDrawerTop, 5)
-        expect(layout.drawer.initialTop + layout.drawer.initialHeight).toBeCloseTo(
-          viewport.height - viewport.safeAreaBottom,
-          5,
+        expect(layout.drawer.initialHeight).toBe(
+          Math.round(viewport.height * INITIAL_DRAWER_HEIGHT_RATIO),
         )
         expect(layout.drawer.maxHeight).toBeCloseTo(
           viewport.height - viewport.safeAreaBottom,
