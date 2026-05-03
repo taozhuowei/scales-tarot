@@ -63,10 +63,3 @@ export function createPhasePipeline(
   }
 }
 
-/**
- * Build a default phase order from the registry.
- * This is data-driven; the controller can override or slice the array.
- */
-export function getDefaultPhaseOrder(): OverlayPhase[] {
-  return ['shuffling', 'cutting', 'drawing', 'revealing']
-}
