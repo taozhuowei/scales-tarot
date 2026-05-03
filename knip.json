@@ -35,8 +35,8 @@
     "@vue/runtime-core",
     "jscpd"
   ],
-  "ignoreExportsUsedInFile": true,
-  "vite": false,
+  "ignoreExportsUsedInFile": false,
+  "vite": true,
   "rules": {
     "files": "error",
     "dependencies": "error",
