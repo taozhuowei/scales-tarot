@@ -26,6 +26,12 @@ function parsePort(raw: string | undefined, fallback: number): number {
   return n
 }
 
+function defaultLogLevel(): 'silent' | 'info' | 'debug' {
+  if (IS_TEST) return 'silent'
+  if (IS_PROD) return 'info'
+  return 'debug'
+}
+
 function parseCorsOrigins(raw: string | undefined): string[] | '*' {
   if (raw === undefined || raw.trim() === '') {
     // Empty in prod = same-origin only (no CORS). In dev = permissive.
@@ -47,7 +53,7 @@ export const config = Object.freeze({
 
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),
 
-  logLevel: process.env.LOG_LEVEL ?? (IS_TEST ? 'silent' : IS_PROD ? 'info' : 'debug'),
+  logLevel: process.env.LOG_LEVEL ?? defaultLogLevel(),
 
   // Body size limit for POST /api/v1/divinations — request body is just
   // `{ spreadKind?: string }`, well under 1 KB; 64 KB leaves ample headroom

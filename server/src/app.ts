@@ -233,9 +233,13 @@ app.use('/api', (_req, res) => {
 
 const devH5Dist = path.join(__dirname, '../../dist/dev/h5')
 const buildH5Dist = path.join(__dirname, '../../dist/build/h5')
-const h5Dist = config.isProd
-  ? buildH5Dist
-  : (fs.existsSync(devH5Dist) ? devH5Dist : buildH5Dist)
+
+function pickH5Dist(): string {
+  if (config.isProd) return buildH5Dist
+  return fs.existsSync(devH5Dist) ? devH5Dist : buildH5Dist
+}
+
+const h5Dist = pickH5Dist()
 
 // Hashed asset files ship with a year-long immutable Cache-Control; the
 // vite build emits everything under /assets/ with a content hash so this

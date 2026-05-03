@@ -42,7 +42,7 @@
  * Data flow: stateless; startFallbackAnimation drives planet state via a
  *           GSAP ticker, onUpdate flushes reactive refs.
  */
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, reactive } from 'vue'
 import {
   createDefaultPlanets,
   startFallbackAnimation,
@@ -51,20 +51,17 @@ import {
 
 const PLANET_TYPES = ['tetrahedron', 'parallelepiped', 'sphere', 'octahedron'] as const
 
-const planets = ref<OrbitingPlanet[]>(createDefaultPlanets())
+/**
+ * `planets` is a Vue reactive array — GSAP's ticker mutates planet.x /
+ * .y / .depthScale / .selfRotation in place, and Vue's set-trap on the
+ * reactive proxy auto-invalidates the template that reads these. No
+ * manual flush counter / `void tick.value` subscription needed: reads
+ * inside orbitPathStyle / planetStyle are tracked the standard Vue way.
+ */
+const planets = reactive(createDefaultPlanets())
 let stopAnimation: (() => void) | null = null
 
-// Flush counter forces Vue to re-read planet state on each tick.
-const tick = ref(0)
-
-function flushPlanets() {
-  tick.value++
-}
-
 function orbitPathStyle(planet: OrbitingPlanet) {
-  // Read tick so this function re-evaluates whenever the ticker fires,
-  // matching the same reactive pattern used by planetStyle().
-  void tick.value
   return {
     width: `${planet.rx * 2}px`,
     height: `${planet.ry * 2}px`,
@@ -74,8 +71,6 @@ function orbitPathStyle(planet: OrbitingPlanet) {
 }
 
 function planetStyle(planet: OrbitingPlanet) {
-  // Accessing tick.value makes this computed-style call reactive to flushes.
-  void tick.value
   const zIndex = Math.round(planet.depthScale * 10)
   return {
     transform: `translate(${planet.x}px, ${planet.y}px) scale(${planet.depthScale}) rotate(${planet.selfRotation}deg)`,
@@ -85,7 +80,10 @@ function planetStyle(planet: OrbitingPlanet) {
 }
 
 onMounted(() => {
-  stopAnimation = startFallbackAnimation(planets.value, flushPlanets)
+  // The builder's onUpdate hook is now a no-op — Vue reactivity replaces it.
+  // Kept as a parameter so the builder's signature stays compatible with
+  // any future caller that wants explicit batching control.
+  stopAnimation = startFallbackAnimation(planets, () => {})
 })
 
 onUnmounted(() => {

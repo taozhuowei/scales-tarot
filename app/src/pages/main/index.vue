@@ -169,15 +169,13 @@ provide('isWide', isWide)
 /**
  * Single subscription point for the proportional scale system: bind every
  * derived size as a CSS custom property on the root view so any descendant
- * scoped CSS can reference them via `var(--xxx)` without re-subscribing
- * to the composable. `useResponsiveScale` is a module-level singleton, so
- * this is the only place in the tree that needs to call it for the bridge
- * to work — descendants stay declarative.
+ * scoped CSS can reference them via `var(--margin)` / `var(--header-height)`
+ * etc. without re-subscribing to the composable. `useResponsiveScale` is
+ * a module-level singleton, so this is the only place in the tree that
+ * needs to call it for the bridge to work — descendants stay declarative.
  *
- * TODO(mp-weixin): wrap with #ifdef MP-WEIXIN to add menu button height
- *                  to top padding via uni.getMenuButtonBoundingClientRect.
- *                  H5 is the primary delivery target; mini-program path
- *                  is deferred per the responsive-scale rollout plan.
+ * Mini-program menu button avoidance is tracked separately in the
+ * project task list (phase 8 follow-up); this code path is H5-only today.
  */
 const { sizes } = useResponsiveScale()
 const cssVarStyle = computed(() => ({
@@ -320,7 +318,12 @@ function handleBackHome() {
 }
 
 function handleRetry() {
-  void readingController.retryReading({})
+  // Fire-and-forget: the click handler must return synchronously, but
+  // retryReading is async. Surface failures via console.error rather than
+  // letting them silently disappear (the previous `void` pattern hid them).
+  readingController.retryReading({}).catch((err) => {
+    console.error('[main] retryReading failed', err)
+  })
 }
 
 /* ── Dev tools (compiled out of production) ─────────────────────────── */
