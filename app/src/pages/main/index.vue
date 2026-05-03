@@ -335,6 +335,18 @@ const isDevExpanded = ref(true)
 const showContainerBorders = ref(false)
 
 function handleDevReplay(targetPhase: OverlayPhase): void {
+  // Reading is normally seeded by the animation pipeline's `onDrawingStart`
+  // hook (line 214). Replays that resume *at or before* drawing still cross
+  // that hook on their way through. But replays that jump straight to
+  // `revealing` skip the drawing builder entirely, so the hook never fires
+  // and the panel opens with no reading in flight (empty body). Mirror the
+  // skipToReading flow: fire the request synchronously before delegating to
+  // the animation controller. Any in-flight reading is reset first to avoid
+  // resolving against the previous run.
+  if (targetPhase === 'revealing') {
+    readingController.resetReading()
+    currentReadingPromise = readingController.startReading({})
+  }
   animationController.replayFromPhase(targetPhase)
 }
 

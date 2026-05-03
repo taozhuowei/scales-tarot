@@ -136,6 +136,22 @@ export function useOverlay(deps: UseOverlayDeps) {
     animController.skipToReading()
   }
 
+  function replayFromPhase(targetPhase: OverlayPhase) {
+    // Replays that re-enter at or before drawing pass through the
+    // `onDrawingStart` hook (which seeds the reading), but a replay that
+    // jumps straight to `revealing` skips the drawing builder entirely —
+    // the hook never fires and the panel opens with an empty body. Mirror
+    // the skipToReading flow: synchronously fire startReading for that one
+    // boundary case before delegating to the animation controller. Any
+    // earlier target (shuffling/cutting/drawing) still goes through the
+    // pipeline's drawing phase and triggers onDrawingStart naturally.
+    if (targetPhase === 'revealing') {
+      readingController.resetReading()
+      currentReadingPromise = readingController.startReading({})
+    }
+    animController.replayFromPhase(targetPhase)
+  }
+
   function restart() {
     animController.resumeAnimations()
     animController.setPlaybackRate(1)
@@ -197,6 +213,9 @@ export function useOverlay(deps: UseOverlayDeps) {
     getCardImgName: (index: number) => deps.tarotStore.drawnCards[index]?.card.name,
     overlayText: DEFAULT_OVERLAY_TEXT,
     skipToReading,
+    // Override the spread's animation-only replayFromPhase with the wrapper
+    // that also seeds the reading request when the target is `revealing`.
+    replayFromPhase,
     restart,
     retryReading,
   }
