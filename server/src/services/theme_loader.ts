@@ -253,14 +253,6 @@ export function getTheme(themeId: string): ThemeData | undefined {
 }
 
 /**
- * Get the default theme (golden_dawn)
- * @returns ThemeData for the default theme, or undefined if not found
- */
-export function getDefaultTheme(): ThemeData | undefined {
-  return getTheme('golden_dawn')
-}
-
-/**
  * List all available themes by scanning the themes directory
  * @returns Array of ThemeSummary for each valid theme
  */
