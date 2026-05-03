@@ -86,11 +86,6 @@ const heroQuestionTiming = {
 .conclusion-container {
   --result-tone: var(--color-accent);
   --result-tone-bg: rgba(122, 92, 20, 0.08);
-  --text-xs: clamp(12px, 2.9cqi, 13px);
-  --text-sm: clamp(12.5px, 3.2cqi, 14px);
-  --text-base: clamp(13px, 3.8cqi, 17px);
-  --text-lg: clamp(15px, 4.4cqi, 20px);
-  --text-3xl: clamp(22px, 7cqi, 32px);
 
   display: flex;
   flex-direction: column;
