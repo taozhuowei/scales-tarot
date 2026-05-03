@@ -70,7 +70,7 @@ app.disable('x-powered-by')
 // Loopback URLs for dev only. The `http://`/`ws://` here is intentional
 // (localhost has no TLS); production CSP uses the empty cspExtras array
 // below so these never reach a deployed environment.
-/* eslint-disable sonarjs/no-clear-text-protocols -- dev-only loopback */
+/* eslint-disable sonarjs/no-clear-text-protocols -- reason: dev-only loopback */
 const DEV_LOOPBACK_ORIGINS = [
   'http://localhost:*',
   'http://127.0.0.1:*',
