@@ -3,7 +3,7 @@ module.exports = {
   forbidden: [
     {
       name: 'no-circular',
-      severity: 'warn',
+      severity: 'error',
       comment:
         "This dependency is part of a circular relationship. You might want to revise " +
         "your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ",
@@ -29,7 +29,7 @@ module.exports = {
     },
     {
       name: 'no-circular',
-      severity: 'warn',
+      severity: 'error',
       comment:
         "This dependency is part of a circular relationship. You might want to revise " +
         "your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ",
@@ -46,7 +46,7 @@ module.exports = {
         "add an exception for it in your dependency-cruiser configuration. By default " +
         "this rule does not scrutinize dot-files (e.g. .eslintrc.js), TypeScript declaration " +
         "files (.d.ts), tsconfig.json and some of the babel and webpack configs.",
-      severity: 'warn',
+      severity: 'error',
       from: {
         orphan: true,
         pathNot: [
@@ -66,7 +66,7 @@ module.exports = {
       comment:
         'A module depends on a node core module that has been deprecated. Find an alternative - these are ' +
         "bound to exist - node doesn't deprecate lightly.",
-      severity: 'warn',
+      severity: 'error',
       from: {},
       to: {
         dependencyTypes: [
@@ -101,7 +101,7 @@ module.exports = {
       comment:
         'This module uses a (version of an) npm module that has been deprecated. Either upgrade to a later ' +
         'version of that module, or find an alternative. Deprecated modules are a security risk.',
-      severity: 'warn',
+      severity: 'error',
       from: {},
       to: {
         dependencyTypes: [
