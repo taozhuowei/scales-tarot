@@ -107,8 +107,6 @@ onUnmounted(() => {
 
 <style scoped>
 .reading-text-container {
-  --text-base: clamp(13px, 3.8cqi, 17px);
-
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
