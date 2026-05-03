@@ -1,20 +1,19 @@
 /**
  * Name: core/sizing/scale
- * Purpose: derive a single proportional scale factor `k` from the viewport
- *          width and expose pixel-valued sizes (header height,
- *          margins, font sizes, etc.) as `baseline × k`. Provides a Vue
- *          composable that keeps those sizes reactive with respect to the
- *          viewport, with rAF coalescing and a sub-pixel jitter
- *          short-circuit so micro-changes do not trigger reactivity. The
- *          three exported pure functions (`pickCanvasWidth`, `deriveScale`,
- *          `deriveSizes`) are the only pieces tests target; the composable
- *          is the lone piece that touches uni APIs and browser globals.
- * Reason: the previous approach hard-coded pixel values per breakpoint and
- *         scattered tier picks across components, making it impossible to
- *         tune the design proportionally to the device. A single `k` driven
- *         by canvas width gives every UI surface one consistent rule:
- *         sizes grow / shrink together, and iPhone 8 stays the baseline so
- *         no existing layout regresses on the smallest supported device.
+ * Purpose: facade for the proportional-scale system. Re-exports the
+ *          breakpoint constants + helpers (`pickCanvasWidth`,
+ *          `deriveScale`), the sizes derivation (`deriveSizes`,
+ *          `ResponsiveSizes`), and the platform viewport adapter
+ *          (`readViewport`, `PhysicalViewport`, `WindowInfoShape`) from
+ *          their dedicated modules, then layers the Vue composable
+ *          (`useResponsiveScale`) on top — the only piece in this file
+ *          that touches uni APIs and browser globals.
+ * Reason: the previous monolithic 473-line `scale.ts` mixed five concerns
+ *          (constants, canvas clamp, sizes derivation, viewport adapter,
+ *          Vue composable). Splitting the pure pieces into
+ *          `responsive_breakpoints.ts` + `responsive_sizes.ts` keeps the
+ *          public API stable for downstream importers while letting each
+ *          file stay focused and well below the 300-line file budget.
  * Data flow: uni.getWindowInfo() / uni.onWindowResize ──▶
  *            pickCanvasWidth(viewportWidth) ──▶ deriveScale(canvasWidth) ──▶
  *            deriveSizes(canvasWidth) ──▶ Readonly<Ref<ResponsiveSizes>>
@@ -23,6 +22,48 @@
 
 import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue'
 import type { Ref } from 'vue'
+import {
+  deriveScale,
+  pickCanvasWidth,
+} from './responsive_breakpoints'
+import {
+  deriveSizes,
+  readViewport,
+  type ResponsiveSizes,
+  type PhysicalViewport,
+} from './responsive_sizes'
+
+// Re-export the public surface from the split modules so existing importers
+// (`import { ... } from '.../core/sizing/scale'`) keep compiling without any
+// changes. The order mirrors the original `scale.ts` to make the diff
+// reviewable; downstream files have no reason to import from the split
+// modules directly.
+export {
+  MIN_CANVAS_WIDTH,
+  MAX_CANVAS_WIDTH,
+  BASELINE_HEADER_HEIGHT,
+  BASELINE_MARGIN,
+  BASELINE_GAP,
+  BASELINE_DRAWER_MIN_HEIGHT,
+  BASELINE_ACTION_AREA_HEIGHT,
+  BASELINE_FONT_XXL,
+  BASELINE_FONT_XL,
+  BASELINE_FONT_L,
+  BASELINE_FONT_M,
+  BASELINE_FONT_S,
+  BASELINE_FONT_XS,
+  CARD_ASPECT_RATIO,
+  RESULT_CARD_FILL_RATIO,
+  pickCanvasWidth,
+  deriveScale,
+} from './responsive_breakpoints'
+export {
+  deriveSizes,
+  readViewport,
+  type ResponsiveSizes,
+  type PhysicalViewport,
+  type WindowInfoShape,
+} from './responsive_sizes'
 
 // ---------------------------------------------------------------------------
 // rAF / cAF shims — UniApp targets H5 + mini-programs. The H5 runtime exposes
@@ -69,55 +110,6 @@ const caf: (handle: number) => void =
         if (Number.isFinite(handle)) clearTimeout(handle)
       }
 
-// ---------------------------------------------------------------------------
-// Constants — iPhone 8 baseline (375 px) pixel values.
-//
-// All baselines are expressed for a 375 px logical canvas. When the device
-// has a wider viewport (up to iPhone 17 Pro Max at 440 px), the sizes grow
-// proportionally via `k = canvasWidth / 375`. Below 375 the canvas is
-// pinned at 375 — the layout will overflow; we do not try to fit smaller
-// devices because they fall below the supported envelope: a non-blocking
-// "screen too small" banner is shown, but the layout still tries to render.
-// ---------------------------------------------------------------------------
-
-/** Smallest logical canvas width the scale system uses (iPhone 8). */
-export const MIN_CANVAS_WIDTH = 375
-/** Largest logical canvas width the scale system uses (iPhone 17 Pro Max). */
-export const MAX_CANVAS_WIDTH = 440
-
-/** Header total height at the iPhone 8 baseline (px). */
-export const BASELINE_HEADER_HEIGHT = 80
-/** Page side / outer margin at the baseline (px). */
-export const BASELINE_MARGIN = 16
-/** Inter-card gap at the baseline (px). */
-export const BASELINE_GAP = 12
-/** Minimum drawer initial height at the baseline (px). */
-export const BASELINE_DRAWER_MIN_HEIGHT = 120
-/** Bottom action area height at the baseline (px). */
-export const BASELINE_ACTION_AREA_HEIGHT = 96
-/** Hero / display font size at the baseline (px). */
-export const BASELINE_FONT_XXL = 32
-/** Large heading font size at the baseline (px). */
-export const BASELINE_FONT_XL = 24
-/** Heading font size at the baseline (px). */
-export const BASELINE_FONT_L = 22
-/** Medium body font size at the baseline (px). */
-export const BASELINE_FONT_M = 16
-/** Small body font size at the baseline (px). */
-export const BASELINE_FONT_S = 14
-/** Extra-small caption font size at the baseline (px). */
-export const BASELINE_FONT_XS = 12
-
-/** Card visual aspect ratio (height / width) — tarot cards are tall. */
-export const CARD_ASPECT_RATIO = 1.6
-
-/**
- * Result card occupies this fraction of the stage rect (each axis).
- * Stage stays at the maximum 1:1.6 safe-area rect; the result card sits
- * centred inside, padded uniformly so it never feels "edge-pressed".
- */
-export const RESULT_CARD_FILL_RATIO = 0.9
-
 /**
  * Sub-pixel jitter threshold. If a recomputed `k` differs from the previous
  * by less than this fraction, the sizes are not updated. 0.5% lines up
@@ -125,170 +117,6 @@ export const RESULT_CARD_FILL_RATIO = 0.9
  * ensuring rounded outputs are stable while reactivity stays cheap.
  */
 const SCALE_JITTER_THRESHOLD = 0.005
-
-// ---------------------------------------------------------------------------
-// Pure functions — no Vue, no uni, no DOM. Trivially testable.
-// ---------------------------------------------------------------------------
-
-/**
- * Pick the logical canvas width for a real viewport width.
- *
- *   width <  375 → 375  (layout will overflow; we don't fit smaller devices)
- *   375 ≤ w ≤ 440 → rounded to integer (fractional viewports are coerced)
- *   width >  440 → 440  (any extra horizontal space becomes background)
- *
- * Non-finite inputs (NaN, -Infinity) collapse to MIN_CANVAS_WIDTH; +Infinity
- * collapses to MAX_CANVAS_WIDTH. The result is always an integer in
- * `[MIN_CANVAS_WIDTH, MAX_CANVAS_WIDTH]`, so downstream `deriveSizes`
- * receives a stable, integer canvas width regardless of caller.
- *
- * Pure function: same input always produces the same output.
- */
-export function pickCanvasWidth(viewportWidth: number): number {
-  // Order matters: clamp *up* (NaN, -Infinity, < MIN) before clamping *down*.
-  // NaN compared with any operator is false, so the NaN branch must be the
-  // explicit `Number.isNaN` check below — it cannot rely on `< MIN_CANVAS_WIDTH`.
-  if (Number.isNaN(viewportWidth) || viewportWidth < MIN_CANVAS_WIDTH) {
-    return MIN_CANVAS_WIDTH
-  }
-  if (viewportWidth > MAX_CANVAS_WIDTH) {
-    return MAX_CANVAS_WIDTH
-  }
-  return Math.round(viewportWidth)
-}
-
-/**
- * Derive the global scale factor `k = canvasWidth / 375`.
- *
- * For canvas widths in the supported range the result is in
- * [1.0, 440 / 375 ≈ 1.1733]. Callers should pass canvas widths that
- * have already been clamped via `pickCanvasWidth`, but the function does
- * not enforce that — it is a pure ratio.
- */
-export function deriveScale(canvasWidth: number): number {
-  return canvasWidth / MIN_CANVAS_WIDTH
-}
-
-// ---------------------------------------------------------------------------
-// Sizes interface — the single source of truth for derived px values.
-// ---------------------------------------------------------------------------
-
-/**
- * Pixel-valued sizes, all derived from `canvasWidth` via `k`.
- * Every px field is rounded to the nearest integer so consumers never
- * see sub-pixel values that would force fractional layouts.
- */
-export interface ResponsiveSizes {
-  /** Logical canvas width (clamped to [375, 440]). */
-  canvasWidth: number
-  /** Scale factor relative to iPhone 8 baseline. */
-  k: number
-  /** Header height in px (baseline 80 × k, rounded). */
-  headerHeight: number
-  /** Outer / page margin in px (baseline 16 × k, rounded). */
-  margin: number
-  /** Inter-card gap in px (baseline 12 × k, rounded). */
-  gap: number
-  /** Minimum drawer initial height in px (baseline 120 × k, rounded). */
-  drawerMinHeight: number
-  /** Bottom action area height in px (baseline 96 × k, rounded). */
-  actionAreaHeight: number
-  /** Hero / display font size in px (baseline 32 × k, rounded). */
-  fontXXL: number
-  /** Large heading font size in px (baseline 24 × k, rounded). */
-  fontXL: number
-  /** Heading font size in px (baseline 22 × k, rounded). */
-  fontL: number
-  /** Medium body font size in px (baseline 16 × k, rounded). */
-  fontM: number
-  /** Small body font size in px (baseline 14 × k, rounded). */
-  fontS: number
-  /** Extra-small caption font size in px (baseline 12 × k, rounded). */
-  fontXS: number
-}
-
-/**
- * Pure derivation: given a canvas width, return all derived px sizes.
- * Each px field is rounded to the nearest integer.
- *
- * Pure function: same input always produces the same output.
- */
-export function deriveSizes(canvasWidth: number): ResponsiveSizes {
-  const k = deriveScale(canvasWidth)
-  return {
-    canvasWidth,
-    k,
-    headerHeight: Math.round(BASELINE_HEADER_HEIGHT * k),
-    margin: Math.round(BASELINE_MARGIN * k),
-    gap: Math.round(BASELINE_GAP * k),
-    drawerMinHeight: Math.round(BASELINE_DRAWER_MIN_HEIGHT * k),
-    actionAreaHeight: Math.round(BASELINE_ACTION_AREA_HEIGHT * k),
-    fontXXL: Math.round(BASELINE_FONT_XXL * k),
-    fontXL: Math.round(BASELINE_FONT_XL * k),
-    fontL: Math.round(BASELINE_FONT_L * k),
-    fontM: Math.round(BASELINE_FONT_M * k),
-    fontS: Math.round(BASELINE_FONT_S * k),
-    fontXS: Math.round(BASELINE_FONT_XS * k),
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Viewport adapter — pure conversion from platform window info to a
-// PhysicalViewport. The layout solver consumes this shape directly, so the
-// adapter lives alongside the sizes it ultimately drives. Width is left
-// unclamped so callers can either feed the raw viewport into `pickScreenMode`-
-// style branches or pipe it through `pickCanvasWidth` to get the canvas
-// value the solver actually uses.
-// ---------------------------------------------------------------------------
-
-/**
- * Physical viewport metrics in CSS pixels. The `width` field is the caller's
- * responsibility — typically the result of `pickCanvasWidth(realWidth)` when
- * fed into the layout solver, or the raw viewport width when used for
- * screen-mode classification.
- */
-export interface PhysicalViewport {
-  /** Logical canvas width (caller's responsibility — typically pickCanvasWidth(real)). */
-  width: number
-  /** Real viewport height in px. Not clamped. */
-  height: number
-  /** Top safe-area inset (status bar / notch) in px. */
-  safeAreaTop: number
-  /** Bottom safe-area inset in px. */
-  safeAreaBottom: number
-}
-
-/**
- * Shape of the platform-supplied window info we accept. Kept structurally
- * typed so callers can pass `uni.getWindowInfo()` results directly without
- * an explicit conversion.
- */
-export interface WindowInfoShape {
-  windowWidth: number
-  windowHeight: number
-  safeAreaInsets?: { top?: number; bottom?: number; left?: number; right?: number }
-}
-
-/**
- * Adapter: convert platform window info into a PhysicalViewport.
- *
- * Pure / no side effects. Does NOT clamp the width — pipe through
- * `pickCanvasWidth` at the call site if you want the canvas value the
- * layout solver should use. Negative or fractional inputs are coerced to
- * non-negative integers so downstream math sees stable values.
- */
-export function readViewport(info: WindowInfoShape): PhysicalViewport {
-  // Single source of zero-defaults: if `safeAreaInsets` is missing entirely
-  // (older runtimes / mini-program edge cases) substitute a fully-populated
-  // object so each field read below sees a real number, no per-field `?? 0`.
-  const insets = info.safeAreaInsets ?? { top: 0, bottom: 0 }
-  return {
-    width: Math.max(0, Math.floor(info.windowWidth)),
-    height: Math.max(0, Math.floor(info.windowHeight)),
-    safeAreaTop: Math.max(0, Math.floor(insets.top ?? 0)),
-    safeAreaBottom: Math.max(0, Math.floor(insets.bottom ?? 0)),
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Composable — reactive viewport + sizes with rAF coalescing.
@@ -351,6 +179,80 @@ function scaleChangedSignificantly(prev: number, next: number): boolean {
 let singletonState: ResponsiveScaleState | null = null
 
 /**
+ * Per-scope cleanup facade. Registered every time `useResponsiveScale` is
+ * called inside an active Vue scope. The hook is a deliberate no-op: the
+ * singleton outlives any single scope, so registering `dispose` here would
+ * tear down the listener the moment any one consumer's scope ends, breaking
+ * the others. Only the explicit `dispose()` (or app teardown) releases the
+ * underlying listener.
+ */
+function registerScopedNoOpDispose(): void {
+  if (getCurrentScope() !== undefined) {
+    onScopeDispose(() => { /* singleton outlives per-scope teardown */ })
+  }
+}
+
+/**
+ * Build the singleton state on the first call to `useResponsiveScale`.
+ * Wires the `uni.onWindowResize` listener with rAF coalescing + sub-pixel
+ * jitter short-circuit, and returns the resulting state object so the
+ * caller can stash it in `singletonState`.
+ */
+function buildSingletonState(): ResponsiveScaleState {
+  const initialViewport = readViewportFromUni()
+  const initialCanvas = pickCanvasWidth(initialViewport.width)
+  const viewport = ref<ResponsiveViewport>(initialViewport)
+  const sizes = ref<ResponsiveSizes>(deriveSizes(initialCanvas))
+
+  // 0 sentinel = no pending frame. Number both because `raf` returns `number`
+  // on H5 and because `setTimeout` returns `number` in the shim path.
+  let pendingFrame = 0
+  let disposed = false
+
+  /** Recompute viewport + sizes; called inside the rAF callback. */
+  const recompute = (): void => {
+    pendingFrame = 0
+    if (disposed) return
+    const nextViewport = readViewportFromUni()
+    viewport.value = nextViewport
+    const nextCanvas = pickCanvasWidth(nextViewport.width)
+    const nextK = deriveScale(nextCanvas)
+    if (!scaleChangedSignificantly(sizes.value.k, nextK)) return
+    sizes.value = deriveSizes(nextCanvas)
+  }
+
+  // Resize listener: coalesces bursts to the next animation frame, so
+  // multiple rapid resize events produce a single token update. Aligning
+  // with the next frame also lands the update in the gap between GSAP
+  // ticks, avoiding reactivity work mid-animation.
+  const resizeHandler = (): void => {
+    if (disposed || pendingFrame !== 0) return
+    pendingFrame = raf(recompute)
+  }
+  uni.onWindowResize(resizeHandler)
+
+  // Idempotent tear-down. First call removes the listener, cancels any
+  // pending frame, and resets the module-level singleton so a subsequent
+  // `useResponsiveScale()` call rebuilds fresh state.
+  const dispose = (): void => {
+    if (disposed) return
+    disposed = true
+    uni.offWindowResize(resizeHandler)
+    if (pendingFrame !== 0) {
+      caf(pendingFrame)
+      pendingFrame = 0
+    }
+    singletonState = null
+  }
+
+  return {
+    sizes: readonly(sizes) as Readonly<Ref<ResponsiveSizes>>,
+    viewport: readonly(viewport) as Readonly<Ref<ResponsiveViewport>>,
+    dispose,
+  }
+}
+
+/**
  * Vue composable: exposes reactive `sizes` + `viewport`, recomputes on
  * `uni.onWindowResize`, coalesces resize bursts to the next animation
  * frame, and short-circuits sub-pixel jitter so reactivity stays cheap.
@@ -376,97 +278,11 @@ let singletonState: ResponsiveScaleState | null = null
  * skipped and the caller must invoke `dispose()` manually.
  */
 export function useResponsiveScale(): ResponsiveScaleState {
-  // Fast path: singleton already initialised — return existing refs and
-  // optionally register a per-scope cleanup facade. Object identity of
-  // `sizes` / `viewport` is preserved so consumers' computed refs stay
-  // stable and the test below (`a.sizes === b.sizes`) succeeds.
   if (singletonState !== null) {
-    if (getCurrentScope() !== undefined) {
-      // The hook is a deliberate no-op: the singleton outlives any single
-      // scope. Registering `dispose` here would tear down the listener
-      // the moment any one consumer's scope ends, breaking the others.
-      onScopeDispose(() => { /* singleton outlives per-scope teardown */ })
-    }
+    registerScopedNoOpDispose()
     return singletonState
   }
-
-  const initialViewport = readViewportFromUni()
-  const initialCanvas = pickCanvasWidth(initialViewport.width)
-
-  const viewport = ref<ResponsiveViewport>(initialViewport)
-  const sizes = ref<ResponsiveSizes>(deriveSizes(initialCanvas))
-
-  // 0 sentinel = no pending frame. Number both because `raf` returns `number`
-  // on H5 and because `setTimeout` returns `number` in the shim path.
-  let pendingFrame = 0
-  let disposed = false
-
-  /** Recompute viewport + sizes; called inside the rAF callback. */
-  const recompute = (): void => {
-    pendingFrame = 0
-    if (disposed) return
-    const nextViewport = readViewportFromUni()
-    viewport.value = nextViewport
-
-    const nextCanvas = pickCanvasWidth(nextViewport.width)
-    const nextK = deriveScale(nextCanvas)
-    if (!scaleChangedSignificantly(sizes.value.k, nextK)) return
-
-    sizes.value = deriveSizes(nextCanvas)
-  }
-
-  /**
-   * Resize listener: coalesces bursts to the next animation frame, so
-   * multiple rapid resize events produce a single token update. Aligning
-   * with the next frame also lands the update in the gap between GSAP
-   * ticks, avoiding reactivity work mid-animation.
-   */
-  const resizeHandler = (): void => {
-    if (disposed || pendingFrame !== 0) return
-    pendingFrame = raf(recompute)
-  }
-
-  uni.onWindowResize(resizeHandler)
-
-  /**
-   * Idempotent tear-down. First call removes the listener, cancels any
-   * pending frame, and resets the module-level singleton so a subsequent
-   * `useResponsiveScale()` call rebuilds fresh state. Subsequent calls
-   * short-circuit on the `disposed` flag.
-   */
-  const dispose = (): void => {
-    if (disposed) return
-    disposed = true
-    uni.offWindowResize(resizeHandler)
-    if (pendingFrame !== 0) {
-      caf(pendingFrame)
-      pendingFrame = 0
-    }
-    // Reset the module-level singleton so a future call reinitialises.
-    // Useful for tests (each `it` can start fresh) and SSR re-entry.
-    singletonState = null
-  }
-
-  const state: ResponsiveScaleState = {
-    sizes: readonly(sizes) as Readonly<Ref<ResponsiveSizes>>,
-    viewport: readonly(viewport) as Readonly<Ref<ResponsiveViewport>>,
-    dispose,
-  }
-  singletonState = state
-
-  // Auto-cleanup hook is registered only when we have an active Vue scope.
-  // `getCurrentScope()` is non-null inside `setup()` and `effectScope()`
-  // and undefined for ad-hoc calls; guarding here avoids the runtime
-  // warning Vue emits when `onScopeDispose` is invoked outside a scope.
-  // Outside a scope the caller must invoke the returned `dispose()` method.
-  //
-  // The hook is a no-op facade — it does NOT tear down the singleton.
-  // The first caller's scope ending must not invalidate the listener for
-  // every other consumer. Only the explicit `dispose()` (or app teardown)
-  // releases the underlying listener.
-  if (getCurrentScope() !== undefined) {
-    onScopeDispose(() => { /* singleton outlives per-scope teardown */ })
-  }
-
-  return state
+  singletonState = buildSingletonState()
+  registerScopedNoOpDispose()
+  return singletonState
 }
