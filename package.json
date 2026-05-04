@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=20.0.0 <23"
+    "node": "22.x",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "prepare": "simple-git-hooks",
