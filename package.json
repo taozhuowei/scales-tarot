@@ -32,7 +32,8 @@
     "quality:audit:info": "npm audit --omit=dev --audit-level=moderate",
     "arch:check": "depcruise app/src server/src test --config .dependency-cruiser.js",
     "quality": "node scripts/quality_gate.js full",
-    "quality:staged": "node scripts/quality_gate.js staged"
+    "quality:staged": "node scripts/quality_gate.js staged",
+    "ship": "node scripts/ship.js"
   },
   "workspaces": [
     "app",
