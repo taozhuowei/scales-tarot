@@ -6,30 +6,17 @@
     "node": ">=20.0.0 <23"
   },
   "scripts": {
-    "start": "npm run dev",
     "prepare": "simple-git-hooks",
-    "dev": "npm run build:dev",
     "build": "node scripts/build/index.js --prod --target h5,mp,server",
     "build:dev": "node scripts/build/index.js --dev --target h5,mp,server",
-    "type-check": "vue-tsc --noEmit -p app/tsconfig.json && tsc --noEmit -p server/tsconfig.json",
-    "start:prod": "cross-env NODE_ENV=production node server/dist/server.js",
     "test": "npm run test -w test",
-    "lint": "eslint app/src/ server/src/ test/",
-    "quality:type-check": "npm run type-check",
-    "quality:lint": "npm run lint",
-    "quality:lint:fix": "eslint --fix --cache app/src/ server/src/ test/",
-    "quality:test": "npm test",
-    "quality:audit": "npm audit --omit=dev --audit-level=high",
-    "quality:audit:info": "npm audit --omit=dev --audit-level=moderate",
-    "arch:check": "depcruise app/src server/src test --config .dependency-cruiser.js",
     "quality": "node scripts/quality_gate.js full",
-    "quality:staged": "node scripts/quality_gate.js staged",
     "ship": "node scripts/ship.js"
   },
   "simple-git-hooks": {
-    "pre-commit": "npm run quality:staged",
+    "pre-commit": "node scripts/quality_gate.js staged",
     "commit-msg": "npx commitlint --edit $1",
-    "pre-push": "npm run quality"
+    "pre-push": "node scripts/quality_gate.js full"
   },
   "workspaces": [
     "app",

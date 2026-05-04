@@ -35,10 +35,10 @@ npm install
 本地开发：
 
 ```bash
-npm run dev
+npm run build:dev
 ```
 
-`npm run dev` 等价于 `node scripts/build/index.js --dev --target h5,mp,server`，会同时启动 H5 watch、mp-weixin watch 和 server。如果只想跑 H5 + server，可以直接调用 `node scripts/build/index.js --dev --target h5,server`。
+`npm run build:dev` 等价于 `node scripts/build/index.js --dev --target h5,mp,server`，会同时启动 H5 watch、mp-weixin watch 和 server。如果只想跑 H5 + server，可以直接调用 `node scripts/build/index.js --dev --target h5,server`。开发热场景下若需要跳过启动前的 quality（明知风险），可以加 `--skip-quality`：`node scripts/build/index.js --dev --target h5,server --skip-quality`。
 
 基础校验：
 
@@ -49,12 +49,27 @@ npm run quality
 运行生产构建产物：
 
 ```bash
-NODE_ENV=production npm run start:prod
+NODE_ENV=production node server/dist/server.js
 ```
+
+## 公开 npm script 表面
+
+仓库的公开 npm script 只保留 6 个，其余历史脚本已折叠进 `scripts/quality_gate.js` 与 `scripts/build/`：
+
+| 脚本 | 用途 |
+|---|---|
+| `npm run prepare` | 安装 simple-git-hooks（npm install 后自动运行） |
+| `npm run build` | 生产构建（h5 + mp-weixin + server，含 quality 与 SPA boot smoke） |
+| `npm run build:dev` | 开发模式（带 watch + checker） |
+| `npm test` | 单元测试（vitest） |
+| `npm run quality` | 全量代码质量门禁 |
+| `npm run ship` | 一键提交 + push + 创建 PR + auto-merge |
+
+如需更细粒度入口（例如只构建 H5、只跑 quality 的某一步），直接调 `node scripts/...` 脚本，CI 与 hook 都按这种方式直调，没有再隐藏在 npm script 里。
 
 ## 质量保证
 
-当前本地与 CI 统一使用 `npm run quality` 作为全量门禁入口，pre-commit 使用 `npm run quality:staged` 做快速 lint 修复并回写暂存区。
+当前本地与 CI 统一使用 `npm run quality` 作为全量门禁入口，pre-commit 直接调 `node scripts/quality_gate.js staged` 做快速 lint 修复并回写暂存区。
 
 ```bash
 # 安装 hooks
@@ -74,9 +89,9 @@ npm run quality
 
 | 钩子 | 命令 | 速度 | 用途 |
 |---|---|---|---|
-| `pre-commit` | `npm run quality:staged` | < 5 s | 增量 lint 修复 + 静态扫描，自动写回暂存区 |
+| `pre-commit` | `node scripts/quality_gate.js staged` | < 5 s | 增量 lint 修复 + 静态扫描，自动写回暂存区 |
 | `commit-msg` | `npx commitlint --edit $1` | < 1 s | 强制 conventional commit 格式 |
-| `pre-push` | `npm run quality` | 1–3 min | 全量门禁兜底，远端入门关 |
+| `pre-push` | `node scripts/quality_gate.js full` | 1–3 min | 全量门禁兜底，远端入门关 |
 
 #### 紧急绕过
 

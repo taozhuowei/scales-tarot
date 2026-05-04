@@ -227,7 +227,8 @@ app.use('/api', (_req, res) => {
 // ---------------------------------------------------------------------------
 // 6. H5 SPA
 // In production nginx is expected to serve this directory directly; the
-// Express fallback below is a safety net so `npm run start:prod` still works
+// Express fallback below is a safety net so booting the server directly
+// (`NODE_ENV=production node server/dist/server.js`) still serves the SPA
 // without nginx during smoke tests.
 // ---------------------------------------------------------------------------
 

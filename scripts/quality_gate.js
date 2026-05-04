@@ -2,6 +2,12 @@ const { spawnSync } = require('child_process')
 
 const mode = process.argv[2] || 'full'
 
+// All step commands are inlined here (not delegated to `npm run …`) because
+// the public npm script surface was collapsed to 6 entries (prepare / build /
+// build:dev / test / quality / ship). The previous fan-out scripts (lint,
+// quality:lint, quality:type-check, quality:audit, arch:check, quality:lint:fix)
+// were removed; their commands now live in this file as the single source of
+// truth for what the quality gate runs.
 const stepsByMode = {
   // The full gate is now pure code-checks (~30s):
   //   lint, type-check, unit tests, audit, arch + dead/duplicate code.
@@ -14,19 +20,27 @@ const stepsByMode = {
     { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
     { label: 'pr-size', command: 'node', args: ['scripts/pr_size_gate.js'] },
     { label: 'test-coupling', command: 'node', args: ['scripts/test_coupling_gate.js'] },
-    { label: 'lint', command: 'npm', args: ['run', 'quality:lint'] },
-    { label: 'type-check', command: 'npm', args: ['run', 'quality:type-check'] },
-    { label: 'test', command: 'npm', args: ['run', 'quality:test'] },
+    { label: 'lint', command: 'npx', args: ['eslint', 'app/src/', 'server/src/', 'test/'] },
+    // type-check is two compilers: vue-tsc for the Vue app, tsc for the
+    // server. Run sequentially as separate steps so failures point at the
+    // right tsconfig.
+    { label: 'type-check:app', command: 'npx', args: ['vue-tsc', '--noEmit', '-p', 'app/tsconfig.json'] },
+    { label: 'type-check:server', command: 'npx', args: ['tsc', '--noEmit', '-p', 'server/tsconfig.json'] },
+    { label: 'test', command: 'npm', args: ['run', 'test', '-w', 'test'] },
     { label: 'perf-baseline', command: 'node', args: ['scripts/perf_baseline_gate.js'] },
     {
       label: 'audit',
       command: 'npm',
-      args: ['run', 'quality:audit'],
+      args: ['audit', '--omit=dev', '--audit-level=high'],
       // Audit prints known moderate vulnerabilities even on success,
       // polluting CI logs. Swallow stdout on success; print everything on failure.
       quietOnSuccess: true,
     },
-    { label: 'arch:check', command: 'npm', args: ['run', 'arch:check'] },
+    {
+      label: 'arch:check',
+      command: 'npx',
+      args: ['depcruise', 'app/src', 'server/src', 'test', '--config', '.dependency-cruiser.js'],
+    },
     // Project-wide dead-code detection (knip): unused files, exports,
     // dependencies, class members. Quiet-on-success because the warning
     // output is verbose; on failure (any new dead code) it prints fully.
@@ -54,7 +68,11 @@ const stepsByMode = {
     // so type errors can't reach origin/main even if a developer commits
     // them locally.
     { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
-    { label: 'lint:fix', command: 'npm', args: ['run', 'quality:lint:fix'] },
+    {
+      label: 'lint:fix',
+      command: 'npx',
+      args: ['eslint', '--fix', '--cache', 'app/src/', 'server/src/', 'test/'],
+    },
     { label: 'git add', command: 'git', args: ['add', '-u'] },
   ],
 }
