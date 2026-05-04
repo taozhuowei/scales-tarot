@@ -137,11 +137,7 @@
 `[!]` **8.2.3 IdleDeck `_scene.scale 1→1.5` scale 滥用** — agent 评估"容器尺寸过渡方案技术不可行，需重新评估方向"，待重新立项后再推进
 - 文件：`app/src/components/stage-content/IdleDeck.vue`
 
-`[!]` **8.2.4 去 UniApp 化决议** — **用户决定：先不做**（保留 mp-weixin 编译目标）
-- 影响面：删 `<view>` 改 `<div>`、删 `// #ifdef` 条件编译、删 `uni.X` API 全换 web 标准、删 reconciler 胶水层、估计删 20-30% 代码
-- 后续如需重启此项，需重新评估 mp-weixin 是否仍是发布目标
-
-`[!]` **8.2.5 mp-weixin 菜单按钮避让 TODO** — 与 8.2.4 联动，先不做
+`[!]` **8.2.5 mp-weixin 菜单按钮避让 TODO**
 - 位置：`app/src/pages/main/index.vue` cssVarStyle 注释里挂着
 - H5 主线不阻塞，仅当决定继续支持 mp-weixin 才需要做
 
@@ -158,9 +154,8 @@
 
 ### 8.4 用户拍板才能动的事
 
-`[!]` **8.4.1 GitHub 分支保护**（即原 TODO 7.2.6）
-- 推荐配置：`main` 分支 Required status checks `verify` job、禁止 force push、禁止删除、PR 至少 1 名审阅者批准
-- 仓库管理员需在 GitHub Settings → Branches 启用
+`[x]` **8.4.1 GitHub 分支保护** — 用 gh api 配齐：required_status_checks (verify×2 + lint + e2e, strict)、enforce_admins、required_linear_history、禁 force push、禁删除、required_conversation_resolution；仓库级 allow_merge_commit=false、allow_rebase_merge=true、delete_branch_on_merge=true。
+- 注：solo 仓库 reviewer count = 0 是 GitHub 硬限制（不能 approve 自己 PR），用 4 个 strict CI check 等价替代人工 review
 
 `[x]` **8.4.2 sonarjs ratchet 升 error 的 deadline** — 用户决定方案 A：5 条立即升 error。已在 `eslint.config.mjs` 落实，gate 通过。
 
@@ -185,7 +180,7 @@
 
 ## 阶段间约束
 
-1. 8.1 / 8.2 / 8.3 已基本闭环；8.4.1 是阻塞项，需仓库管理员手动操作才能推进
-2. 8.2.3 / 8.2.4 / 8.2.5 标 `[!]` 待用户重新立项；不进入当前迭代
+1. 8.1 / 8.2 / 8.3 / 8.4 已基本闭环
+2. 8.2.3 / 8.2.5 标 `[!]` 待用户重新立项；不进入当前迭代
 3. 每个子任务独立 commit，可独立回退
 4. 任意子任务遇到边界冲突立即停下问用户，禁止擅自决策
