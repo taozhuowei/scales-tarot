@@ -20,7 +20,8 @@ test('reading API failure surfaces a retryable error UI', async ({ page }) => {
   })
 
   await page.goto('/')
-  await page.locator('.idle-deck').click()
+  // .idle-deck → .idle-deck-content after the B4 IdleDeck composable refactor.
+  await page.locator('.idle-deck-content').click()
 
   // The error state lives inside the drawer; on mobile the drawer may be
   // collapsed, so we assert that the error UI is *attached* to the DOM

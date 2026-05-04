@@ -17,19 +17,26 @@ import { test, expect } from '@playwright/test'
 test('home → divination → reading panel surfaces', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.locator('.title')).toContainText('Scales Tarot')
-  await expect(page.locator('.idle-deck')).toBeVisible()
-  await expect(page.locator('.touch-hint')).toBeVisible()
+  // Selectors track the BEM class names introduced by the B4 (IdleDeck split into
+  // a composable) + B5 (HeaderArea unification) refactors:
+  //   .title              → .title-content__title
+  //   .idle-deck          → .idle-deck-content
+  //   .touch-hint         → .idle-deck-content__hint-text
+  //   .phase-step-icon    → .progress-content__step-icon
+  //   .action-bar         → .action-area (renamed when ActionBar was migrated to ActionArea)
+  await expect(page.locator('.title-content__title')).toContainText('Scales Tarot')
+  await expect(page.locator('.idle-deck-content')).toBeVisible()
+  await expect(page.locator('.idle-deck-content__hint-text')).toBeVisible()
 
-  await page.locator('.idle-deck').click()
+  await page.locator('.idle-deck-content').click()
 
-  await expect(page.locator('.phase-step-icon').first()).toBeVisible({ timeout: 5_000 })
-  expect(await page.locator('.phase-step-icon').count()).toBeGreaterThanOrEqual(4)
+  await expect(page.locator('.progress-content__step-icon').first()).toBeVisible({ timeout: 5_000 })
+  expect(await page.locator('.progress-content__step-icon').count()).toBeGreaterThanOrEqual(4)
 
   await expect(page.locator('.reading-panel')).toBeVisible({ timeout: 30_000 })
 
-  // The action bar should be present in the DOM with the back-home affordance,
+  // The action area should be present in the DOM with the back-home affordance,
   // even if collapsed inside the drawer at default height.
-  await expect(page.locator('.action-bar')).toBeAttached()
+  await expect(page.locator('.action-area')).toBeAttached()
   await expect(page.getByRole('button', { name: '回到首页' })).toBeAttached()
 })

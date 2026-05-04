@@ -60,26 +60,33 @@ const VIEWPORTS: readonly Viewport[] = [
 
 // ----- Solver constants the contract assertions reference --------------
 const MAX_STAGE_WIDTH_PX = 440        // MAX_STAGE_VIEWPORT_WIDTH
-const DRAWER_WIDE_WIDTH_PX = 480      // DEFAULT_DRAWER_WIDE_WIDTH
 const DRAWER_MIN_INITIAL_HEIGHT_PX = 220
 const MAX_CARD_WIDTH_PX = 240         // DEFAULT_MAX_CARD_WIDTH
+// DRAWER_WIDE_WIDTH_PX (480) was removed: PC mode now uses ReadingSplitView,
+// a flex right column whose width = viewport.width − MAX_STAGE_WIDTH_PX (no
+// fixed 480 px sidebar).
 
 for (const vp of VIEWPORTS) {
   test(`viewport smoke @ ${vp.tag}`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height })
 
     // ----- Home ----------------------------------------------------------
+    // Selectors track the BEM class names introduced by B4 (IdleDeck split into
+    // a composable) + B5 (HeaderArea unification):
+    //   .title              → .title-content__title
+    //   .idle-deck          → .idle-deck-content
+    //   .phase-step-icon    → .progress-content__step-icon
+    //   .sidebar-container  → .reading-split-view (PC right column is now a flex
+    //                         split, not a fixed 480px sidebar)
+    //   .drawer-sheet       → .reading-drawer-view__sheet
     await page.goto('/')
-    await expect(page.locator('.title')).toContainText('Scales Tarot', { timeout: 10_000 })
-    await expect(page.locator('.idle-deck')).toBeVisible()
+    await expect(page.locator('.title-content__title')).toContainText('Scales Tarot', { timeout: 10_000 })
+    await expect(page.locator('.idle-deck-content')).toBeVisible()
 
-    // Too-small banner: visible iff viewport.width < 375.
-    const banner = page.locator('.too-small-banner')
-    if (vp.mode === 'too_small') {
-      await expect(banner).toBeVisible()
-    } else {
-      await expect(banner).toHaveCount(0)
-    }
+    // Too-small banner assertion intentionally dropped: TooSmallBanner.vue was
+    // removed in commit 69afea2 ("chore(quality): clean up dead code so
+    // pre-push gate passes"). Re-introduce only when a replacement viewport-
+    // floor warning is actually wired in — see follow-up note below.
 
     await page.screenshot({
       path: `test-results/viewport-smoke/home-${vp.tag}.png`,
@@ -87,8 +94,8 @@ for (const vp of VIEWPORTS) {
     })
 
     // ----- Trigger divination -------------------------------------------
-    await page.locator('.idle-deck').click()
-    await expect(page.locator('.phase-step-icon').first()).toBeVisible({ timeout: 5_000 })
+    await page.locator('.idle-deck-content').click()
+    await expect(page.locator('.progress-content__step-icon').first()).toBeVisible({ timeout: 5_000 })
 
     // ----- Wait for the reading panel -----------------------------------
     // 30 s budget covers entry + shuffle + cut + draw + reveal + the
@@ -106,22 +113,30 @@ for (const vp of VIEWPORTS) {
 
     // ----- Mode-specific contract ---------------------------------------
     if (vp.mode === 'pc') {
-      // PC mode: ResultSidebar mounts (480 px right column), no
-      // drawer-sheet bottom panel. The side column lives inside the
-      // centered overlay-main shell (max-width 920).
-      const sidebar = page.locator('.sidebar-container')
-      await expect(sidebar).toBeVisible()
-      const sidebarBox = await sidebar.boundingBox()
-      expect(sidebarBox).not.toBeNull()
-      if (sidebarBox) {
-        expect(sidebarBox.width).toBeCloseTo(DRAWER_WIDE_WIDTH_PX, 0)
+      // PC mode: ReadingSplitView mounts as the right column, no drawer
+      // bottom panel. After B4/B5 the column is a flex split that fills
+      // viewport.width − 440 (see ReadingSplitView.vue, `left: 440px;
+      // right: 0;`), NOT a fixed 480px sidebar — so DRAWER_WIDE_WIDTH_PX
+      // is no longer a valid width assertion.
+      const splitView = page.locator('.reading-split-view')
+      await expect(splitView).toBeVisible()
+      const splitBox = await splitView.boundingBox()
+      expect(splitBox).not.toBeNull()
+      if (splitBox) {
+        // Width contract: viewport.width − 440 (MAX_STAGE_WIDTH_PX), with a
+        // 1 px tolerance for sub-pixel rounding.
+        expect(
+          splitBox.width,
+          `split view width must equal viewport.width − ${MAX_STAGE_WIDTH_PX} at ${vp.tag}`,
+        ).toBeGreaterThanOrEqual(vp.width - MAX_STAGE_WIDTH_PX - 1)
+        expect(splitBox.width).toBeLessThanOrEqual(vp.width - MAX_STAGE_WIDTH_PX + 1)
       }
       // Drawer (mobile component) must NOT mount in pc mode.
-      await expect(page.locator('.drawer-sheet')).toHaveCount(0)
+      await expect(page.locator('.reading-drawer-view__sheet')).toHaveCount(0)
     } else {
-      // Mobile / too_small: ResultDrawer mounts. The drawer sits inside
+      // Mobile / too_small: ReadingDrawerView mounts. The drawer sits inside
       // the centered overlay-main shell, capped at MAX_STAGE_WIDTH_PX.
-      const drawerSheet = page.locator('.drawer-sheet')
+      const drawerSheet = page.locator('.reading-drawer-view__sheet')
       await expect(drawerSheet).toBeVisible()
       const sheetBox = await drawerSheet.boundingBox()
       expect(sheetBox).not.toBeNull()
@@ -135,8 +150,8 @@ for (const vp of VIEWPORTS) {
           `drawer width must be ≤ phone-shell cap (${MAX_STAGE_WIDTH_PX}) at ${vp.tag}`,
         ).toBeLessThanOrEqual(MAX_STAGE_WIDTH_PX + 1)
       }
-      // Sidebar (pc component) must NOT mount in mobile mode.
-      await expect(page.locator('.sidebar-container')).toHaveCount(0)
+      // Split view (pc component) must NOT mount in mobile mode.
+      await expect(page.locator('.reading-split-view')).toHaveCount(0)
     }
 
     // ----- Card-size cap ------------------------------------------------
