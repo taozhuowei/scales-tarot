@@ -9,26 +9,13 @@
 import type { gsap } from 'gsap'
 import type { Ref } from 'vue'
 import { createPhasePipeline, type PipelinePhase } from '../../animation/pipeline'
-import type { TimelineOrchestrator } from '../../animation/adapters/gsap'
 import type { PhaseContext, PhaseRunner, OverlayPhase } from '../../core/flow/types'
-import type { SceneKind, SceneLayout } from '../../core/sizing/layout_solver'
-import type { MotionMetrics } from '../use_overlay_layout'
+import type { SceneLayout } from '../../core/sizing/layout_solver'
+import type { PipelineSharedDeps } from '../pipeline_shared_deps'
 import { buildPhaseContext, buildPhaseRunners } from './pipeline_builder'
 
-export interface RunPipelineCommandDeps {
-  orchestrator: TimelineOrchestrator
-  getDeckCenter: () => { centerX: number; centerY: number }
-  getOverlayLayouts: () => {
-    drawViewport: { stageHeight: number }
-    drawLayout: SceneLayout
-    resultLayout: { cardWidth: number; cardHeight: number }
-  }
-  getMotionMetrics: (scene: SceneKind) => MotionMetrics
-  cardElements: PhaseContext['cardElements']
-  visible: PhaseContext['visible']
-  deckCount: number
+export interface RunPipelineCommandDeps extends PipelineSharedDeps {
   setDrawCardSizes: (layout: SceneLayout) => void
-  cutPileCount: number
   cardCountRef: Ref<number>
   autoRevealDelayMs: number
   cardsLandedRef: Ref<boolean>

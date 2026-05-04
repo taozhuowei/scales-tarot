@@ -54,6 +54,16 @@ export default tseslint.config(
       'sonarjs/no-nested-conditional': 'error',
       'sonarjs/no-all-duplicated-branches': 'error',
       'sonarjs/slow-regex': 'error',
+      // Second-layer duplicate-code defense (jscpd is the first layer).
+      // jscpd catches large copy-pasted blocks across files; these two
+      // sonarjs rules catch the smaller patterns jscpd misses:
+      //  - identical function bodies (often masking a missing helper)
+      //  - the same string literal appearing 4+ times (often a magic
+      //    constant that should be named).
+      // Threshold 5 / 4 is the sonarjs default; tune up if it produces
+      // false positives in pragmatic dispatch tables or status tags.
+      'sonarjs/no-identical-functions': ['error', 5],
+      'sonarjs/no-duplicate-string': ['error', { threshold: 4 }],
       // Already covered by `no-warning-comments`, mute duplicate.
       // Permanent: test files have `no-warning-comments` disabled to allow
       // intentionally-pending TODOs in fixtures/scaffolds, so muting the

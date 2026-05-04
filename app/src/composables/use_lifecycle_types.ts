@@ -5,13 +5,11 @@
  */
 
 import type { Ref } from 'vue'
-import type { TimelineOrchestrator } from '../animation/adapters/gsap'
 import type { DrawCardState } from '../animation/types'
 import type { OverlayPhase } from '../core/flow/types'
-import type { PhaseContext } from '../core/flow/types'
 import type { SceneKind, SceneLayout } from '../core/sizing/layout_solver'
 import type { ProgressModel } from '../utils/overlay_progress/phase_progress_model'
-import type { MotionMetrics } from './use_overlay_layout'
+import type { PipelineSharedDeps } from './pipeline_shared_deps'
 
 export interface LifecycleAnimState {
   bg: { opacity: number }
@@ -36,8 +34,7 @@ export interface LifecycleAnimState {
   getAllTargets(): unknown[]
 }
 
-export interface LifecycleDeps {
-  orchestrator: TimelineOrchestrator
+export interface LifecycleDeps extends PipelineSharedDeps {
   animState: LifecycleAnimState
   showResults: Ref<boolean>
   cardsLanded: Ref<boolean>
@@ -45,18 +42,7 @@ export interface LifecycleDeps {
   phase: Ref<OverlayPhase>
   progressModel: ProgressModel
   cardCount: Ref<number>
-  getDeckCenter: () => { centerX: number; centerY: number }
-  getOverlayLayouts: () => {
-    drawViewport: { stageHeight: number }
-    drawLayout: SceneLayout
-    resultLayout: { cardWidth: number; cardHeight: number }
-  }
-  getMotionMetrics: (scene: SceneKind) => MotionMetrics
   getSceneLayout: (scene: SceneKind) => SceneLayout
-  cardElements: PhaseContext['cardElements']
-  visible: PhaseContext['visible']
-  deckCount: number
-  cutPileCount: number
   autoRevealDelayMs: number
   transitionPhase: (nextPhase: OverlayPhase, onPhaseChange: (p: OverlayPhase) => void) => void
   callbacks: {

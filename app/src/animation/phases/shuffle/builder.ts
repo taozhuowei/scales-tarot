@@ -22,6 +22,13 @@ function createDefaultConfig(): ShufflePhaseConfig {
   return { spreadX: SHUFFLE_SPREAD_X }
 }
 
+/**
+ * Shared GSAP ease for the shuffle phase. Extracted so the four legs of
+ * the spread → settle motion stay in lock-step — if you want a softer or
+ * sharper feel, change it once here instead of hunting four call sites.
+ */
+const SHUFFLE_EASE = 'power2.out'
+
 export function buildShufflePhaseRunner(config?: Partial<ShufflePhaseConfig>): PhaseRunner {
   const cfg = { ...createDefaultConfig(), ...config }
 
@@ -80,14 +87,14 @@ export function buildShufflePhaseRunner(config?: Partial<ShufflePhaseConfig>): P
           y: (index: number) => -30 - index * 0.8,
           rotation: -16,
           duration: 0.5,
-          ease: 'power2.out',
+          ease: SHUFFLE_EASE,
         }, 0)
         .to(rights, {
           x: cfg.spreadX,
           y: (index: number) => 30 - index * 0.8,
           rotation: 16,
           duration: 0.5,
-          ease: 'power2.out',
+          ease: SHUFFLE_EASE,
         }, '<')
         .to(lefts, {
           x: 0,
@@ -95,7 +102,7 @@ export function buildShufflePhaseRunner(config?: Partial<ShufflePhaseConfig>): P
           rotation: -2,
           duration: 0.4,
           stagger: 0.06,
-          ease: 'power2.out',
+          ease: SHUFFLE_EASE,
         }, '+=0.2')
         .to(rights, {
           x: 0,
@@ -103,7 +110,7 @@ export function buildShufflePhaseRunner(config?: Partial<ShufflePhaseConfig>): P
           rotation: 2,
           duration: 0.4,
           stagger: 0.06,
-          ease: 'power2.out',
+          ease: SHUFFLE_EASE,
         }, '<0.03')
         .add(() => {
           lefts.forEach((state) => { state.opacity = 0 })

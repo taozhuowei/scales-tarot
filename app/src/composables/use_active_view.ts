@@ -12,15 +12,8 @@
  *          resultDrawerGeometry ──▶ template.
  */
 import { computed, type ComputedRef, type Ref } from 'vue'
-import {
-  solveLayout,
-  type DrawerGeometry,
-} from '../core/sizing/layout_solver'
-import {
-  deriveSizes,
-  pickCanvasWidth,
-  readViewport,
-} from '../core/sizing/scale'
+import type { DrawerGeometry } from '../core/sizing/layout_solver'
+import { solveLayoutFromWindow } from '../core/sizing/solve_from_window'
 import type { DivinationPhase } from '../stores/flow'
 
 export interface UseActiveViewDeps {
@@ -58,19 +51,7 @@ export function useActiveView(deps: UseActiveViewDeps): ActiveView {
 
   const resultDrawerGeometry = computed<DrawerGeometry>(() => {
     try {
-      const winInfo = uni.getWindowInfo()
-      const rawViewport = readViewport({
-        windowWidth: winInfo.windowWidth,
-        windowHeight: winInfo.windowHeight,
-        safeAreaInsets: winInfo.safeAreaInsets,
-      })
-      const viewport = { ...rawViewport, width: pickCanvasWidth(rawViewport.width) }
-      const layout = solveLayout({
-        viewport,
-        sizes: deriveSizes(viewport.width),
-        scene: 'reading_stage',
-      })
-      return layout.drawer
+      return solveLayoutFromWindow('reading_stage').layout.drawer
     } catch {
       return ZERO_DRAWER_GEOMETRY
     }

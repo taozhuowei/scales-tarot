@@ -19,12 +19,7 @@ import { gsap } from 'gsap'
 import { useTarotStore } from '../stores/tarot'
 import { prefersReducedMotion } from '../utils/accessibility'
 import { DECK_CLICK_SAFETY_MS } from '../core/config/layout_constants'
-import { solveLayout } from '../core/sizing/layout_solver'
-import {
-  deriveSizes,
-  pickCanvasWidth,
-  readViewport,
-} from '../core/sizing/scale'
+import { solveLayoutFromWindow } from '../core/sizing/solve_from_window'
 import { buildFanTimeline } from '../animation/phases/fan/builder'
 
 /** Cards stacked in the idle deck (PRD §7.5.1). */
@@ -62,18 +57,11 @@ export interface IdleDeckAnimationDeps {
  */
 function resolveDeckCardSize(): { cardWidth: number; cardHeight: number; windowHeight: number } {
   try {
-    const winInfo = uni.getWindowInfo()
-    const rawViewport = readViewport({
-      windowWidth: winInfo.windowWidth,
-      windowHeight: winInfo.windowHeight,
-      safeAreaInsets: winInfo.safeAreaInsets,
-    })
-    const viewport = { ...rawViewport, width: pickCanvasWidth(rawViewport.width) }
-    const layout = solveLayout({ viewport, sizes: deriveSizes(viewport.width), scene: 'draw_stage' })
+    const { layout, windowHeight } = solveLayoutFromWindow('draw_stage')
     return {
       cardWidth: layout.drawCardWidth,
       cardHeight: layout.drawCardHeight,
-      windowHeight: winInfo.windowHeight,
+      windowHeight,
     }
   } catch {
     return { cardWidth: 100, cardHeight: 160, windowHeight: 667 }
