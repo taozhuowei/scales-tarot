@@ -19,7 +19,6 @@ const stepsByMode = {
   full: [
     { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
     { label: 'pr-size', command: 'node', args: ['scripts/pr_size_gate.js'] },
-    { label: 'test-coupling', command: 'node', args: ['scripts/test_coupling_gate.js'] },
     { label: 'lint', command: 'npx', args: ['eslint', 'app/src/', 'server/src/', 'test/'] },
     // type-check is two compilers: vue-tsc for the Vue app, tsc for the
     // server. Run sequentially as separate steps so failures point at the

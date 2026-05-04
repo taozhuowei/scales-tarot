@@ -79,7 +79,7 @@ npm run prepare
 npm run quality
 ```
 
-`npm run quality` 当前是纯代码检查（约 30s），按顺序执行：`quality-scan`、`pr-size`、`test-coupling`、`lint`、`type-check`、`test`、`perf-baseline`、`audit`、`arch:check`、`dead-code` (knip)、`duplicate-code` (jscpd)。
+`npm run quality` 当前是纯代码检查（约 30s），按顺序执行：`quality-scan`、`pr-size`、`lint`、`type-check`、`test`、`audit`、`arch:check`、`dead-code` (knip)、`duplicate-code` (jscpd)。
 
 构建产物（H5 / mp-weixin / server bundle）和浏览器层 SPA boot smoke 由 `npm run build` 负责（背后是 `scripts/build/prod.js`），它会先跑一次 quality 再依次产出三端产物并跑 smoke。CI 的 `verify` job 调用 `npm run quality`，`e2e` job 调用 `node scripts/build/index.js --prod --target h5,server --skip-quality` + `npx playwright test`。
 
