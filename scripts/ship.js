@@ -172,10 +172,15 @@ function fetchOrigin() {
 }
 
 function commitsAheadOf(base, head) {
-  // Returns count of commits in `head` not in `base`. -1 on failure.
+  // Returns count of commits in `head` not in `base`.
+  // Returns -1 on any failure or unparseable output, so callers can give a
+  // precise diagnostic instead of conflating "command failed" with "0 commits".
   const r = runCapture('git', ['rev-list', '--count', `${base}..${head}`])
   if (r.status !== 0) return -1
-  return Number.parseInt(r.stdout, 10) || 0
+  if (!r.stdout) return -1
+  const parsed = Number.parseInt(r.stdout, 10)
+  if (Number.isNaN(parsed)) return -1
+  return parsed
 }
 
 function remoteBranchExists(name) {
@@ -317,8 +322,8 @@ function modeA(message) {
     )
   }
 
-  // Step 5 + 6: PR + auto-merge
-  createAndAutoMergePR(branch)
+  // Step 5 + 6: PR + auto-merge (steps 5 and 6 of 7)
+  createAndAutoMergePR(branch, 5, 7)
 
   // Step 7: back to main
   info(`[7/7] 切回 ${MAIN_BRANCH}：git switch ${MAIN_BRANCH}`)
@@ -355,20 +360,23 @@ function modeB() {
 
   fetchOrigin()
   const ahead = commitsAheadOf(`origin/${MAIN_BRANCH}`, 'HEAD')
+  if (ahead < 0) {
+    fail(
+      `无法获取当前分支与 origin/${MAIN_BRANCH} 的 diff（git rev-list 失败或返回空）。`,
+      `常见原因：本地缺少 origin/${MAIN_BRANCH} 引用，或 remote 配置异常。\n   先确认 remote：git remote -v\n   再拉一次 ref：git fetch origin ${MAIN_BRANCH}\n   修好后重跑：npm run ship`,
+    )
+  }
   if (ahead === 0) {
     fail(
       `当前分支 ${current} 没有领先 origin/${MAIN_BRANCH} 的 commit，PR 会是空的。`,
       `先做改动 → git commit → 再跑 npm run ship。\n   想直接走 Mode A：git switch ${MAIN_BRANCH} && npm run ship "<message>"`,
     )
   }
-  if (ahead < 0) {
-    warn(`无法精确判定与 origin/${MAIN_BRANCH} 的差异（origin/${MAIN_BRANCH} 可能不存在），继续尝试推送。`)
-  }
 
   // Push: -u on first push, plain push otherwise
   const remoteExists = remoteBranchExists(current)
   const pushArgs = remoteExists ? ['push'] : ['push', '-u', 'origin', current]
-  info(`[1/3] 推送（含 pre-push 质量门禁，会比较慢）：git ${pushArgs.join(' ')}`)
+  info(`[1/4] 推送（含 pre-push 质量门禁，会比较慢）：git ${pushArgs.join(' ')}`)
   const pushStatus = runInherit('git', pushArgs)
   if (pushStatus !== 0) {
     fail(
@@ -377,9 +385,10 @@ function modeB() {
     )
   }
 
-  createAndAutoMergePR(current)
+  // PR + auto-merge (steps 2 and 3 of 4 — push was [1/4], switch back is [4/4])
+  createAndAutoMergePR(current, 2, 4)
 
-  info(`[3/3] 切回 ${MAIN_BRANCH}：git switch ${MAIN_BRANCH}`)
+  info(`[4/4] 切回 ${MAIN_BRANCH}：git switch ${MAIN_BRANCH}`)
   const backStatus = runInherit('git', ['switch', MAIN_BRANCH])
   if (backStatus !== 0) {
     warn(`切回 ${MAIN_BRANCH} 失败，但 PR 已创建并启用 auto-merge。手动：git switch ${MAIN_BRANCH}`)
@@ -392,7 +401,17 @@ function modeB() {
 // Shared: PR creation + auto-merge enablement
 // ────────────────────────────────────────────────────────────────────────────
 
-function createAndAutoMergePR(branch) {
+/**
+ * Create a PR for `branch` (or reuse existing open one) and enable auto-merge.
+ *
+ * Step numbering is parameterized so the caller controls the [n/total] echo —
+ * Mode A passes (5, 7) → "[5/7] PR" + "[6/7] auto-merge".
+ * Mode B passes (2, 4) → "[2/4] PR" + "[3/4] auto-merge".
+ * This keeps the user-visible step counter monotonic across modes.
+ */
+function createAndAutoMergePR(branch, prStep, total) {
+  const mergeStep = prStep + 1
+
   // Detect existing PR for this branch first to give a clean diagnostic.
   const existing = runCapture('gh', [
     'pr',
@@ -406,19 +425,30 @@ function createAndAutoMergePR(branch) {
   ])
   let prUrl = null
   if (existing.status === 0 && existing.stdout && existing.stdout !== '[]') {
+    let list = null
     try {
-      const list = JSON.parse(existing.stdout)
-      if (Array.isArray(list) && list.length > 0) {
-        prUrl = list[0].url
-        warn(`分支 ${branch} 已有 open PR：${prUrl}，跳过创建，直接尝试启用 auto-merge。`)
-      }
+      list = JSON.parse(existing.stdout)
     } catch {
       // JSON parse failed — fall through to attempt creation
+    }
+    if (Array.isArray(list) && list.length > 1) {
+      // Multiple open PRs share this head — should not happen in normal flow
+      // (GitHub only allows one open PR per head→base pair), but defensive
+      // handling for residue from manual operations.
+      const refs = list.map((p) => `#${p.number}`).join(', ')
+      fail(
+        `分支 ${branch} 关联了多个开放 PR（${refs}），无法判断该对哪一个启用 auto-merge。`,
+        `GitHub 通常不允许同 head→base 出现多个开放 PR，可能是手动操作残留。\n   逐个检查：${list.map((p) => `gh pr view ${p.number} --web`).join(' ; ')}\n   关掉多余的：gh pr close <number>\n   只保留 1 个开放 PR 后重跑：npm run ship`,
+      )
+    }
+    if (Array.isArray(list) && list.length === 1) {
+      prUrl = list[0].url
+      warn(`分支 ${branch} 已有 open PR：${prUrl}，跳过创建，直接尝试启用 auto-merge。`)
     }
   }
 
   if (!prUrl) {
-    info('[5/7] 创建 PR：gh pr create --fill')
+    info(`[${prStep}/${total}] 创建 PR：gh pr create --fill`)
     const createStatus = runInherit('gh', ['pr', 'create', '--fill'])
     if (createStatus !== 0) {
       fail(
@@ -437,7 +467,7 @@ function createAndAutoMergePR(branch) {
     }
   }
 
-  info('[6/7] 启用 auto-merge：gh pr merge --auto --rebase --delete-branch')
+  info(`[${mergeStep}/${total}] 启用 auto-merge：gh pr merge --auto --rebase --delete-branch`)
   const mergeStatus = runInherit('gh', ['pr', 'merge', '--auto', '--rebase', '--delete-branch'])
   if (mergeStatus !== 0) {
     fail(
