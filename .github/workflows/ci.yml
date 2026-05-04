@@ -70,17 +70,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browser
+        # Must run BEFORE build, because scripts/build/prod.js' final step is
+        # a Playwright smoke test against the freshly-built bundle. If the
+        # browser binary is missing at that point, build crashes before the
+        # explicit "Run E2E tests" step is even reached.
+        # Mobile device emulation (iPhone 13 in test/playwright.config.ts)
+        # uses chrome-headless-shell since Playwright 1.49+, which is a
+        # separate binary from chromium. Install both explicitly.
+        run: npx playwright install --with-deps chromium chromium-headless-shell
+
       - name: Build H5 + server
         # Skip the quality gate here — the `verify` job already ran it on
         # the same commit. --target h5,server keeps the e2e job lean (no
         # mp-weixin bundle that we don't actually exercise).
         run: node scripts/build/index.js --prod --target h5,server --skip-quality
-
-      - name: Install Playwright browser
-        # Mobile device emulation (iPhone 13 in test/playwright.config.ts)
-        # uses chrome-headless-shell since Playwright 1.49+, which is a
-        # separate binary from chromium. Install both explicitly.
-        run: npx playwright install --with-deps chromium chromium-headless-shell
 
       - name: Run E2E tests
         # Direct playwright invocation; we don't expose `npm run e2e` as
