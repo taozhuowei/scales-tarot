@@ -60,9 +60,12 @@ function findOccupiers(port) {
   const self_pid = process.pid
 
   if (process.platform === 'linux' || process.platform === 'darwin') {
-    // ss is the modern replacement for netstat on linux; -tlnp gives
-    // listening tcp sockets with the owning pid (requires root only for
-    // peer sockets — listening sockets we own are visible unprivileged).
+    // Try `ss` first (linux only): the modern netstat replacement, with
+    // `-tlnp` listing listening tcp sockets and their owning pid (requires
+    // root only for peer sockets — listening sockets we own are visible
+    // unprivileged). On macOS `ss` is not installed, so safeExec returns
+    // '' here and we fall through to the lsof branch below — the only
+    // PID-discovery tool that ships by default on macOS.
     const ss_out = safeExec('ss', ['-tlnp', `sport = :${port}`])
     // Lines look like:
     // LISTEN 0 511 0.0.0.0:4124 0.0.0.0:* users:(("node",pid=12345,fd=20))
@@ -121,6 +124,14 @@ function killPid(pid) {
  * Returns the list of PIDs that were killed (empty array if the port was
  * already free). Throws only if a kill itself fails — discovery failures
  * are treated as "no occupier".
+ *
+ * Multi-user caveat: this function does NOT verify that the discovered PIDs
+ * belong to the current user. On a shared host (CI runner, dev VM, lab box),
+ * if another user is squatting on the port the SIGKILL/`taskkill` call will
+ * raise EPERM (or its windows equivalent) and propagate as a thrown error.
+ * Callers that may run on multi-user systems should catch and surface a
+ * clear "port held by another user, free it manually" message rather than
+ * letting the raw kernel error reach the orchestrator.
  */
 async function killOccupierAndStart(port) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {

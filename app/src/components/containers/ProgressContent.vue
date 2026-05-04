@@ -4,7 +4,7 @@
     Renders the 4-phase progress icon row driven by animationController's
     progressHeaderPresentation computed ref.
 
-    Layout responsibility split (TODO 8.3.1):
+    Layout responsibility split (task 8.3.1):
       - Outer geometry (margin-top, height, safe-area, z-index) lives on
         HeaderArea. The parent view also applies the GSAP slide-in
         animation via `:style="animCtrl.headerStyle.value"` on the
