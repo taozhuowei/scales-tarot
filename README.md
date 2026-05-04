@@ -74,6 +74,45 @@ npm run dev
 
 ---
 
+## 环境变量配置
+
+项目用 `.env.*.local` 文件存配置，**永远不进 git**（每台机器自己一份）。
+
+### 前端变量（vite 编译时烤进 bundle）
+
+| 变量名 | 用途 |
+|--------|------|
+| `VITE_API_BASE_URL` | 前端代码访问后端的完整 URL |
+
+### 后端变量（Node.js 启动时读）
+
+| 变量名 | 默认值 | 用途 |
+|--------|------|------|
+| `NODE_ENV` | development | 运行模式 development / production |
+| `HOST` | dev `0.0.0.0` / prod `127.0.0.1` | 后端监听地址（dev 用 0.0.0.0 让局域网设备访问，prod 默认绑回环交由 nginx 反代） |
+| `PORT` | 4124 | 后端端口 |
+| `CORS_ORIGIN` | (空) | 允许跨域的来源列表，逗号分隔。空 = prod 同源、dev 全放行；`*` = 任意来源（仅 dev 用） |
+| `LOG_LEVEL` | dev `debug` / prod `info` / test `silent` | pino 日志级别：trace / debug / info / warn / error / fatal / silent |
+
+### dev 环境
+
+`.env.development.local` 由 `npm run dev` **自动生成**，无需手动编辑。它探测你机器局域网 IP 写入 `VITE_API_BASE_URL=http://<你的 IP>:4124`。
+
+如果手机连同一 WiFi 调试小程序时连不上，检查这个文件里的 IP 是不是你电脑当前的真实 IP（IP 换了 WiFi 会变，重跑 `npm run dev` 会自动更新）。
+
+### prod 环境
+
+部署生产服务器前需手动创建 `.env.production.local`：
+
+```bash
+# .env.production.local（不进 git）
+VITE_API_BASE_URL=https://your-domain.com
+```
+
+后端运行时变量（`NODE_ENV` / `HOST` / `PORT` / `CORS_ORIGIN` / `LOG_LEVEL`）通常**不写文件**，由生产服务器的系统环境变量直接注入（systemd EnvironmentFile / Docker `-e` 等）。
+
+---
+
 ## Git 工作流
 
 `scripts/ship.js` 已删除，统一改回手动 6 步流程，每一步都有明确意图，不再用一键脚本掩盖中间状态。
