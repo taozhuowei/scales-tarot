@@ -16,15 +16,24 @@
  */
 import { computed, type ComputedRef } from 'vue'
 import { useResponsiveScale } from '../core/sizing/scale'
+import { getMenuClearancePx } from './overlay_layout/breakpoints'
 
 export function useCssVarBridge(): ComputedRef<Record<string, string>> {
   const { sizes } = useResponsiveScale()
+  // Resolve once at subscription time: the MP-WeChat capsule rect is
+  // stable for the page lifetime and `getMenuClearancePx` returns 0 on
+  // H5, so caching the px value avoids re-querying `uni.getMenuButton…`
+  // on every reactive recompute. Surfaced as `--menu-clearance` so any
+  // header / overlay can write `max(<baseline>, var(--menu-clearance, 0px))`
+  // and stay correct on both platforms (task 8.2.5).
+  const menuClearancePx = getMenuClearancePx()
   return computed(() => ({
     '--margin': `${sizes.value.margin}px`,
     '--gap': `${sizes.value.gap}px`,
     '--header-height': `${sizes.value.headerHeight}px`,
     '--drawer-min-height': `${sizes.value.drawerMinHeight}px`,
     '--action-area-height': `${sizes.value.actionAreaHeight}px`,
+    '--menu-clearance': `${menuClearancePx}px`,
     '--font-xxl': `${sizes.value.fontXXL}px`,
     '--font-xl': `${sizes.value.fontXL}px`,
     '--font-l': `${sizes.value.fontL}px`,

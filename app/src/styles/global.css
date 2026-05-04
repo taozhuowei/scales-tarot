@@ -181,6 +181,10 @@
   --font-m: 16px;
   --font-s: 14px;
   --font-xs: 12px;
+
+  /* MP-WeChat menu-button clearance (task 8.2.5). Bridge replaces with
+     the live capsule bottom + 8px buffer on mp-weixin; H5 keeps 0. */
+  --menu-clearance: 0px;
 }
 
 /* H5 专用：响应式字体大小

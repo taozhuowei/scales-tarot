@@ -59,6 +59,27 @@ export function resolveTopBarHeight(rect: { top: number; height: number } | null
 }
 
 /**
+ * (task 8.2.5)
+ * Pixel clearance the page must reserve below the MP-WeChat menu capsule
+ * so headers / overlays do not collide with it.
+ *
+ * - mp-weixin: returns the live capsule `top + height + 8`px buffer
+ *   (typically ~95 px on tall iPhones; smaller on Android).
+ * - H5 / desktop: returns 0 since there is no capsule.
+ *
+ * Surfaced as the `--menu-clearance` CSS var via `useCssVarBridge`, so any
+ * component that needs to sit below the capsule can write
+ * `margin-top: max(<their-baseline>, var(--menu-clearance, 0px))` and
+ * stay correct on both platforms without touching JS.
+ *
+ * Read once at composable subscription time — the capsule rect is stable
+ * for the page lifetime, so caching at the bridge layer is acceptable.
+ */
+export function getMenuClearancePx(): number {
+  return resolveTopBarHeight(getMenuButtonRect())
+}
+
+/**
  * Update an `isWide` ref when the window size crosses the PC breakpoint.
  * Returns true iff `isWide` actually changed so the caller can short-
  * circuit redundant relayouts.

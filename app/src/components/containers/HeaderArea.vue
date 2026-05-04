@@ -42,13 +42,25 @@
 
 <style scoped>
 .header-area {
-  /* MP-WeChat clearance: push the header below the menu capsule (~87px
-     from viewport top on tall iPhones; safe-area-top + page padding only
-     reach ~63px). 32px margin sits the header below the capsule with a
-     small breathing buffer. H5 has no menu button — same value keeps
-     the two platforms visually aligned. Keep this single source of truth
-     for the entire app. (Decision: task 8.3.2.) */
-  margin-top: 32px;
+  /* Header top inset.
+   *
+   * Baseline 32px applies to every platform — that is the visual breathing
+   * room that pulled the title/progress block away from the safe-area
+   * boundary in 8.3.2 and works as-is on H5/desktop.
+   *
+   * On mp-weixin the WeChat capsule (settings + close pill) floats over
+   * the page at roughly `top + height + 8 ≈ 95px` on tall iPhones, smaller
+   * on Android. `--menu-clearance` is published by `useCssVarBridge` from
+   * `getMenuClearancePx()`: 0 on H5, the live capsule bottom + 8px buffer
+   * on mp-weixin. The `max()` therefore:
+   *   - on H5         → max(32, 0)  = 32px (legacy behaviour preserved)
+   *   - on mp-weixin  → max(32, 95) ≈ 95px (real avoidance, no overlap)
+   *
+   * This keeps the single CSS rule platform-aware without any #ifdef in
+   * Vue templates. The fallback `0px` on `var()` covers the (impossible
+   * outside dev) case where the bridge has not mounted yet. (task 8.2.5;
+   * supersedes the hard-coded 32px decision from 8.3.2.) */
+  margin-top: max(32px, var(--menu-clearance, 0px));
 
   /* Fixed slot height shared by every header variant. The proportional
      scale system binds `--header-height` on the main page root so this
