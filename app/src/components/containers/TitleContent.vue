@@ -5,7 +5,7 @@
       - 'idle'     → 主标题 / 副标题 / 引导文字 with GSAP staggered entrance
       - 'fallback' → single neutral line "宇宙信号微弱，暂无法接通"
 
-    Layout responsibility split (TODO 8.3.1):
+    Layout responsibility split (task 8.3.1):
       - Outer geometry (margin-top, height, safe-area, z-index, horizontal
         centring) lives on HeaderArea. This component renders ONLY the
         text payload and an inner top anchor that aligns the first line
