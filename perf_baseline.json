@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-05-04",
+  "thresholds": {
+    "regressPercent": 10
+  },
+  "entries": {
+    "dist/build/h5/total": {
+      "bytes": 100945302
+    },
+    "dist/build/h5/static/themes/golden_dawn/fonts/lxgw-wenkai-light.woff2": {
+      "bytes": 9827592
+    },
+    "dist/build/h5/static/themes/golden_dawn/fonts/lxgw-wenkai-regular.woff2": {
+      "bytes": 8475576
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/major/major_arcana_00_the_fool.jpeg": {
+      "bytes": 1218117
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/card_back.jpeg": {
+      "bytes": 1139584
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/minor/pentacles/minor_arcana_pentacles_09_nine_of_pentacles.jpeg": {
+      "bytes": 1118094
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/major/major_arcana_06_the_lovers.jpeg": {
+      "bytes": 1102761
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/minor/pentacles/minor_arcana_pentacles_14_king_of_pentacles.jpeg": {
+      "bytes": 1099353
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/major/major_arcana_21_the_world.jpeg": {
+      "bytes": 1093637
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/major/major_arcana_20_judgement.jpeg": {
+      "bytes": 1087694
+    },
+    "dist/build/h5/static/themes/golden_dawn/tarot/major/major_arcana_03_the_empress.jpeg": {
+      "bytes": 1086325
+    }
+  }
+}
