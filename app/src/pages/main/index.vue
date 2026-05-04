@@ -181,10 +181,18 @@ async function settlePipeline(): Promise<void> {
     console.error('[main] settlePipeline failed', err)
   }
   currentReadingPromise = null
-  if (
-    readingController.readingPanelState.value === 'success' &&
-    readingController.readingResult.value
-  ) {
+  // Promote the application stage to `reading` once the pipeline has
+  // settled — both for success AND for error. The reading drawer / split
+  // view is gated by phase ∈ {reading, decision} (see useActiveView), so
+  // without this branch a failed /api/v1/divinations response leaves the
+  // user stuck on the reveal animation with no error UI mounted (PRD §9.5
+  // anomaly recovery; verified by network_error.spec.ts). On error the
+  // ReadingPanel renders its `.error-box` + ActionArea swaps the primary
+  // CTA to "重试读取" so the user can recover.
+  const status = readingController.readingPanelState.value
+  const hasResolvedSuccess =
+    status === 'success' && readingController.readingResult.value !== null
+  if (hasResolvedSuccess || status === 'error') {
     tarotStore.revealResult()
   }
 }
