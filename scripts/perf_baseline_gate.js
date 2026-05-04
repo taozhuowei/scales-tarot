@@ -140,7 +140,7 @@ function writeBaseline(measurement) {
 function modeUpdateBaseline() {
   const measurement = measure()
   if (!measurement) {
-    console.error(`[perf] Build directory ${BUILD_DIR_REL} is empty or missing. 请先跑 npm run build 再更新基线。`)
+    console.error(`[perf] Build directory ${BUILD_DIR_REL} is empty or missing. 请先跑 npm run prod 再更新基线。`)
     process.exit(1)
   }
   writeBaseline(measurement)
