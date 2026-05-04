@@ -3,18 +3,18 @@ const { spawnSync } = require('child_process')
 const mode = process.argv[2] || 'full'
 
 // All step commands are inlined here (not delegated to `npm run …`) because
-// the public npm script surface was collapsed to 6 entries (prepare / build /
-// build:dev / test / quality / ship). The previous fan-out scripts (lint,
-// quality:lint, quality:type-check, quality:audit, arch:check, quality:lint:fix)
-// were removed; their commands now live in this file as the single source of
-// truth for what the quality gate runs.
+// the public npm script surface was collapsed to 3 entries (prepare / dev /
+// prod). The previous fan-out scripts (lint, quality:lint, quality:type-check,
+// quality:audit, arch:check, quality:lint:fix, build, build:dev, test,
+// quality, ship) were removed; their commands now live in this file (or
+// scripts/build/) as the single source of truth.
 const stepsByMode = {
   // The full gate is now pure code-checks (~30s):
   //   lint, type-check, unit tests, audit, arch + dead/duplicate code.
   // build (h5/mp/server) and the SPA-boot smoke run live in
   // scripts/build/prod.js — they are part of the build pipeline, not
   // the quality contract. CI runs both: `verify` job calls
-  // `npm run quality` (this file) and `e2e` job calls the build
+  // `node scripts/quality_gate.js full` and `e2e` job calls the build
   // orchestrator with --skip-quality.
   full: [
     { label: 'quality-scan', command: 'node', args: ['scripts/quality_scan.js'] },
@@ -25,7 +25,13 @@ const stepsByMode = {
     // right tsconfig.
     { label: 'type-check:app', command: 'npx', args: ['vue-tsc', '--noEmit', '-p', 'app/tsconfig.json'] },
     { label: 'type-check:server', command: 'npx', args: ['tsc', '--noEmit', '-p', 'server/tsconfig.json'] },
-    { label: 'test', command: 'npm', args: ['run', 'test', '-w', 'test'] },
+    // Direct vitest invocation — the `npm run test` indirection was removed
+    // when the public surface collapsed to dev/prod. `--dir test` is required
+    // because the workspace's vitest.config.ts uses include globs relative to
+    // cwd ('*.test.ts'); with --dir, vitest scans test/ for them while still
+    // reading config from the explicit --config path. The workspace's own
+    // package.json keeps its `test` script for local one-off runs inside test/.
+    { label: 'test', command: 'npx', args: ['vitest', 'run', '--config', 'test/vitest.config.ts', '--dir', 'test'] },
     // perf-baseline lives in the build pipeline (scripts/build/prod.js), not
     // here — it needs `dist/build/h5/` populated to produce a real measurement.
     // Running it from quality_gate / pre-push always saw 0 bytes because the

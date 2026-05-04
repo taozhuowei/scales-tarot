@@ -19,7 +19,7 @@
  * app/vite.config.ts) — it watches for vue-tsc / tsc / eslint errors and
  * surfaces them in the browser overlay. Not run for mp/server.
  *
- * --skip-quality is honoured here too (mostly for `npm run build:dev`-on-CI
+ * --skip-quality is honoured here too (mostly for `npm run dev`-on-CI
  * style invocations, which we don't currently use; kept for symmetry).
  */
 

@@ -7,8 +7,8 @@
  * carrying build/smoke (those belong here).
  *
  * Public entrypoints:
- *   - `npm run build`     -> --prod --target all  (full prod artifacts + smoke)
- *   - `npm run build:dev` -> --dev  --target all  (watch mode, no smoke)
+ *   - `npm run prod`  -> --prod --target h5,mp,server  (full prod artifacts + smoke)
+ *   - `npm run dev`   -> --dev  --target h5,mp,server  (watch mode, no smoke)
  *
  * Internal flags (NOT exposed via npm scripts; CI wires them directly):
  *   --prod | --dev          required, mutually exclusive

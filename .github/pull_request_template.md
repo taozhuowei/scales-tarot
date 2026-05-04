@@ -6,7 +6,7 @@
 
 <!-- How did you verify this works? -->
 
-- [ ] Local `npm run quality` passes
+- [ ] Local `node scripts/quality_gate.js full` passes
 - [ ] Tested on H5 browser
 - [ ] Tested on mp-weixin (if applicable)
 

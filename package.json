@@ -8,11 +8,8 @@
   },
   "scripts": {
     "prepare": "simple-git-hooks",
-    "build": "node scripts/build/index.js --prod --target h5,mp,server",
-    "build:dev": "node scripts/build/index.js --dev --target h5,mp,server",
-    "test": "npm run test -w test",
-    "quality": "node scripts/quality_gate.js full",
-    "ship": "node scripts/ship.js"
+    "dev": "node scripts/build/index.js --dev --target h5,mp,server",
+    "prod": "node scripts/build/index.js --prod --target h5,mp,server"
   },
   "simple-git-hooks": {
     "pre-commit": "node scripts/quality_gate.js staged",
