@@ -2,12 +2,14 @@
  * Development pipeline.
  *
  * Order:
- *   1. dev_env setup (write .env.development.local with LAN IP)
- *   2. free dev ports — SIGKILL any process holding 4123 (vite) or 4124
+ *   1. quality gate (full) — same as pre-push. Runs FIRST: if the codebase
+ *      is broken (lint/type/test failures), there's no point writing env
+ *      files, killing port occupiers, or spinning up watchers — fail fast
+ *      before doing anything with side effects.
+ *   2. dev_env setup (write .env.development.local with LAN IP)
+ *   3. free dev ports — SIGKILL any process holding 4123 (vite) or 4124
  *      (express). Per project decision: dev never silently drifts to a
  *      different port; we own those ports and reclaim them by force.
- *   3. quality gate (full) — same as pre-push, catches issues before
- *      a long-running watch eats your terminal
  *   4. concurrently start watchers per --target:
  *        - h5     : vite dev server on :4123 (HMR)    + vite-plugin-checker
  *        - mp     : vite-plugin-uni build --watch (mp-weixin only — the
@@ -111,21 +113,24 @@ async function freeDevPorts(targets) {
 }
 
 module.exports = async function devPipeline({ targets, skipQuality }) {
-  // Step 1: env setup — generates .env.development.local with LAN IP for
-  // mini-program real-device debugging. Cheap, always run.
-  await run('dev_env: write .env.development.local', 'node', ['scripts/dev_env.js'])
-
-  // Step 2: free vite (:4123) and express (:4124) before any quality work,
-  // so a hung watcher from a previous session can't survive into this one
-  // and silently steal the ports we're about to ask vite/tsx to listen on.
-  await freeDevPorts(targets)
-
-  // Step 3: quality (skippable for symmetry with prod).
+  // Step 1: quality gate FIRST (skippable for symmetry with prod). If the
+  // codebase fails lint/type/test, abort before touching env files, killing
+  // port occupiers, or spinning up watchers — there's no point doing any of
+  // that work if the quality bar isn't met.
   if (!skipQuality) {
     await run('quality gate (full)', 'node', ['scripts/quality_gate.js', 'full'])
   } else {
     console.log('[dev] Skipping quality gate (--skip-quality set)')
   }
+
+  // Step 2: env setup — generates .env.development.local with LAN IP for
+  // mini-program real-device debugging. Cheap, always run.
+  await run('dev_env: write .env.development.local', 'node', ['scripts/dev_env.js'])
+
+  // Step 3: free vite (:4123) and express (:4124) right before binding,
+  // so a hung watcher from a previous session can't survive into this one
+  // and silently steal the ports we're about to ask vite/tsx to listen on.
+  await freeDevPorts(targets)
 
   // Step 4: long-running watchers under concurrently.
   const concurrentlyArgs = buildConcurrentlyArgs(targets)
