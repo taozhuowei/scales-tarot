@@ -5,52 +5,16 @@
 
 /* ========================================
    字体声明 (Font Faces)
-   Cinzel (SIL OFL) — Latin 展示字体
-   霞鹜文楷 LXGW WenKai (SIL OFL) — 中文正文字体
-   H5 加载本地 WOFF2；小程序使用系统楷体兜底
+   ----------------------------------------
+   H5 字体的 @font-face 声明已移至 App.vue 的 <style> 块中，因为：
+     1) uni-app 的条件编译指令 (#ifdef/#endif) 仅在 .vue SFC 的 style
+        块和 .scss 预处理器输入中可靠生效；通过 @import 引入的纯 .css
+        文件在 mp-weixin 构建路径下不会被条件编译器剥离 H5-only 块。
+     2) postcss/vite-plugin-uni 的 mp-weixin CSS 处理会把根级绝对 URL
+        (/static/...) 重写为模块路径 (@/static/...)，对仅供 H5 使用的
+        后端资源解析失败，构建报 "Could not resolve" 错误。
+   小程序通过 theme API 注入字体（详见 stores/theme.ts），不依赖此处。
    ======================================== */
-
-/* #ifdef H5 */
-/* Fonts are served by the backend as origin-relative paths so the CSS
-   resolves correctly regardless of the host (localhost, LAN IP, or
-   production HTTPS domain). Mini-program font injection happens via the
-   theme API since MP doesn't execute this global stylesheet. */
-@font-face {
-  font-family: 'Cinzel';
-  src: url('/static/themes/golden_dawn/fonts/cinzel-400.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Cinzel';
-  src: url('/static/themes/golden_dawn/fonts/cinzel-600.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Cinzel';
-  src: url('/static/themes/golden_dawn/fonts/cinzel-700.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'LXGW WenKai';
-  src: url('/static/themes/golden_dawn/fonts/lxgw-wenkai-light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'LXGW WenKai';
-  src: url('/static/themes/golden_dawn/fonts/lxgw-wenkai-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-/* #endif */
 
 /* ========================================
    设计令牌 (Design Tokens)

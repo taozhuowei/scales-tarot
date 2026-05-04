@@ -49,6 +49,69 @@ async function bootstrap(): Promise<void> {
 </script>
 
 <style>
+/*
+ * @import must precede all other CSS statements per the CSS spec, so
+ * the global token / utility imports come first. The H5-only
+ * @font-face declarations follow below.
+ */
 @import "./styles/global.css";
 @import "./styles/overlay/_tokens.css";
+
+/*
+ * Font faces — H5 only.
+ * ----------------------------------------------------------------
+ * Declared here (in the App.vue SFC <style> block) instead of in
+ * styles/global.css because uni-app's conditional compilation
+ * directives (#ifdef H5 / #endif) reliably strip blocks only inside
+ * SFC styles and .scss inputs. Plain .css files imported via @import
+ * are processed by vite/postcss before the mp-weixin asset rewriter
+ * gets a chance to honor the H5 guard, which then fails resolving
+ * `/static/themes/...` (the rewriter prefixes it to `@/static/...`).
+ *
+ * The actual WOFF2 files live at `server/public/static/themes/...`
+ * and are served by the backend at the origin-relative path; vite's
+ * `publicDir` (set to `../server/public` in app/vite.config.ts) makes
+ * them addressable as `/static/...` on H5 regardless of host.
+ *
+ * Mini-program font injection is handled separately by the theme
+ * store (see stores/theme.ts) — the WeChat runtime does not honor
+ * @font-face from regular stylesheets.
+ */
+/* #ifdef H5 */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/static/themes/golden_dawn/fonts/cinzel-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/static/themes/golden_dawn/fonts/cinzel-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/static/themes/golden_dawn/fonts/cinzel-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  src: url('/static/themes/golden_dawn/fonts/lxgw-wenkai-light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  src: url('/static/themes/golden_dawn/fonts/lxgw-wenkai-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* #endif */
 </style>
