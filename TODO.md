@@ -134,8 +134,7 @@
 - replayFromPhase 改为：reset → 前置阶段全部 snap → 跑目标阶段
 - skipToReading 用同一机制简化
 
-`[!]` **8.2.3 IdleDeck `_scene.scale 1→1.5` scale 滥用** — agent 评估"容器尺寸过渡方案技术不可行，需重新评估方向"，待重新立项后再推进
-- 文件：`app/src/components/stage-content/IdleDeck.vue`
+`[x]` **8.2.3 IdleDeck `_scene.scale 1→1.5` scale 滥用** — 已通过 PR #12 单舞台单 Deck 重构（commits 9df9664 / eedc351 / 729d0ed / b4e2040 / 9875c07 / 1804da2）+ 删除 `runScenePushFade`，scale 滥用源头消失。`IdleDeck.vue` 已删除，统一为 `Deck.vue` + `DeckFanStack.vue` + `DeckRig.vue`。
 
 `[x]` **8.2.5 mp-weixin 菜单按钮避让** — 已通过 `--menu-clearance` CSS 变量实现（commit db113f8）。`HeaderArea.vue` 用 `max(32px, var(--menu-clearance, 0px))` 取 H5 / mp-weixin 中较大值；mp-weixin 通过 `getMenuButtonRect()` 返回真实胶囊高度，H5 fallback 为 0px。
 
@@ -152,8 +151,8 @@
 
 ### 8.4 用户拍板才能动的事
 
-`[x]` **8.4.1 GitHub 分支保护** — 用 gh api 配齐：required_status_checks (verify×2 + lint + e2e, strict)、enforce_admins、required_linear_history、禁 force push、禁删除、required_conversation_resolution；仓库级 allow_merge_commit=false、allow_rebase_merge=true、delete_branch_on_merge=true。
-- 注：solo 仓库 reviewer count = 0 是 GitHub 硬限制（不能 approve 自己 PR），用 4 个 strict CI check 等价替代人工 review
+`[x]` **8.4.1 GitHub 分支保护** — 用 gh api 配齐：required_status_checks (verify + lint + e2e, strict)、enforce_admins、required_linear_history、禁 force push、禁删除、required_conversation_resolution；仓库级 allow_merge_commit=false、allow_rebase_merge=true、delete_branch_on_merge=true。
+- 注：solo 仓库 reviewer count = 0 是 GitHub 硬限制（不能 approve 自己 PR），用 3 个 strict CI check 等价替代人工 review
 
 `[x]` **8.4.2 sonarjs ratchet 升 error 的 deadline** — 用户决定方案 A：5 条立即升 error。已在 `eslint.config.mjs` 落实，gate 通过。
 
@@ -178,7 +177,6 @@
 
 ## 阶段间约束
 
-1. 8.1 / 8.2 / 8.3 / 8.4 已基本闭环
-2. 8.2.3 / 8.2.5 标 `[!]` 待用户重新立项；不进入当前迭代
-3. 每个子任务独立 commit，可独立回退
-4. 任意子任务遇到边界冲突立即停下问用户，禁止擅自决策
+1. 阶段 8 全部 done
+2. 每个子任务独立 commit，可独立回退
+3. 任意子任务遇到边界冲突立即停下问用户，禁止擅自决策
