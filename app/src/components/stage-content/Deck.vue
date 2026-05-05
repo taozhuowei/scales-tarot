@@ -42,6 +42,7 @@
     />
 
     <DeckRig
+      v-show="!isIdle"
       :anim-ctrl="animCtrl"
       :card-back="cardBack"
       :get-card-img="getCardImg"
