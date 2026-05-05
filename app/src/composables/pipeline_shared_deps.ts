@@ -23,7 +23,18 @@ import type { MotionMetrics } from './use_overlay_layout'
 export interface OverlayLayoutsSnapshot {
   drawViewport: { stageHeight: number }
   drawLayout: SceneLayout
-  resultLayout: { cardWidth: number; cardHeight: number }
+  /**
+   * Result-stage card sizing snapshot. Both "full" and "shrunk" sizes are
+   * carried so the reveal pipeline can grow the card to its full
+   * safe-area size before the drawer mounts, then animate down to the
+   * drawer-reserved size when the drawer slides up.
+   */
+  resultLayout: {
+    cardWidth: number
+    cardHeight: number
+    cardWidthFull: number
+    cardHeightFull: number
+  }
 }
 
 /**

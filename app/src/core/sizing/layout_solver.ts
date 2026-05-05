@@ -79,49 +79,84 @@ function readingStageReservation(
 }
 
 /**
+ * Result-card sizing primitive — given a stage rect, return the card
+ * `(width, height)` that occupies `RESULT_CARD_FILL_RATIO` of the rect
+ * on each axis with the width capped at `MAX_CARD_WIDTH_PX`. When the
+ * cap engages, height is derived from the capped width via
+ * `CARD_ASPECT_RATIO` so the 1:1.6 proportion is preserved on the
+ * largest supported canvases.
+ *
+ * Used by both the "full" and "shrunk" reading-stage card derivations:
+ *  - full  → stage rect computed without drawer reservation (safe area
+ *            ≈ 80–90 % of viewport on a typical phone, so the resulting
+ *            card width hits the 240 px cap on every supported viewport).
+ *  - shrunk → stage rect with the drawer reservation already subtracted
+ *             (the original sizing used while the bottom drawer is open).
+ */
+function fitResultCard(stage: StageRect): { width: number; height: number } {
+  const unclampedW = stage.width * RESULT_CARD_FILL_RATIO
+  const width = Math.min(unclampedW, MAX_CARD_WIDTH_PX)
+  const height =
+    width === unclampedW
+      ? stage.height * RESULT_CARD_FILL_RATIO
+      : width * CARD_ASPECT_RATIO
+  return { width, height }
+}
+
+/**
  * Solve the reading-stage layout — single result card centred in the
  * shrunk stage with the bottom drawer anchored to the card's bottom edge.
  *
- * Card sizing: occupy `RESULT_CARD_FILL_RATIO` of the stage rect on each
- * axis, then clamp width to `MAX_CARD_WIDTH_PX` (PRD §8.2 phone-shell
- * envelope) and derive height from the clamped width via
- * `CARD_ASPECT_RATIO` so the 1:1.6 proportion is preserved when the cap
- * engages on the largest supported canvases.
+ * Two card sizes are emitted:
+ *   1. shrunk (`cardWidth` / `cardHeight`) — fitted to the drawer-reserved
+ *      stage rect. This is what the user sees once the drawer mounts
+ *      (drawer covers the lower band, card sits in the remaining space).
+ *      Drawer geometry is anchored to *this* size's card bottom so the
+ *      drawer hugs the card after the user-visible shrink animation.
+ *   2. full (`cardWidthFull` / `cardHeightFull`) — fitted to the full
+ *      safe-area stage rect (no drawer reservation). The reveal pipeline
+ *      grows the card to this size first; the parent then animates it
+ *      down to the shrunk size when the drawer mounts.
+ *
+ * On every supported phone canvas (375–440 px) both sizes hit the 240 px
+ * width cap because the unclamped width (≈90 % of stage width) exceeds
+ * 240 px in both rectangles. The visual difference is in the height: the
+ * full rect's stage is taller, so the full card is taller too (and the
+ * shrunk card sits above the drawer instead of being clipped by it).
  */
 function solveReadingStageLayout(
   viewport: PhysicalViewport,
   sizes: ResponsiveSizes,
-  stage: StageRect,
+  stageShrunk: StageRect,
+  stageFull: StageRect,
   draw: { width: number; height: number },
 ): SceneLayout {
-  const unclampedCardWidth = stage.width * RESULT_CARD_FILL_RATIO
-  const resultCardWidth = Math.min(unclampedCardWidth, MAX_CARD_WIDTH_PX)
-  const resultCardHeight =
-    resultCardWidth === unclampedCardWidth
-      ? stage.height * RESULT_CARD_FILL_RATIO
-      : resultCardWidth * CARD_ASPECT_RATIO
+  const shrunk = fitResultCard(stageShrunk)
+  const full = fitResultCard(stageFull)
 
-  const drawer = computeDrawer(viewport, stage, resultCardHeight)
+  const drawer = computeDrawer(viewport, stageShrunk, shrunk.height)
   const envelope = computeEnvelope(draw.width, draw.height, sizes.gap)
   const cards: CardLayout[] = [
     {
       slotId: 'center',
       x: 0,
       y: 0,
-      width: resultCardWidth,
-      height: resultCardHeight,
+      width: shrunk.width,
+      height: shrunk.height,
       rotateDeg: 0,
       zIndex: 1,
     },
   ]
   return {
     cards,
-    cardWidth: resultCardWidth,
-    cardHeight: resultCardHeight,
+    cardWidth: shrunk.width,
+    cardHeight: shrunk.height,
+    cardWidthFull: full.width,
+    cardHeightFull: full.height,
     drawCardWidth: draw.width,
     drawCardHeight: draw.height,
     stageShiftY: 0,
-    stage,
+    stage: stageShrunk,
     drawer,
     envelope,
   }
@@ -158,6 +193,12 @@ function solveDrawStageLayout(
     cards,
     cardWidth: draw.width,
     cardHeight: draw.height,
+    // The draw stage doesn't reserve drawer space, so "full" and "shrunk"
+    // collapse to the same size. Exposing both keeps the SceneLayout shape
+    // uniform across scenes for consumers that want to read the full size
+    // without branching on scene.
+    cardWidthFull: draw.width,
+    cardHeightFull: draw.height,
     drawCardWidth: draw.width,
     drawCardHeight: draw.height,
     stageShiftY: 0,
@@ -187,12 +228,25 @@ function solveDrawStageLayout(
  */
 export function solveLayout(input: SolveLayoutInput): SceneLayout {
   const { viewport, sizes, scene } = input
-  const reservation = scene === 'reading_stage'
-    ? readingStageReservation(viewport, sizes)
-    : 0
-  const stage = computeStage(viewport, sizes, reservation)
+  if (scene === 'reading_stage') {
+    // Two stage rects feed the reading scene:
+    //   - stageShrunk: the safe-area minus the bottom drawer reservation
+    //     (= INITIAL_DRAWER_HEIGHT_RATIO × viewport.height + actionAreaH).
+    //     This is the rect the result card lives in *while the drawer is
+    //     open*; everything else (drawer geometry, draw card size, motion
+    //     envelope) anchors to it because the draw-pile grid still shares
+    //     the same horizontal extent.
+    //   - stageFull: the full safe-area rect (no drawer reservation).
+    //     This is the rect the result card grows into right after reveal,
+    //     before the drawer mounts. Used only to derive `cardWidthFull` /
+    //     `cardHeightFull`.
+    const reservation = readingStageReservation(viewport, sizes)
+    const stageShrunk = computeStage(viewport, sizes, reservation)
+    const stageFull = computeStage(viewport, sizes, 0)
+    const draw = computeDrawCardSize(stageShrunk, sizes)
+    return solveReadingStageLayout(viewport, sizes, stageShrunk, stageFull, draw)
+  }
+  const stage = computeStage(viewport, sizes, 0)
   const draw = computeDrawCardSize(stage, sizes)
-  return scene === 'reading_stage'
-    ? solveReadingStageLayout(viewport, sizes, stage, draw)
-    : solveDrawStageLayout(viewport, sizes, stage, draw)
+  return solveDrawStageLayout(viewport, sizes, stage, draw)
 }

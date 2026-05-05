@@ -94,10 +94,26 @@ export interface StageRect {
 export interface SceneLayout {
   // ----- preserved field names (style_reconciler.ts depends on these) -----
   cards: CardLayout[]
-  /** Card width for the current scene. */
+  /**
+   * Card width for the current scene. On the reading scene this is the
+   * "shrunk" size (computed against the stage rect that already subtracts
+   * the bottom drawer reservation) — matches the visual the user sees once
+   * the drawer is open. The "full" size used the moment the reveal
+   * animation lands (drawer not yet mounted) is exposed separately as
+   * `cardWidthFull` / `cardHeightFull`.
+   */
   cardWidth: number
-  /** Card height for the current scene. */
+  /** Card height for the current scene (see `cardWidth` for semantics). */
   cardHeight: number
+  /**
+   * Reading-scene card width before the drawer mounts — computed against
+   * the full safe-area rect (no bottom drawer reservation), still capped
+   * by `MAX_CARD_WIDTH_PX`. On `draw_stage` this equals `cardWidth`
+   * because the draw stage doesn't reserve drawer space.
+   */
+  cardWidthFull: number
+  /** Reading-scene card height before the drawer mounts. See `cardWidthFull`. */
+  cardHeightFull: number
   /** Uniform draw-stage card width (shuffle / cut / draw share this size). */
   drawCardWidth: number
   /** Uniform draw-stage card height. */

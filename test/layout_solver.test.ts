@@ -207,11 +207,11 @@ describe('layout_solver — proportional-sizes layout solver', () => {
         // (8) Scene-specific assertions.
         // -------------------------------------------------------------------
         if (scene === 'reading_stage') {
-          // Result card occupies RESULT_CARD_FILL_RATIO of the stage rect
-          // on each axis (90%) — but capped at MAX_CARD_WIDTH_PX (PRD
-          // §8.2 phone-shell envelope). When the cap engages, height is
-          // derived from the clamped width via CARD_ASPECT_RATIO so the
-          // card stays 1:1.6.
+          // Result card (shrunk) occupies RESULT_CARD_FILL_RATIO of the
+          // stage rect on each axis (90 %) — but capped at
+          // MAX_CARD_WIDTH_PX (PRD §8.2 phone-shell envelope). When the
+          // cap engages, height is derived from the clamped width via
+          // CARD_ASPECT_RATIO so the card stays 1:1.6.
           const unclamped = layout.stage.width * RESULT_CARD_FILL_RATIO
           const expectedW = Math.min(unclamped, MAX_CARD_WIDTH_PX)
           const expectedH = unclamped <= MAX_CARD_WIDTH_PX
@@ -223,12 +223,41 @@ describe('layout_solver — proportional-sizes layout solver', () => {
           expect(layout.cards[0]?.height).toBeCloseTo(expectedH, 5)
           // Hard contract: card width is never above the cap regardless
           // of viewport. This is what viewport_smoke.spec.ts asserts at
-          // the DOM level — duplicated here for an early signal.
+          // the DOM level — duplicated here for an early signal. The
+          // "full" size is also bounded by the same cap (the cap is the
+          // phone-shell envelope, not a stage-relative measurement).
           expect(layout.cardWidth).toBeLessThanOrEqual(MAX_CARD_WIDTH_PX)
+          expect(layout.cardWidthFull).toBeLessThanOrEqual(MAX_CARD_WIDTH_PX)
+          // "Full" derives from the full safe-area rect (no drawer
+          // reservation), so its driving stage is taller and wider than
+          // the drawer-reserved rect on every supported viewport. The
+          // full card is therefore always at least as large as the
+          // shrunk card on both axes; usually strictly larger.
+          expect(layout.cardWidthFull).toBeGreaterThanOrEqual(layout.cardWidth - EPS)
+          expect(layout.cardHeightFull).toBeGreaterThanOrEqual(layout.cardHeight - EPS)
+          // Sanity floor: full size strictly larger than shrunk by area
+          // on every viewport (drawer reservation > 0 always).
+          const fullArea = layout.cardWidthFull * layout.cardHeightFull
+          const shrunkArea = layout.cardWidth * layout.cardHeight
+          expect(fullArea).toBeGreaterThan(shrunkArea + EPS)
+          // The full card hits the 240 px cap on every supported phone
+          // canvas (375–440 px clamped) because the unclamped width
+          // (90 % of full-stage width) always exceeds the cap on that
+          // range. This is the user-facing contract for "first reveal":
+          // the card grows to the phone-shell maximum.
+          expect(layout.cardWidthFull).toBeCloseTo(MAX_CARD_WIDTH_PX, 5)
+          expect(layout.cardHeightFull).toBeCloseTo(
+            MAX_CARD_WIDTH_PX * CARD_ASPECT_RATIO,
+            5,
+          )
         } else {
-          // draw_stage: card size matches the 3-pile draw card.
+          // draw_stage: card size matches the 3-pile draw card; "full"
+          // and "shrunk" collapse to the same value because the draw
+          // stage doesn't reserve drawer space.
           expect(layout.cardWidth).toBeCloseTo(layout.drawCardWidth, 5)
           expect(layout.cardHeight).toBeCloseTo(layout.drawCardHeight, 5)
+          expect(layout.cardWidthFull).toBeCloseTo(layout.cardWidth, 5)
+          expect(layout.cardHeightFull).toBeCloseTo(layout.cardHeight, 5)
         }
       })
     }
