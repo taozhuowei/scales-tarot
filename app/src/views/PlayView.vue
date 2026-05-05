@@ -35,7 +35,8 @@
       :aria-valuetext="isIdle ? undefined : progressLabel"
       :style="isIdle ? undefined : animCtrl.headerStyle.value"
     >
-      <component :is="isIdle ? TitleContent : ProgressContent" v-bind="isIdle ? { variant: 'idle' } : {}" />
+      <TitleContent v-if="isIdle" variant="idle" />
+      <ProgressContent v-else />
     </HeaderArea>
     <Stage :scene="isIdle ? 'idle' : 'divination'">
       <view
