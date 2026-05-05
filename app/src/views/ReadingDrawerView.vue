@@ -177,22 +177,18 @@ function onDrawerKeydown(e: KeyboardEvent) {
 
 <style scoped>
 .reading-drawer-view {
-  /* PRD §8.2 phone-shell envelope: the drawer is part of the phone-sized
-     canvas overlay (capped at MAX_CANVAS_WIDTH = 440 px), not the full
-     viewport. On tablets in portrait (768/820 px wide) the .canvas wrapper
-     in pages/main/index.vue is centred at this same 440 px cap with
-     transform: translateX(max(0, (100vw - 440) / 2)); the drawer mirrors
-     that centering with margin: 0 auto + max-width so its sheet sits
-     directly under the centred result card. Without this, the drawer
-     spanned the full viewport (~768 px) and broke the
-     viewport_smoke.spec.ts contract that the sheet width never exceeds
-     MAX_STAGE_VIEWPORT_WIDTH. */
+  /* The drawer spans the full viewport width on tablets. Earlier we capped
+     it to MAX_CANVAS_WIDTH (440 px) so it sat under the centred phone-
+     shell, but on iPad portrait (768 / 820 px) that left two empty bands
+     either side of the sheet. The drawer is conceptually a screen-bottom
+     surface — not part of the phone-shell canvas — so it now owns the full
+     viewport. The result card above it stays inside the phone-shell cap
+     (`.canvas` in pages/main/index.vue handles that), so this only changes
+     the sheet itself. */
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  margin: 0 auto;
-  max-width: 440px;
   width: 100%;
   display: flex;
   flex-direction: column;

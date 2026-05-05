@@ -9,8 +9,9 @@ import { test, expect } from '@playwright/test'
  * screenshots, each pass asserts:
  *   • The result card never exceeds MAX_CARD_WIDTH (240) — the global
  *     "≤ largest phone" contract.
- *   • Mobile-mode drawer sits inside the centered phone-shell width
- *     (≤ MAX_STAGE_VIEWPORT_WIDTH = 440).
+ *   • Mobile-mode drawer spans the full viewport width (so on iPad
+ *     portrait the sheet covers the whole 768 / 820 px, not just the
+ *     centred phone-shell band).
  *   • PC-mode (≥ 920) renders the side-column reading sidebar instead
  *     of the bottom drawer.
  *   • The "too small" banner shows iff the actual viewport width is
@@ -46,8 +47,9 @@ const VIEWPORTS: readonly Viewport[] = [
 
   // -------- mobile / centered shell on tablet portrait --------------------
   // 768 × 1024 still uses bottom drawer because viewport.width < 920.
-  // The phone-sized shell (440) sits centered with background filling the
-  // ~328 px on each side.
+  // The phone-sized shell (440) sits centered for the result card area, but
+  // the drawer sheet spans the full viewport width so the bottom panel
+  // covers everything edge-to-edge.
   { tag: 'ipad-portrait-768x1024',     width: 768,  height: 1024, mode: 'mobile' },
   { tag: 'ipad-air-portrait-820x1180', width: 820,  height: 1180, mode: 'mobile' },
 
@@ -134,8 +136,12 @@ for (const vp of VIEWPORTS) {
       // Drawer (mobile component) must NOT mount in pc mode.
       await expect(page.locator('.reading-drawer-view__sheet')).toHaveCount(0)
     } else {
-      // Mobile / too_small: ReadingDrawerView mounts. The drawer sits inside
-      // the centered overlay-main shell, capped at MAX_STAGE_WIDTH_PX.
+      // Mobile / too_small: ReadingDrawerView mounts. The drawer sheet now
+      // spans the full viewport width (the phone-shell cap only applies to
+      // the result card / .canvas above it — the drawer is a screen-bottom
+      // surface). On iPad portrait (768 / 820) and similar tablet widths
+      // this means the sheet width should equal viewport.width so there are
+      // no empty bands on either side.
       const drawerSheet = page.locator('.reading-drawer-view__sheet')
       await expect(drawerSheet).toBeVisible()
       const sheetBox = await drawerSheet.boundingBox()
@@ -145,10 +151,12 @@ for (const vp of VIEWPORTS) {
           sheetBox.height,
           `narrow drawer initialHeight must be >= ${DRAWER_MIN_INITIAL_HEIGHT_PX}px at ${vp.tag}`,
         ).toBeGreaterThanOrEqual(DRAWER_MIN_INITIAL_HEIGHT_PX)
+        // 1 px tolerance for sub-pixel rounding.
         expect(
           sheetBox.width,
-          `drawer width must be ≤ phone-shell cap (${MAX_STAGE_WIDTH_PX}) at ${vp.tag}`,
-        ).toBeLessThanOrEqual(MAX_STAGE_WIDTH_PX + 1)
+          `drawer width must equal viewport.width (${vp.width}) at ${vp.tag} (got ${sheetBox.width})`,
+        ).toBeGreaterThanOrEqual(vp.width - 1)
+        expect(sheetBox.width).toBeLessThanOrEqual(vp.width + 1)
       }
       // Split view (pc component) must NOT mount in mobile mode.
       await expect(page.locator('.reading-split-view')).toHaveCount(0)
