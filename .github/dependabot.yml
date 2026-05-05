@@ -9,6 +9,13 @@ updates:
       - dependency-type: production
     labels:
       - dependencies
+    # Skip major bumps. Reviewed manually because they regularly require coordinated
+    # multi-package upgrades (e.g. dcloudio uni-app train) and breaking changes that
+    # weekly auto-PRs cannot validate. Minor and patch updates still flow normally.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: npm
     directory: /server
     schedule:
@@ -18,3 +25,7 @@ updates:
       - dependency-type: production
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
