@@ -3,7 +3,13 @@
  *
  * Thresholds:
  *   - warn: 500 lines added
- *   - error: 1000 lines added
+ *   - error: 1500 lines added
+ *
+ * Why 1500 (not 1000): occasional architecture refactors that span many
+ * files (e.g. unifying two view trees into one shared component) legitimately
+ * land 1000-1500 human-authored lines in a single PR. The 500 WARN still
+ * nudges contributors toward small PRs as the default; 1500 ERROR is the
+ * "you really need to think about whether this should be split" line.
  *
  * Excluded from the count:
  *   - Lockfiles (package-lock.json, yarn.lock, pnpm-lock.yaml,
@@ -23,7 +29,7 @@ const { execSync } = require('child_process')
 
 const BASE_BRANCH = process.env.BASE_BRANCH || 'main'
 const WARN_THRESHOLD = 500
-const ERROR_THRESHOLD = 1000
+const ERROR_THRESHOLD = 1500
 
 /** Path basenames excluded from the PR size accounting. Match against
  *  the FULL path returned by `git diff --numstat` so a lockfile inside
