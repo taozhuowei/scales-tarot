@@ -207,6 +207,12 @@ onUnmounted(() => {
   height: var(--card-height);
 }
 
+/* Unified 20rpx (~10 px) radius across every card surface (.face-back /
+   .face-front inherit via the shared .tarot-card class). `overflow:
+   hidden` clips the inner <image>; `.card-3d-inner` deliberately stays
+   unclipped — preserve-3d + overflow: hidden flattens the reveal flip. */
+.tarot-card { border-radius: 20rpx; overflow: hidden; }
+
 .deck-layer { position: relative; }
 
 .stack-card {
@@ -245,7 +251,7 @@ onUnmounted(() => {
   position: absolute;
   width: var(--card-width);
   height: var(--card-height);
-  border-radius: 8rpx;
+  border-radius: 20rpx; /* unified card radius — see .tarot-card above */
   border: 1px solid var(--color-border);
   box-shadow: 0 2rpx 8rpx rgba(30, 15, 6, 0.3);
 }
@@ -290,5 +296,4 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
 }
-
 </style>

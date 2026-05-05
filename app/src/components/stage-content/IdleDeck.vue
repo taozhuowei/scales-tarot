@@ -107,7 +107,11 @@ const {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 8rpx;
+  /* 20rpx ≈ 10 px at the 750-rpx design baseline — unified across every
+     card surface (DivinationDeck.tarot-card, cut-pile.pile-card,
+     CardMeaningContainer) so the deck reads as the same physical object
+     from idle through reveal. */
+  border-radius: 20rpx;
   border: 1px solid var(--color-border);
   box-shadow: 0 2rpx 8rpx rgba(30, 15, 6, 0.3);
 }
