@@ -97,6 +97,17 @@ defineEmits<{
   to   { transform: translateX(0); }
 }
 
+/* The reading panel must stretch to fill the available column height so
+   long-form readings scroll inside it instead of pushing the action
+   area off-screen on short PC viewports (≤ 600 px tall). Without `flex:
+   1` + `min-height: 0` the panel sized to its content and the action
+   area landed below the viewport edge — the buttons "回到首页" / "再占
+   一次" then got clipped by `.reading-split-view`'s `overflow: hidden`. */
+.reading-split-view :deep(.reading-panel) {
+  flex: 1;
+  min-height: 0;
+}
+
 .reading-split-view :deep(.reading-panel__success),
 .reading-split-view :deep(.reading-panel__loading),
 .reading-split-view :deep(.reading-panel__error) {
@@ -104,6 +115,17 @@ defineEmits<{
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+}
+
+/* PC / wide branch nudge: bump the action area's padding-bottom by 10 px
+   so the buttons sit a hairline above the viewport edge on desktop —
+   the safe-area inset is 0 on PC so without the extra buffer the row's
+   bottom edge could land flush against the screen. The narrow drawer's
+   action area already has the drawer sheet stack above it acting as
+   natural breathing room and doesn't need the same nudge. */
+.reading-split-view :deep(.action-area) {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24rpx + 10px);
+  flex-shrink: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
