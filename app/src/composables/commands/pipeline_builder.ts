@@ -53,7 +53,17 @@ interface PhaseRunnerDeps {
   getOverlayLayouts: () => {
     drawViewport: { stageHeight: number }
     drawLayout: SceneLayout
-    resultLayout: { cardWidth: number; cardHeight: number }
+    /**
+     * Both "full" and "shrunk" sizes are required: the reveal phase grows
+     * cards to the full safe-area size, then the parent's drawer-mount
+     * watcher animates them to the shrunk size.
+     */
+    resultLayout: {
+      cardWidth: number
+      cardHeight: number
+      cardWidthFull: number
+      cardHeightFull: number
+    }
   }
   setDrawCardSizes: (layout: SceneLayout) => void
   cutPileCount: number
@@ -90,12 +100,22 @@ function buildRevealingRunner(deps: PhaseRunnerDeps): PhaseRunner {
     run(context: PhaseContext, onComplete: () => void) {
       const { drawLayout, resultLayout } = deps.getOverlayLayouts()
       deps.setDrawCardSizes(drawLayout)
+      // Grow cards to the *full* safe-area size (typically the 240×384
+      // phone-shell maximum on every supported canvas). The bottom
+      // drawer mounts after the reveal phase completes; main page's
+      // showReadingView watcher animates the card down to the
+      // drawer-reserved size at that point so the drawer doesn't crop
+      // the card. Using cardWidth/cardHeight here would pre-shrink the
+      // card to the drawer-reserved size and produce the regression
+      // PR #12 introduced — visually the reveal looked like the card
+      // jumped *smaller* than the draw card when the drawer wasn't
+      // even visible yet.
       const runner = buildRevealPhaseRunner({
         cardCount: deps.cardCountRef.value,
         drawCardWidth: drawLayout.drawCardWidth,
         drawCardHeight: drawLayout.drawCardHeight,
-        resultCardWidth: resultLayout.cardWidth,
-        resultCardHeight: resultLayout.cardHeight,
+        resultCardWidth: resultLayout.cardWidthFull,
+        resultCardHeight: resultLayout.cardHeightFull,
         drawLayout: {
           stageShiftY: drawLayout.stageShiftY,
           cards: drawLayout.cards.map((c) => ({ x: c.x, y: c.y })),
