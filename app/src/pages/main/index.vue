@@ -105,6 +105,7 @@ import { useReadingController } from '../../composables/use_reading_controller'
 import { useActiveView } from '../../composables/use_active_view'
 import { useDevTools } from '../../composables/use_dev_tools'
 import { useCssVarBridge } from '../../composables/use_css_var_bridge'
+import { useMainHandlers } from '../../composables/use_main_handlers'
 import { MAX_CANVAS_WIDTH } from '../../core/sizing/scale'
 import type { OverlayPhase } from '../../core/flow/types'
 
@@ -174,45 +175,17 @@ function handleRetryLoadCards() {
   tarotStore.loadCards()
 }
 
-async function settlePipeline(): Promise<void> {
-  try {
-    await (currentReadingPromise ?? Promise.resolve(null))
-  } catch (err) {
-    console.error('[main] settlePipeline failed', err)
-  }
-  currentReadingPromise = null
-  // Promote the application stage to `reading` once the pipeline has
-  // settled — both for success AND for error. The reading drawer / split
-  // view is gated by phase ∈ {reading, decision} (see useActiveView), so
-  // without this branch a failed /api/v1/divinations response leaves the
-  // user stuck on the reveal animation with no error UI mounted (PRD §9.5
-  // anomaly recovery; verified by network_error.spec.ts). On error the
-  // ReadingPanel renders its `.error-box` + ActionArea swaps the primary
-  // CTA to "重试读取" so the user can recover.
-  const status = readingController.readingPanelState.value
-  const hasResolvedSuccess =
-    status === 'success' && readingController.readingResult.value !== null
-  if (hasResolvedSuccess || status === 'error') {
-    tarotStore.revealResult()
-  }
-}
+const { settlePipeline, handleRestart } = useMainHandlers({
+  tarotStore,
+  animationController,
+  readingController,
+  getReadingPromise: () => currentReadingPromise,
+  setReadingPromise: (next) => { currentReadingPromise = next },
+  startDivination,
+})
 
 function handleTypewriterComplete() {
   enterDecision()
-}
-
-function handleRestart(): void {
-  animationController.resumeAnimations()
-  animationController.setPlaybackRate(1)
-  readingController.resetReading()
-  animationController.clearTimeline()
-  animationController.seek(0)
-  animationController.showResults.value = false
-  animationController.resetOverlayScene()
-  startDivination(tarotStore.currentQuestion)
-  animationController.resetProgressModel()
-  animationController.phase.value = 'shuffling'
-  animationController.start()
 }
 
 function handleBackHome() {

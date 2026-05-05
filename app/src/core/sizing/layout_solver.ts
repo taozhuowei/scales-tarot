@@ -28,7 +28,13 @@
  *   deriveSizes(canvasWidth) ───────────────────────┘
  */
 
-import { CARD_ASPECT_RATIO, MAX_CARD_WIDTH_PX, RESULT_CARD_FILL_RATIO } from './scale'
+import {
+  CARD_ASPECT_RATIO,
+  MAX_CARD_WIDTH_PX,
+  RESULT_CARD_FILL_RATIO,
+  type PhysicalViewport,
+  type ResponsiveSizes,
+} from './scale'
 import { INITIAL_DRAWER_HEIGHT_RATIO } from '../config/layout_constants'
 import {
   computeDrawCardSize,
@@ -36,7 +42,12 @@ import {
   computeEnvelope,
   computeStage,
 } from './layout_solver_computers'
-import type { CardLayout, SceneLayout, SolveLayoutInput } from './layout_solver_types'
+import type {
+  CardLayout,
+  SceneLayout,
+  SolveLayoutInput,
+  StageRect,
+} from './layout_solver_types'
 
 // Re-export the type surface from the dedicated module so existing
 // `import { ... } from '.../layout_solver'` calls keep working unchanged.
@@ -51,49 +62,38 @@ export type {
 } from './layout_solver_types'
 
 /**
- * Solve the layout for one scene.
- *
- * Pure function: identical inputs produce identical outputs, no side effects.
- *
- * Strategy
- * ────────
- *  1. Compute the stage rect — largest 1:1.6 box that fits the canvas after
- *     subtracting margins, header, and safe areas. The stage is centered
- *     horizontally and pinned below the header.
- *  2. Compute the 3-pile draw card size from the stage (one card per pile).
- *  3. Compose the result-stage card (= stage rect — single card fills it).
- *  4. Compute drawer geometry as a bottom sheet anchored to the stage bottom.
- *  5. Build the animation envelope from the draw card size.
+ * Reading scene's bottom band reservation: the bottom drawer covers the
+ * lower 40 % of the viewport on first reveal and the ActionArea (decision-
+ * phase CTAs) sits below it in the same band. Sum them so the reading
+ * stage rect shrinks by the correct amount and the result card auto-fits
+ * the remaining visible area instead of landing under the drawer.
  */
-export function solveLayout(input: SolveLayoutInput): SceneLayout {
-  const { viewport, sizes, scene } = input
+function readingStageReservation(
+  viewport: PhysicalViewport,
+  sizes: ResponsiveSizes,
+): number {
+  return (
+    Math.round(viewport.height * INITIAL_DRAWER_HEIGHT_RATIO) +
+    sizes.actionAreaHeight
+  )
+}
 
-  // The reading scene's drawer occupies the bottom INITIAL_DRAWER_HEIGHT_RATIO
-  // of the viewport on first reveal, and the ActionArea (decision-phase
-  // CTAs) sits below the drawer in the same bottom band. Reserve both
-  // when computing the reading stage so the result card auto-shrinks and
-  // lifts up into the remaining area instead of being half-covered by
-  // the drawer + buttons. The draw scene reserves 0 — the drawer is
-  // closed and the action area is hidden during shuffle/cut/draw, so
-  // the stage gets the full available height for animations.
-  const drawerReservation =
-    scene === 'reading_stage'
-      ? Math.round(viewport.height * INITIAL_DRAWER_HEIGHT_RATIO) +
-        sizes.actionAreaHeight
-      : 0
-  const stage = computeStage(viewport, sizes, drawerReservation)
-  const draw = computeDrawCardSize(stage, sizes)
-  const envelope = computeEnvelope(draw.width, draw.height, sizes.gap)
-
-  // Result card occupies RESULT_CARD_FILL_RATIO of the stage rect on each
-  // axis, then clamped to MAX_CARD_WIDTH_PX (PRD §8.2 phone-shell
-  // envelope — the card never grows wider than 240 px regardless of how
-  // big the canvas / stage is). Height is derived from the clamped width
-  // via CARD_ASPECT_RATIO so the card preserves its 1:1.6 proportion when
-  // the cap engages on the largest supported canvases.
-  // Stage rect itself stays the same — the card sits centred inside,
-  // padded uniformly. The card stays centred at (0, 0) in stage-relative
-  // coordinates because the stage container is the anchor.
+/**
+ * Solve the reading-stage layout — single result card centred in the
+ * shrunk stage with the bottom drawer anchored to the card's bottom edge.
+ *
+ * Card sizing: occupy `RESULT_CARD_FILL_RATIO` of the stage rect on each
+ * axis, then clamp width to `MAX_CARD_WIDTH_PX` (PRD §8.2 phone-shell
+ * envelope) and derive height from the clamped width via
+ * `CARD_ASPECT_RATIO` so the 1:1.6 proportion is preserved when the cap
+ * engages on the largest supported canvases.
+ */
+function solveReadingStageLayout(
+  viewport: PhysicalViewport,
+  sizes: ResponsiveSizes,
+  stage: StageRect,
+  draw: { width: number; height: number },
+): SceneLayout {
   const unclampedCardWidth = stage.width * RESULT_CARD_FILL_RATIO
   const resultCardWidth = Math.min(unclampedCardWidth, MAX_CARD_WIDTH_PX)
   const resultCardHeight =
@@ -101,43 +101,48 @@ export function solveLayout(input: SolveLayoutInput): SceneLayout {
       ? stage.height * RESULT_CARD_FILL_RATIO
       : resultCardWidth * CARD_ASPECT_RATIO
 
-  // Cards array: one centred placeholder. Concrete shuffle / cut / draw /
-  // reveal phases position individual cards themselves; the solver only
-  // emits a rest layout the controller can use as a fallback.
-  if (scene === 'reading_stage') {
-    // Drawer anchors to the result card's bottom edge (not stage bottom)
-    // so the drawer naturally hugs the card on the reading scene.
-    const drawer = computeDrawer(viewport, stage, resultCardHeight)
-    const cards: CardLayout[] = [
-      {
-        slotId: 'center',
-        x: 0,
-        y: 0,
-        width: resultCardWidth,
-        height: resultCardHeight,
-        rotateDeg: 0,
-        zIndex: 1,
-      },
-    ]
-    return {
-      cards,
-      cardWidth: resultCardWidth,
-      cardHeight: resultCardHeight,
-      drawCardWidth: draw.width,
-      drawCardHeight: draw.height,
-      stageShiftY: 0,
-      stage,
-      drawer,
-      envelope,
-    }
+  const drawer = computeDrawer(viewport, stage, resultCardHeight)
+  const envelope = computeEnvelope(draw.width, draw.height, sizes.gap)
+  const cards: CardLayout[] = [
+    {
+      slotId: 'center',
+      x: 0,
+      y: 0,
+      width: resultCardWidth,
+      height: resultCardHeight,
+      rotateDeg: 0,
+      zIndex: 1,
+    },
+  ]
+  return {
+    cards,
+    cardWidth: resultCardWidth,
+    cardHeight: resultCardHeight,
+    drawCardWidth: draw.width,
+    drawCardHeight: draw.height,
+    stageShiftY: 0,
+    stage,
+    drawer,
+    envelope,
   }
+}
 
-  // draw_stage: drawer keeps anchoring to the stage bottom (same behaviour
-  // as before this change). Pass `stage.height` so cardBottom collapses to
-  // `stage.y + stage.height` per the formula in computeDrawer's docstring.
+/**
+ * Solve the draw-stage layout — three-pile grid where each pile is one
+ * draw card and the drawer stays anchored at the stage bottom (the
+ * drawer is closed during shuffle / cut / draw, but the geometry is
+ * still emitted for downstream consumers that branch on it).
+ */
+function solveDrawStageLayout(
+  viewport: PhysicalViewport,
+  sizes: ResponsiveSizes,
+  stage: StageRect,
+  draw: { width: number; height: number },
+): SceneLayout {
+  // cardBottom collapses to `stage.y + stage.height` per the formula in
+  // computeDrawer's docstring when `cardHeight === stage.height`.
   const drawer = computeDrawer(viewport, stage, stage.height)
-
-  // draw_stage: single centered slot at (0, 0) using the draw card size.
+  const envelope = computeEnvelope(draw.width, draw.height, sizes.gap)
   const cards: CardLayout[] = [
     {
       slotId: 'center',
@@ -160,4 +165,34 @@ export function solveLayout(input: SolveLayoutInput): SceneLayout {
     drawer,
     envelope,
   }
+}
+
+/**
+ * Solve the layout for one scene.
+ *
+ * Pure function: identical inputs produce identical outputs, no side effects.
+ *
+ * Strategy
+ * ────────
+ *  1. Compute the stage rect — largest 1:1.6 box that fits the canvas
+ *     after subtracting margins, header, safe areas, and (on the reading
+ *     scene) the bottom drawer + action-area reservation. The stage is
+ *     centred horizontally and pinned below the header.
+ *  2. Compute the 3-pile draw card size from the stage (one card per pile).
+ *  3. Dispatch to the per-scene composer:
+ *     - reading_stage: `solveReadingStageLayout` (single result card +
+ *       bottom drawer anchored to its bottom edge).
+ *     - draw_stage: `solveDrawStageLayout` (one centered slot + drawer
+ *       anchored to the stage bottom).
+ */
+export function solveLayout(input: SolveLayoutInput): SceneLayout {
+  const { viewport, sizes, scene } = input
+  const reservation = scene === 'reading_stage'
+    ? readingStageReservation(viewport, sizes)
+    : 0
+  const stage = computeStage(viewport, sizes, reservation)
+  const draw = computeDrawCardSize(stage, sizes)
+  return scene === 'reading_stage'
+    ? solveReadingStageLayout(viewport, sizes, stage, draw)
+    : solveDrawStageLayout(viewport, sizes, stage, draw)
 }
