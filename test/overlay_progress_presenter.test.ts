@@ -38,11 +38,16 @@ describe('overlay_progress/phase_progress_presenter', () => {
       expect(presentation.items[2].isCompensated).toBe(false)
     })
 
-    it('includes correct icon paths', () => {
+    it('includes correct icon paths for both active and inactive variants', () => {
       const presentation = presentProgressHeader('revealing', mockGetIconAsset)
 
-      expect(presentation.items[0].iconSrc).toContain('icon_wands')
-      expect(presentation.items[3].iconSrc).toContain('icon_pentacles')
+      // Both variants are always resolved so the view layer can stack
+      // them and crossfade via CSS opacity (eliminates phase-transition
+      // color-change lag previously caused by lazy active-asset fetching).
+      expect(presentation.items[0].iconSrcActive).toContain('icon_wands')
+      expect(presentation.items[0].iconSrcInactive).toContain('icon_wands_inactive')
+      expect(presentation.items[3].iconSrcActive).toContain('icon_pentacles')
+      expect(presentation.items[3].iconSrcInactive).toContain('icon_pentacles_inactive')
     })
   })
 
