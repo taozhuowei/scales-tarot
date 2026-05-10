@@ -9,15 +9,16 @@
  *          to host browser-only APIs (window, MouseEvent, TouchEvent),
  *          which would force eslint disables for `no-restricted-globals`
  *          throughout the script. The same trick is used by
- *          `utils/dev/container_borders.ts` — H5-only behaviour lives
- *          behind a `// #ifdef H5` gate so mp-weixin builds compile out
- *          the implementation entirely.
+ *          `utils/dev/container_borders.ts`: H5-only behaviour lives
+ *          behind uni-app's H5 conditional-compile gate, so mp-weixin
+ *          builds compile out the implementation entirely.
  *
  * Platform behavior:
  *   - H5: full mouse + touch drag with viewport clamping.
- *   - mp-weixin: every browser-touching helper compiles out under
- *     `// #ifdef H5`. The factory still returns a controller object so
- *     callers don't need to branch on platform; methods become no-ops.
+ *   - mp-weixin: every browser-touching helper compiles out under the
+ *     H5 conditional-compile gate. The factory still returns a
+ *     controller object so callers don't need to branch on platform;
+ *     methods become no-ops.
  */
 
 const HANDLE_SIZE_PX = 40
@@ -60,7 +61,7 @@ export interface DraggablePanelController {
 }
 
 // #ifdef H5
-/* eslint-disable no-restricted-globals, no-restricted-properties -- reason: H5-only drag controller; window/document access is gated by uniapp `// #ifdef H5` so mp-weixin builds compile this branch out. The DevToolsPanel that consumes it is itself dev-only (gated by import.meta.env.DEV). */
+/* eslint-disable no-restricted-globals, no-restricted-properties -- reason: H5-only drag controller; window/document access is gated by uniapp's H5 conditional-compile directive so mp-weixin builds compile this branch out. The DevToolsPanel that consumes it is itself dev-only (gated by import.meta.env.DEV). */
 
 /** Mutable state shared between gesture handlers within a single
  *  controller instance. Kept as a struct so the helpers below can be
