@@ -44,7 +44,7 @@
  */
 import ReadingPanel from '../components/containers/ReadingPanel.vue'
 import ActionArea from '../components/containers/ActionArea.vue'
-import type { ReadingResult } from '../api/types'
+import type { ReadingResult } from '../core/api/types'
 import type { ReadingStatus } from '../utils/reading/reading_orchestrator'
 import type { DivinationPhase } from '../stores/flow'
 

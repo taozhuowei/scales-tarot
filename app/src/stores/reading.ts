@@ -11,7 +11,7 @@
  */
 
 import { ref } from 'vue'
-import type { ReadingResult } from '../api/types'
+import type { ReadingResult } from '../core/api/types'
 
 export function createReadingState() {
   const readingResult = ref<ReadingResult | null>(null)

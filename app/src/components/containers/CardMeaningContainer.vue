@@ -78,7 +78,7 @@
  */
 import { useReadingPanelController } from '../../composables/use_reading_panel_controller'
 import TypewriterText from '../TypewriterText.vue'
-import type { ReadingResult } from '../../api/types'
+import type { ReadingResult } from '../../core/api/types'
 
 const props = defineProps<{
   readingResult: ReadingResult | null

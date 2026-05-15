@@ -13,7 +13,7 @@ import { useTarotStore } from '../stores/tarot'
 import { RuleBasedReadingProvider } from '../utils/reading/rule_based_reading_provider'
 import { createReadingOrchestrator } from '../utils/reading/reading_orchestrator'
 import type { ReadingRequest } from '../utils/reading/reading_provider'
-import type { ReadingResult } from '../api/types'
+import type { ReadingResult } from '../core/api/types'
 import type { ReadingStatus } from '../utils/reading/reading_orchestrator'
 import type { ComputedRef } from 'vue'
 

@@ -76,7 +76,7 @@
 import ConclusionContainer from './ConclusionContainer.vue'
 import CardMeaningContainer from './CardMeaningContainer.vue'
 import ReadingTextContainer from './ReadingTextContainer.vue'
-import type { ReadingResult } from '../../api/types'
+import type { ReadingResult } from '../../core/api/types'
 import type { ReadingStatus } from '../../utils/reading/reading_orchestrator'
 
 defineProps<{

@@ -56,7 +56,7 @@ import {
   HERO_QUESTION_START_DELAY,
   HERO_QUESTION_CHAR_INTERVAL,
 } from '../../core/config/layout_constants'
-import type { ReadingResult } from '../../api/types'
+import type { ReadingResult } from '../../core/api/types'
 
 const props = defineProps<{
   readingResult: ReadingResult | null

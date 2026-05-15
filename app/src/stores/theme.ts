@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { fetchTheme, type ThemeData, type ThemeColors, type ThemeFonts } from '../api/themes'
+import { fetchTheme, type ThemeData, type ThemeColors, type ThemeFonts } from '../core/api/themes'
 
 export const useThemeStore = defineStore('theme', () => {
   // State

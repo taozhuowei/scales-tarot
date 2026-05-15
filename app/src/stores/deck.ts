@@ -5,7 +5,7 @@
  */
 
 import { ref } from 'vue'
-import { fetchAllCards } from '../api/cards'
+import { fetchAllCards } from '../core/api/cards'
 import type { TarotCardInfo } from '../utils/tarot_reading'
 
 export function createDeckState() {

@@ -1,7 +1,7 @@
 /** Divination flow state management (Pinia Store) — facade composing deck + reading + flow */
 
 import { defineStore } from 'pinia'
-import type { DrawnResult } from '../api/types'
+import type { DrawnResult } from '../core/api/types'
 import { createDeckState } from './deck'
 import { createReadingState } from './reading'
 import { createFlowState } from './flow'
