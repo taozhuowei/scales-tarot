@@ -33,13 +33,14 @@
 - `app/src/components/` → `app/src/shared/components/`(整目录;`containers/`、`overlay/`、`stage-content/`、`TypewriterText.vue` 原样保留)
 - `app/src/views/` → `app/src/shared/views/`(整目录 4 个 `.vue`)
 
-### import 改写规范
+### import 改写规范(权威,全任务统一)
 
-每个旧路径有两类引用,均须改;改写后旧路径双零命中方可提交:
+项目**运行时无 `@` 别名**(`app/vite.config.ts` 仅 `gsap` 别名、`app/vitest.config.ts` 无别名;`@/*` 仅 `tsconfig.json` 类型解析用)。代码惯例全程相对路径。铁律:
 
-- alias 形式:`@/<old>/...`(`@/*` → `app/src/*`,见 `app/tsconfig.json` + `app/vite.config.ts:21`)→ 改为 `@/<new>/...`。
-- 相对形式(`../<old>/`、`./<old>/`)→ 统一改写为 alias `@/<new>/...`(等价、最稳,避免相对路径重算错误)。
-- 旧目录内部文件间的相对 import 不变(随目录整体迁移仍有效)。
+- **保持相对路径风格,严禁改用 `@/` 别名**(vite/vitest 无法解析会整批 import 失败——A1 已验证)。
+- 旧引用解析到 `app/src/<old>/X`,目标 `app/src/<newroot>/X`;引用文件到 `app/src` 的层级不变,故**仅把路径段 `<old>` 替换为 `<newroot>`,相对前缀 `../`/`./` 数量不变**(`../stores/x`→`../shared/store/x`、`../../api/x`→`../../core/api/x`、`./api/x`→`./core/api/x`)。
+- 动态 `import('...')` 同规则;旧目录内部文件间相对 import 不变(随目录整体迁移仍有效)。
+- 改写后旧相对路径各形式与 `@/<old>` 均 `rg` 零命中方可提交。逐文件用 `path.relative(dirname(file),'app/src/<newroot>')` 精确生成前缀最稳。
 
 ### 通用验收(每个搬迁任务必须全绿)
 
@@ -61,42 +62,42 @@
 ### A1 — api/ → core/api/
 
 - executor `Backend Architect`;审计 `Code Reviewer` + `Minimal Change Engineer`。前置:无(首个;`core/` 已存在)。
-- 步骤:① `git mv app/src/api app/src/core/api` ② `rg -l "@/api/|(\.\./)+api/|['\"]\./api/" app/src app/test/` 找引用 ③ 旧 `@/api/x`→`@/core/api/x`,旧相对引用统一改 alias `@/core/api/x`。
+- 步骤:① `git mv app/src/api app/src/core/api` ② `rg -l "@/api/|(\.\./)+api/|['\"]\./api/" app/src app/test/` 找引用 ③ 按〔import 改写规范〕改引用:相对路径保 `../`/`./` 前缀,段 `api`→`core/api`;`api/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/api` + `rg "@/api/|['\"][^'\"]*\.\./api/" app/src app/test/` 零命中 + gate full + app vitest 全绿。
 - commit:`refactor(app): move api into core/api`
 
 ### A2 — utils/ → core/utils/
 
 - executor `Frontend Developer`;审计 `Code Reviewer` + `Minimal Change Engineer`(重点校验 `reading/`、`tarot_reading.ts` 未被误拆/重分类)。前置:A1 已 commit。
-- 步骤:① `git mv app/src/utils app/src/core/utils`(含全部子目录)② 找引用 `rg -l "@/utils/|(\.\./)+utils/|['\"]\./utils/" app/src app/test/` ③ 旧 `@/utils/x`→`@/core/utils/x`,旧相对引用统一改 alias。
+- 步骤:① `git mv app/src/utils app/src/core/utils`(含全部子目录)② 找引用 `rg -l "@/utils/|(\.\./)+utils/|['\"]\./utils/" app/src app/test/` ③ 按〔import 改写规范〕改引用:相对路径保前缀,段 `utils`→`core/utils`;`utils/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/utils` + `rg "@/utils/|['\"][^'\"]*\.\./utils/" app/src app/test/` 零命中 + gate full + app vitest 全绿。
 - commit:`refactor(app): move utils into core/utils`
 
 ### A3 — stores/ → shared/store/
 
 - executor `Software Architect`;审计 `Code Reviewer` + `Reality Checker`(Pinia 注册/`main.ts` SSR 入口/`flow.ts`+`reading.ts` 未删)。前置:A2 已 commit;`shared/` 需先建。
-- 步骤:① `mkdir -p app/src/shared` ② `git mv app/src/stores app/src/shared/store` ③ 找引用 `rg -l "@/stores/|(\.\./)+stores/|['\"]\./stores/" app/src app/test/` ④ 旧 `@/stores/x`→`@/shared/store/x`,旧相对引用统一改 alias。
+- 步骤:① `mkdir -p app/src/shared` ② `git mv app/src/stores app/src/shared/store` ③ 找引用 `rg -l "@/stores/|(\.\./)+stores/|['\"]\./stores/" app/src app/test/` ④ 按〔import 改写规范〕改引用:相对路径保前缀,段 `stores`→`shared/store`;`store/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/stores && test -f app/src/shared/store/flow.ts && test -f app/src/shared/store/reading.ts` + `rg "@/stores/|['\"][^'\"]*\.\./stores/" app/src app/test/` 零命中 + gate full + app vitest 全绿。
 - commit:`refactor(app): move stores into shared/store`
 
 ### A4 — animation/ → core/animation/
 
 - executor `Frontend Developer`;审计 `Code Reviewer` + `Minimal Change Engineer`(重点校验 `reconciler.ts` 未改名、phases 未按 state 拆)。前置:A3 已 commit。
-- 步骤:① `git mv app/src/animation app/src/core/animation`(含 `phases/`、`atoms/`、`adapters/`、`reconciler.ts` 等全部)② 找引用 `rg -l "@/animation/|(\.\./)+animation/|['\"]\./animation/" app/src app/test/` ③ 旧 `@/animation/x`→`@/core/animation/x`,旧相对引用统一改 alias。
+- 步骤:① `git mv app/src/animation app/src/core/animation`(含 `phases/`、`atoms/`、`adapters/`、`reconciler.ts` 等全部)② 找引用 `rg -l "@/animation/|(\.\./)+animation/|['\"]\./animation/" app/src app/test/` ③ 按〔import 改写规范〕改引用:相对路径保前缀,段 `animation`→`core/animation`;`animation/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/animation && test -f app/src/core/animation/reconciler.ts` + `rg "@/animation/|['\"][^'\"]*\.\./animation/" app/src app/test/` 零命中 + gate full + app vitest 全绿。
 - commit:`refactor(app): move animation into core/animation`
 
 ### A5 — components/ → shared/components/
 
 - executor `Frontend Developer`;审计 `Code Reviewer` + `Minimal Change Engineer`(校验 `.vue` 引用含动态 import/模板注册全改)。前置:A4 已 commit;`shared/` 已存在。
-- 步骤:① `git mv app/src/components app/src/shared/components`(含 `containers/`、`overlay/`、`stage-content/`、`TypewriterText.vue`)② 找引用 `rg -l "@/components/|(\.\./)+components/|['\"]\./components/" app/src app/test/` ③ 旧 `@/components/x`→`@/shared/components/x`,旧相对引用统一改 alias。
+- 步骤:① `git mv app/src/components app/src/shared/components`(含 `containers/`、`overlay/`、`stage-content/`、`TypewriterText.vue`)② 找引用 `rg -l "@/components/|(\.\./)+components/|['\"]\./components/" app/src app/test/` ③ 按〔import 改写规范〕改引用:相对路径保前缀,段 `components`→`shared/components`;`components/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/components` + `rg "@/components/|['\"][^'\"]*\.\./components/" app/src app/test/` 零命中 + gate full + app vitest 全绿(视图回归归 A7)。
 - commit:`refactor(app): move components into shared/components`
 
 ### A6 — views/ → shared/views/
 
 - executor `Frontend Developer`;审计 `Code Reviewer` + `Minimal Change Engineer`(校验 `pages/main`+`pages/fallback` 入口引用已改、`PlayView.vue` 未拆)。前置:A5 已 commit。
-- 步骤:① `git mv app/src/views app/src/shared/views`(`PlayView`/`ReadingSplitView`/`ReadingDrawerView`/`FallbackView` 4 文件)② 找引用 `rg -l "@/views/|(\.\./)+views/|['\"]\./views/" app/src app/test/` ③ 旧 `@/views/x`→`@/shared/views/x`,旧相对引用统一改 alias。
+- 步骤:① `git mv app/src/views app/src/shared/views`(`PlayView`/`ReadingSplitView`/`ReadingDrawerView`/`FallbackView` 4 文件)② 找引用 `rg -l "@/views/|(\.\./)+views/|['\"]\./views/" app/src app/test/` ③ 按〔import 改写规范〕改引用:相对路径保前缀,段 `views`→`shared/views`;`views/` 内部相对 import 不变。
 - 验收:`test ! -d app/src/views && test -f app/src/shared/views/PlayView.vue` + `rg "@/views/|['\"][^'\"]*\.\./views/" app/src app/test/` 零命中 + gate full + app vitest 全绿。
 - commit:`refactor(app): move views into shared/views`
 
