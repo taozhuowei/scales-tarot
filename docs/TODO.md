@@ -59,6 +59,8 @@
 
 ## Phase A 任务(h5 only,顺序执行:被依赖多者先行)
 
+> ✅ **已完成(2026-05-16)**:commit `0e37236`→`204c27c`(7 搬迁+1 连带修复)。根目录收敛至 `core/composables/shared/pages/styles`,6 横切目录消灭;`gate full` 全绿(质量门/类型/单测 app182+server54/arch:check 无依赖违规/dead-code/dup);prod 构建 perf Δ0.0% + SPA smoke 通过;全流程截图与基线对照,静态/动画帧逐字节一致、reading 仅业务随机差异——视觉/功能零回归。内部细分见 Phase A2。
+
 ### A1 — api/ → core/api/
 
 - executor `Backend Architect`;审计 `Code Reviewer` + `Minimal Change Engineer`。前置:无(首个;`core/` 已存在)。
