@@ -114,7 +114,7 @@
  *            theme- and tarot-store-derived helpers, preserving the
  *            single-source-of-truth contract.
  */
-import type { UseAnimationControllerReturn } from '../../composables/use_animation_controller'
+import type { UseAnimationControllerReturn } from '../../../composables/use_animation_controller'
 
 defineProps<{
   /** Animation controller surface — owns deckCount, draws*, piles*, etc. */

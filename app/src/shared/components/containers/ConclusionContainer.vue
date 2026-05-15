@@ -48,15 +48,15 @@
  *           calls useReadingPanelController to derive toneClass + hero text +
  *           timing. Null guard is internal — parent may pass null briefly.
  */
-import { useReadingPanelController } from '../../composables/use_reading_panel_controller'
+import { useReadingPanelController } from '../../../composables/use_reading_panel_controller'
 import TypewriterText from '../TypewriterText.vue'
 import {
   HERO_TITLE_START_DELAY,
   HERO_TITLE_CHAR_INTERVAL,
   HERO_QUESTION_START_DELAY,
   HERO_QUESTION_CHAR_INTERVAL,
-} from '../../core/config/layout_constants'
-import type { ReadingResult } from '../../core/api/types'
+} from '../../../core/config/layout_constants'
+import type { ReadingResult } from '../../../core/api/types'
 
 const props = defineProps<{
   readingResult: ReadingResult | null

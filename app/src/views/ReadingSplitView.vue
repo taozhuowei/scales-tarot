@@ -42,8 +42,8 @@
  *           `question`, and an optional `errorMessage`. Emits map directly
  *           onto store transitions in 2.2.
  */
-import ReadingPanel from '../components/containers/ReadingPanel.vue'
-import ActionArea from '../components/containers/ActionArea.vue'
+import ReadingPanel from '../shared/components/containers/ReadingPanel.vue'
+import ActionArea from '../shared/components/containers/ActionArea.vue'
 import type { ReadingResult } from '../core/api/types'
 import type { ReadingStatus } from '../core/utils/reading/reading_orchestrator'
 import type { DivinationPhase } from '../shared/store/flow'
