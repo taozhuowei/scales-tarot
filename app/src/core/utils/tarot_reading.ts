@@ -22,4 +22,4 @@ export type {
   ReadingCardDetail,
   ReadingResult,
   DivinationResponse,
-} from '../core/api/types'
+} from '../api/types'

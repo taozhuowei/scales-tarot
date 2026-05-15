@@ -75,7 +75,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import ReadingPanel from '../components/containers/ReadingPanel.vue'
 import ActionArea from '../components/containers/ActionArea.vue'
 import type { ReadingResult } from '../core/api/types'
-import type { ReadingStatus } from '../utils/reading/reading_orchestrator'
+import type { ReadingStatus } from '../core/utils/reading/reading_orchestrator'
 import type { DivinationPhase } from '../stores/flow'
 import type { DrawerGeometry } from '../core/sizing/layout_solver'
 

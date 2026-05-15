@@ -14,7 +14,7 @@
 
 import type { Ref } from 'vue'
 import { solveLayout, type LayoutEnvelope } from '../../core/sizing/layout_solver'
-import { clamp } from '../../utils/math'
+import { clamp } from '../../core/utils/math'
 import { SHUFFLE_EDGE_MARGIN } from '../../core/config/layout_constants'
 import { buildPhysicalViewport, getSizes, type Scene } from './scene'
 

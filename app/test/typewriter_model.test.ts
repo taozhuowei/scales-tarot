@@ -5,7 +5,7 @@ import {
   createTypewriterModel,
   calculateFieldTiming,
   calculateKeywordTiming,
-} from '../src/utils/typing/typewriter_model'
+} from '../src/core/utils/typing/typewriter_model'
 
 describe('typewriter_model', () => {
   beforeEach(() => {

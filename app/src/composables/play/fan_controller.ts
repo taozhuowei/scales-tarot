@@ -19,7 +19,7 @@
  */
 
 import { gsap } from 'gsap'
-import { prefersReducedMotion } from '../../utils/accessibility'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 import { buildFanTimeline } from '../../animation/phases/fan/builder'
 import type { FanController, PlayDeckRuntime } from './types'
 

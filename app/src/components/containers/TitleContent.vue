@@ -47,7 +47,7 @@
  */
 import { onUnmounted, ref, watch, onMounted } from 'vue'
 import { gsap } from 'gsap'
-import { prefersReducedMotion } from '../../utils/accessibility'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 
 const props = withDefaults(
   defineProps<{

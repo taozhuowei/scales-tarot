@@ -32,7 +32,7 @@ describe('secure_random fallback (no globalThis.crypto)', () => {
   })
 
   it('produces values inside [0, 1)', async () => {
-    const { randomFloat } = await import('../src/utils/secure_random')
+    const { randomFloat } = await import('../src/core/utils/secure_random')
     for (let i = 0; i < 100; i++) {
       const v = randomFloat()
       expect(v).toBeGreaterThanOrEqual(0)
@@ -46,14 +46,14 @@ describe('secure_random fallback (no globalThis.crypto)', () => {
     // The current implementation breaks the tie via a monotonic counter
     // mixed through Knuth's hash constant; the regression test asserts
     // we get at least 30 distinct values out of 32 quick calls.
-    const { randomFloat } = await import('../src/utils/secure_random')
+    const { randomFloat } = await import('../src/core/utils/secure_random')
     const samples = new Set<number>()
     for (let i = 0; i < 32; i++) samples.add(randomFloat())
     expect(samples.size).toBeGreaterThanOrEqual(30)
   })
 
   it('randomInRange respects bounds', async () => {
-    const { randomInRange } = await import('../src/utils/secure_random')
+    const { randomInRange } = await import('../src/core/utils/secure_random')
     for (let i = 0; i < 100; i++) {
       const v = randomInRange(-5, 5)
       expect(v).toBeGreaterThanOrEqual(-5)
@@ -70,7 +70,7 @@ describe('secure_random crypto path', () => {
     const c = (globalThis as { crypto?: { getRandomValues?: unknown } }).crypto
     expect(typeof c?.getRandomValues).toBe('function')
 
-    const { randomFloat } = await import('../src/utils/secure_random')
+    const { randomFloat } = await import('../src/core/utils/secure_random')
     for (let i = 0; i < 100; i++) {
       const v = randomFloat()
       expect(v).toBeGreaterThanOrEqual(0)

@@ -18,7 +18,7 @@ import {
   type PhaseSnapDeps,
 } from '../../animation/phases/registry'
 import type { OverlayPhase } from '../../core/flow/types'
-import type { ProgressModel } from '../../utils/overlay_progress/phase_progress_model'
+import type { ProgressModel } from '../../core/utils/overlay_progress/phase_progress_model'
 
 export interface ReplayFromPhaseCommandDeps {
   interruptCurrentAnimation: () => void

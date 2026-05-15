@@ -11,7 +11,7 @@ import {
   calculatePhaseProgress,
   presentProgressHeader,
   presentFooter,
-} from '../utils/overlay_progress'
+} from '../core/utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
 
 export interface UsePresentationOptions {

@@ -12,7 +12,7 @@
  *          then growAtom + flipAtom compose into the timeline.
  */
 import gsap from 'gsap'
-import type { AnimationTimeline } from '../../../animation/engine'
+import type { AnimationTimeline } from '../../engine'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../core/flow/types'
 import { growAtom } from '../../atoms/grow'
 import { flipAtom } from '../../atoms/flip'

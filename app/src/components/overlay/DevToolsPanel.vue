@@ -79,7 +79,7 @@ import type { OverlayPhase } from '../../core/flow/types'
 import {
   createDraggablePanel,
   type Position,
-} from '../../utils/dev/draggable_panel'
+} from '../../core/utils/dev/draggable_panel'
 import DevToolsCollapsedHandle from './DevToolsCollapsedHandle.vue'
 import DevToolsPhaseRow from './DevToolsPhaseRow.vue'
 import DevToolsPlaybackRow from './DevToolsPlaybackRow.vue'

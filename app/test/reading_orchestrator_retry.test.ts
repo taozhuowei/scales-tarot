@@ -9,10 +9,10 @@
 
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
-import { createReadingOrchestrator } from '../src/utils/reading/reading_orchestrator'
-import type { ReadingProvider, ReadingRequest } from '../src/utils/reading/reading_provider'
-import type { DrawnResult, ReadingResult, TarotCardInfo } from '../src/api/types'
-import type { Divination } from '../src/api/divinations'
+import { createReadingOrchestrator } from '../src/core/utils/reading/reading_orchestrator'
+import type { ReadingProvider, ReadingRequest } from '../src/core/utils/reading/reading_provider'
+import type { DrawnResult, ReadingResult, TarotCardInfo } from '../src/core/api/types'
+import type { Divination } from '../src/core/api/divinations'
 
 function makeCard(id: string): TarotCardInfo {
   return {

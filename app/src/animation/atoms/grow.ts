@@ -10,7 +10,7 @@
  *          appends flipAtom — the two compose into the full reveal
  *          animation.
  */
-import { prefersReducedMotion } from '../../utils/accessibility'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 import type { AtomFn } from './types'
 
 export interface GrowAtomConfig {

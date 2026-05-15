@@ -9,7 +9,7 @@
  *         with resolved asset URLs) flows out.
  */
 
-import { requestDivination, type Divination } from '../../core/api/divinations'
+import { requestDivination, type Divination } from '../../api/divinations'
 import type { ReadingProvider, ReadingRequest } from './reading_provider'
 
 export class RuleBasedReadingProvider implements ReadingProvider {

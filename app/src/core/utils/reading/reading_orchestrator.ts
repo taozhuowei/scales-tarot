@@ -13,8 +13,8 @@
  */
 
 import type { Ref } from 'vue'
-import type { DrawnResult, ReadingResult } from '../../core/api/types'
-import type { Divination } from '../../core/api/divinations'
+import type { DrawnResult, ReadingResult } from '../../api/types'
+import type { Divination } from '../../api/divinations'
 import type { ReadingProvider, ReadingRequest } from './reading_provider'
 
 export type ReadingStatus = 'idle' | 'loading' | 'success' | 'error'

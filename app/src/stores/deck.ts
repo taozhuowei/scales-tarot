@@ -6,7 +6,7 @@
 
 import { ref } from 'vue'
 import { fetchAllCards } from '../core/api/cards'
-import type { TarotCardInfo } from '../utils/tarot_reading'
+import type { TarotCardInfo } from '../core/utils/tarot_reading'
 
 export function createDeckState() {
   const allCards = ref<TarotCardInfo[]>([])

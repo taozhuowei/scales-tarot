@@ -9,8 +9,8 @@
  * Data flow: spread kind flows in -> hydrated `Divination` flows out.
  */
 
-import type { Divination } from '../../core/api/divinations'
-import type { SpreadKind } from '../../core/api/types'
+import type { Divination } from '../../api/divinations'
+import type { SpreadKind } from '../../api/types'
 
 export type ReadingProviderType = 'rule_based' | 'ai'
 

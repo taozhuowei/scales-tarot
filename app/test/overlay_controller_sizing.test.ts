@@ -5,7 +5,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref, isRef } from 'vue'
 import type { Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
-import type { TarotCardInfo } from '../src/utils/tarot_reading'
+import type { TarotCardInfo } from '../src/core/utils/tarot_reading'
 
 // The controller calls storeToRefs(tarotStore); mocking the cards API the
 // deck store reads at module init keeps useTarotStore() constructible

@@ -5,8 +5,8 @@
  * Data flow: progress state flows in; presentation data flows out.
  */
 
-import type { OverlayPhase } from '../../animation/phases/registry'
-import { getPhaseSteps } from '../../animation/phases/registry'
+import type { OverlayPhase } from '../../../animation/phases/registry'
+import { getPhaseSteps } from '../../../animation/phases/registry'
 
 export interface ProgressBarItem {
   phase: OverlayPhase

@@ -39,7 +39,7 @@
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { gsap } from 'gsap'
-import { prefersReducedMotion } from '../utils/accessibility'
+import { prefersReducedMotion } from '../core/utils/accessibility'
 import { solveLayoutFromWindow } from '../core/sizing/solve_from_window'
 import type { UseAnimationControllerReturn } from './use_animation_controller'
 import type { DivinationPhase } from '../stores/flow'

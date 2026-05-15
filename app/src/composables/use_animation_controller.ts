@@ -26,7 +26,7 @@ import {
   calculatePhaseProgress,
   presentProgressHeader,
   presentFooter,
-} from '../utils/overlay_progress'
+} from '../core/utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
 import {
   MAX_CARD_COUNT,

@@ -6,9 +6,9 @@
  */
 
 import { ref } from 'vue'
-import { createProgressModel } from '../utils/overlay_progress'
+import { createProgressModel } from '../core/utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
-import type { ProgressModel } from '../utils/overlay_progress/phase_progress_model'
+import type { ProgressModel } from '../core/utils/overlay_progress/phase_progress_model'
 
 export function usePhases() {
   const phase = ref<OverlayPhase>('shuffling')

@@ -8,7 +8,7 @@ import type { Ref } from 'vue'
 import type { DrawCardState } from '../animation/types'
 import type { OverlayPhase } from '../core/flow/types'
 import type { SceneKind, SceneLayout } from '../core/sizing/layout_solver'
-import type { ProgressModel } from '../utils/overlay_progress/phase_progress_model'
+import type { ProgressModel } from '../core/utils/overlay_progress/phase_progress_model'
 import type { PipelineSharedDeps } from './pipeline_shared_deps'
 
 export interface LifecycleAnimState {

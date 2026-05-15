@@ -16,7 +16,7 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useTarotStore } from '../src/stores/tarot'
-import type { DrawnResult, ReadingResult, TarotCardInfo } from '../src/utils/tarot_reading'
+import type { DrawnResult, ReadingResult, TarotCardInfo } from '../src/core/utils/tarot_reading'
 
 // Helper to create minimal valid TarotCardInfo
 function makeCard(id: string, sentiment: 'positive' | 'negative' | 'neutral' = 'positive'): TarotCardInfo {

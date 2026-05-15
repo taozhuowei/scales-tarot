@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { TarotCardInfo } from '../src/utils/tarot_reading'
+import type { TarotCardInfo } from '../src/core/utils/tarot_reading'
 
 // The controller calls storeToRefs(tarotStore), which requires a real Pinia
 // store. Mocking the cards API the deck store reads at module init keeps

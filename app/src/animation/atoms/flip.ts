@@ -9,7 +9,7 @@
  * Data flow: reveal builder calls flipAtom after growAtom; flip operates
  *          on `inners` state objects (rotationY).
  */
-import { prefersReducedMotion } from '../../utils/accessibility'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 import type { AtomFn } from './types'
 
 export interface FlipAtomConfig {

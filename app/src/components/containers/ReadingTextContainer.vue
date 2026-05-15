@@ -43,7 +43,7 @@
  */
 import { onMounted, onUnmounted } from 'vue'
 import { useReadingPanelController } from '../../composables/use_reading_panel_controller'
-import { prefersReducedMotion } from '../../utils/accessibility'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 import TypewriterText from '../TypewriterText.vue'
 import type { ReadingResult } from '../../core/api/types'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getResultStatement, getSummaryText } from '../src/utils/reading/reading_result_presenter'
-import type { ReadingResult } from '../src/utils/tarot_reading'
+import { getResultStatement, getSummaryText } from '../src/core/utils/reading/reading_result_presenter'
+import type { ReadingResult } from '../src/core/utils/tarot_reading'
 
 describe('result_panel utils', () => {
   it('returns proper result statements', () => {

@@ -5,8 +5,8 @@
  * Data flow: phase changes flow in; progress state flows out.
  */
 
-import type { OverlayPhase } from '../../animation/phases/registry'
-import { getPhaseIndex, getPhaseSteps } from '../../animation/phases/registry'
+import type { OverlayPhase } from '../../../animation/phases/registry'
+import { getPhaseIndex, getPhaseSteps } from '../../../animation/phases/registry'
 
 export interface ProgressState {
   currentPhase: OverlayPhase

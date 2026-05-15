@@ -9,9 +9,9 @@
 // function exports (to, timeline, killTweensOf) are not available from
 // gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
-import type { AnimationTimeline } from '../../../animation/engine'
+import type { AnimationTimeline } from '../../engine'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../core/flow/types'
-import { prefersReducedMotion } from '../../../utils/accessibility'
+import { prefersReducedMotion } from '../../../core/utils/accessibility'
 import { SHUFFLE_SPREAD_X } from '../../../core/config/layout_constants'
 
 export interface ShufflePhaseConfig {
