@@ -13,13 +13,12 @@
   },
   "simple-git-hooks": {
     "pre-commit": "node scripts/quality_gate.js staged",
-    "commit-msg": "npx commitlint --edit $1",
+    "commit-msg": "npx commitlint --config config/commitlint.config.cjs --edit $1",
     "pre-push": "node scripts/quality_gate.js full"
   },
   "workspaces": [
     "app",
-    "server",
-    "test"
+    "server"
   ],
   "dependencies": {
     "@dcloudio/uni-app": "^3.0.0-alpha-5000820260430001",
@@ -58,8 +57,6 @@
     "cross-env": "^10.1.0",
     "dependency-cruiser": "^17.3.10",
     "eslint": "^10.2.0",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-sonarjs": "^4.0.3",
     "eslint-plugin-vue": "^10.8.0",
     "jscpd": "^4.0.9",

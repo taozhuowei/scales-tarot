@@ -71,13 +71,13 @@ async function build_server() {
 }
 
 async function run_smoke() {
-  // The webServer block in test/playwright.config.ts boots `start:prod` and
+  // The webServer block in app/playwright.config.ts boots `start:prod` and
   // reuses an existing server locally. quietly relies on `server/dist` and
   // `server/public/static` being populated, hence the order above.
   return run(
     'smoke: Playwright SPA boot',
     'npx',
-    ['playwright', 'test', '--config=test/playwright.config.ts', 'test/e2e/spa_boot_smoke.spec.ts'],
+    ['playwright', 'test', '--config=app/playwright.config.ts', 'app/test/e2e/spa_boot_smoke.spec.ts'],
   )
 }
 

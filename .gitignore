@@ -7,27 +7,11 @@
 /app/node_modules/
 /server/node_modules/
 /test/node_modules/
-.eslintcache
 .env*.local
 
 # Dependencies
 node_modules/
 /output/
 
-# Playwright artifacts
-/test/test-results/
-/test/playwright-report/
-/playwright-report/
-/test-results/
-
-# Quality-tool reports (regenerable)
-/reports/
-
-# perf_baseline.json (repo root) is the committed bundle-size contract for
-# scripts/perf_baseline_gate.js — DO NOT add it here. Any stale legacy copy
-# under scripts/ should be removed; the script no longer writes there.
-/scripts/perf_baseline.json
-
-# Gitleaks bootstrap cache. Binary is downloaded on demand by
-# scripts/gitleaks_run.js; the version is pinned in that file.
-/.gitleaks/
+# Playwright artifacts and quality-tool reports now live under /dist/
+# (covered by line 1) — no separate ignore lines needed.

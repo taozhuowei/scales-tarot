@@ -1,0 +1,75 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/*.js",
+        "scripts/build/*.js",
+        "config/eslint.config.mjs",
+        "config/dependency-cruiser.cjs",
+        "config/commitlint.config.cjs"
+      ]
+    },
+    "app": {
+      "entry": [
+        "src/App.vue",
+        "src/pages/main/index.vue",
+        "src/pages/fallback/index.vue",
+        "test/*.test.ts",
+        "test/e2e/*.spec.ts",
+        "vitest.config.ts",
+        "playwright.config.ts"
+      ],
+      "project": [
+        "src/**/*.{ts,vue}",
+        "test/**/*.{ts,vue}",
+        "!src/**/*.d.ts"
+      ]
+    },
+    "server": {
+      "entry": [
+        "src/server.ts",
+        "src/app.ts",
+        "test/*.test.ts",
+        "vitest.config.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "test/**/*.ts"
+      ]
+    }
+  },
+  "commitlint": {
+    "config": ["config/commitlint.config.cjs"]
+  },
+  "ignoreDependencies": [
+    "@dcloudio/uni-app-plus",
+    "@dcloudio/uni-components",
+    "@dcloudio/uni-h5",
+    "@dcloudio/uni-mp-weixin",
+    "@dcloudio/uni-automator",
+    "@dcloudio/uni-cli-shared",
+    "@dcloudio/uni-stacktracey",
+    "@vue/runtime-core",
+    "jscpd",
+    "concurrently",
+    "tsx",
+    "cross-env",
+    "vue-tsc"
+  ],
+  "ignoreExportsUsedInFile": false,
+  "vite": true,
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "unlisted": "error",
+    "unresolved": "error",
+    "exports": "warn",
+    "types": "warn",
+    "nsExports": "warn",
+    "nsTypes": "warn",
+    "duplicates": "warn",
+    "enumMembers": "warn",
+    "classMembers": "warn"
+  }
+}

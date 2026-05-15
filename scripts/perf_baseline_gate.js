@@ -3,7 +3,7 @@
  *
  * Runs after the prod h5 build. Measures total `dist/build/h5/` size plus the
  * top 10 largest individual files, and compares each entry against the
- * committed baseline at repo-root `perf_baseline.json`. Single-file or total
+ * committed baseline at `scripts/perf_baseline.json`. Single-file or total
  * size growth > thresholds.regressPercent (default 10%) fails the gate.
  *
  * Decreases and additions are allowed silently — they only print warnings.
@@ -29,7 +29,7 @@ const { join, relative } = require('path')
 const REPO_ROOT = join(__dirname, '..')
 const BUILD_DIR = join(REPO_ROOT, 'dist', 'build', 'h5')
 const BUILD_DIR_REL = 'dist/build/h5'
-const BASELINE_PATH = join(REPO_ROOT, 'perf_baseline.json')
+const BASELINE_PATH = join(__dirname, 'perf_baseline.json')
 const TOTAL_KEY = `${BUILD_DIR_REL}/total`
 const TOP_N = 10
 const DEFAULT_THRESHOLD_PERCENT = 10
@@ -117,10 +117,10 @@ function loadBaseline() {
     if (raw && typeof raw === 'object' && raw.entries && typeof raw.entries === 'object') {
       return raw
     }
-    console.error('[perf] perf_baseline.json is malformed (missing entries map). Run with --update-baseline to rewrite.')
+    console.error('[perf] scripts/perf_baseline.json is malformed (missing entries map). Run with --update-baseline to rewrite.')
     return null
   } catch (err) {
-    console.error(`[perf] Failed to parse perf_baseline.json: ${err.message}`)
+    console.error(`[perf] Failed to parse scripts/perf_baseline.json: ${err.message}`)
     return null
   }
 }
@@ -147,7 +147,7 @@ function modeUpdateBaseline() {
   const total = measurement.entries[TOTAL_KEY].bytes
   console.log(`[perf] 已写入新基线 ${BASELINE_PATH}`)
   console.log(`[perf]   总大小 ${formatBytes(total)}，记录了 top ${TOP_N} 大文件`)
-  console.log('[perf] 请记得 git add perf_baseline.json 并 commit。')
+  console.log('[perf] 请记得 git add scripts/perf_baseline.json 并 commit。')
 }
 
 function modeCompare() {
@@ -162,8 +162,8 @@ function modeCompare() {
     // First run — seed and pass with a warning.
     writeBaseline(measurement)
     const total = measurement.entries[TOTAL_KEY].bytes
-    console.warn(`[perf] WARN: 未找到 perf_baseline.json，已基于当前构建生成首次基线（总大小 ${formatBytes(total)}）。`)
-    console.warn('[perf] 请 git add perf_baseline.json 并 commit，否则下次构建仍会重新生成。')
+    console.warn(`[perf] WARN: 未找到 scripts/perf_baseline.json，已基于当前构建生成首次基线（总大小 ${formatBytes(total)}）。`)
+    console.warn('[perf] 请 git add scripts/perf_baseline.json 并 commit，否则下次构建仍会重新生成。')
     return
   }
 
@@ -205,7 +205,7 @@ function modeCompare() {
     console.error('[perf] FAIL: 包体积回归超过阈值')
     for (const f of failures) console.error(`[perf]   - ${f}`)
     console.error('')
-    console.error('[perf] 如果这是预期变化，跑 `node scripts/perf_baseline_gate.js --update-baseline` 更新基线，然后 commit perf_baseline.json。')
+    console.error('[perf] 如果这是预期变化，跑 `node scripts/perf_baseline_gate.js --update-baseline` 更新基线，然后 commit scripts/perf_baseline.json。')
     process.exit(1)
   }
 

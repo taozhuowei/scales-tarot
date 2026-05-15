@@ -16,10 +16,10 @@ Scales Tarot 是一个以 H5 为主要交付形态的单页塔罗体验项目。
 
 ## 文档索引
 
-- 产品需求：[PRD.md](PRD.md)
-- 执行计划：[TODO.md](TODO.md)
+- 产品需求：[PRD.md](docs/PRD.md)
+- 执行计划：[TODO.md](docs/TODO.md)
 - 塔罗术语：[docs/tarot_glossary.md](docs/tarot_glossary.md)
-- 测试入口：[test/README.md](test/README.md)
+- 测试入口：见 [CLAUDE.md](CLAUDE.md) "Tests" 段（`app/test/` + `server/test/`）
 
 ---
 
@@ -184,8 +184,8 @@ CI 与 pre-push 跑同一套 `quality_gate.js full`，**绕过本地钩子的提
 
 ## 协作原则
 
-1. 开始任何任务前，先读 `TODO.md`、`PRD.md`，需要塔罗领域知识时查阅 `docs/tarot_glossary.md`。
-2. 产品范围变化，先更新 `PRD.md`；执行节奏变化，先更新 `TODO.md`。
+1. 开始任何任务前，先读 `docs/TODO.md`、`docs/PRD.md`，需要塔罗领域知识时查阅 `docs/tarot_glossary.md`。
+2. 产品范围变化，先更新 `docs/PRD.md`；执行节奏变化，先更新 `docs/TODO.md`。
 3. 所有代码改动都必须附带对应验证证据，至少覆盖类型检查、测试或构建中的必要项。
 4. 项目文档必须能被人类开发者直接理解，AI 只能是辅助工具，不能成为唯一知识入口。
 
@@ -209,8 +209,9 @@ CI 与 pre-push 跑同一套 `quality_gate.js full`，**绕过本地钩子的提
 ## 项目结构
 
 ```text
-app/      前端应用
-server/   后端服务
-test/     测试工作区
-docs/     塔罗术语
+app/      前端应用 + 前端测试（app/test/，含 e2e）
+server/   后端服务 + 后端测试（server/test/）
+scripts/  构建编排 + 质量门
+config/   工具配置（eslint / depcruise / jscpd / knip / commitlint / gitleaks）
+docs/     PRD、TODO、塔罗术语
 ```

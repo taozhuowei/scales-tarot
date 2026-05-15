@@ -4,9 +4,10 @@
  *
  * Why a bootstrap script: gitleaks is a Go binary (~22 MB) and committing it
  * into the repo (or asking every contributor to brew/apt install it) is a
- * non-starter. This script checks for a cached copy under `.gitleaks/bin/`
- * (gitignored) and downloads the pinned release on first use. Subsequent
- * invocations exec the cached binary directly with the caller's args.
+ * non-starter. This script checks for a cached copy under
+ * `node_modules/.cache/gitleaks/bin/` (gitignored as part of node_modules)
+ * and downloads the pinned release on first use. Subsequent invocations
+ * exec the cached binary directly with the caller's args.
  *
  * Pinned version is the single source of truth — bumping it requires editing
  * GITLEAKS_VERSION below and updating SHA256 (or letting the next CI run
@@ -30,7 +31,7 @@ const zlib = require('zlib')
 const GITLEAKS_VERSION = '8.30.1'
 
 const ROOT = path.resolve(__dirname, '..')
-const CACHE_DIR = path.join(ROOT, '.gitleaks')
+const CACHE_DIR = path.join(ROOT, 'node_modules', '.cache', 'gitleaks')
 const BIN_DIR = path.join(CACHE_DIR, 'bin')
 
 function platformAsset() {
