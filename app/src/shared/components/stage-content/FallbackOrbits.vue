@@ -47,7 +47,7 @@ import {
   createDefaultPlanets,
   startFallbackAnimation,
   type OrbitingPlanet,
-} from '../../core/animation/phases/fallback/builder'
+} from '../../../core/animation/phases/fallback/builder'
 
 const PLANET_TYPES = ['tetrahedron', 'parallelepiped', 'sphere', 'octahedron'] as const
 

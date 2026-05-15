@@ -4,8 +4,8 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { createTypewriterModel } from '../core/utils/typing/typewriter_model'
-import { prefersReducedMotion } from '../core/utils/accessibility'
+import { createTypewriterModel } from '../../core/utils/typing/typewriter_model'
+import { prefersReducedMotion } from '../../core/utils/accessibility'
 
 const props = withDefaults(defineProps<{
   text: string

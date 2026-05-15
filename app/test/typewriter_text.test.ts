@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import TypewriterText from '../src/components/TypewriterText.vue'
+import TypewriterText from '../src/shared/components/TypewriterText.vue'
 
 function mockMatchMedia(matches = false) {
   Object.defineProperty(window, 'matchMedia', {
