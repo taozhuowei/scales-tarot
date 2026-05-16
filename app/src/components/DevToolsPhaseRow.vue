@@ -34,7 +34,7 @@
  *          with the chosen phase, which the parent forwards to the
  *          overlay controller.
  */
-import type { OverlayPhase } from '../../../core/flow/types'
+import type { OverlayPhase } from '../core/flow/types'
 
 defineProps<{
   phaseSteps: { phase: OverlayPhase; label: string }[]

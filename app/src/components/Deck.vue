@@ -83,12 +83,12 @@
  */
 import { computed, inject } from 'vue'
 import type { Ref } from 'vue'
-import type { UseAnimationControllerReturn } from '../../../state/use_animation_controller'
-import { useTarotStore } from '../../store/tarot'
-import { useThemeStore } from '../../store/theme'
-import { usePlayDeckAnimation } from '../../../state/use_play_deck_animation'
-import { RESULT_LIFT_MARGIN_PX } from '../../../core/config/layout_constants'
-import type { DivinationPhase } from '../../store/flow'
+import type { UseAnimationControllerReturn } from '../state/use_animation_controller'
+import { useTarotStore } from '../shared/store/tarot'
+import { useThemeStore } from '../shared/store/theme'
+import { usePlayDeckAnimation } from '../state/use_play_deck_animation'
+import { RESULT_LIFT_MARGIN_PX } from '../core/config/layout_constants'
+import type { DivinationPhase } from '../shared/store/flow'
 import DeckFanStack from './DeckFanStack.vue'
 import DeckRig from './DeckRig.vue'
 

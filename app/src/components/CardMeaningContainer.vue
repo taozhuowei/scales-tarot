@@ -76,9 +76,9 @@
  *           useReadingPanelController for the view model including per-field
  *           timing. Null guard is internal — parent may pass null briefly.
  */
-import { useReadingPanelController } from '../../../state/shared/use_reading_panel_controller'
-import TypewriterText from '../TypewriterText.vue'
-import type { ReadingResult } from '../../../core/api/types'
+import { useReadingPanelController } from '../state/shared/use_reading_panel_controller'
+import TypewriterText from './TypewriterText.vue'
+import type { ReadingResult } from '../core/api/types'
 
 const props = defineProps<{
   readingResult: ReadingResult | null

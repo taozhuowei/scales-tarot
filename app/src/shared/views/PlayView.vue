@@ -82,11 +82,11 @@
  */
 import { computed, inject } from 'vue'
 import type { Ref } from 'vue'
-import HeaderArea from '../components/containers/HeaderArea.vue'
-import TitleContent from '../components/containers/TitleContent.vue'
-import ProgressContent from '../components/containers/ProgressContent.vue'
-import Stage from '../components/containers/Stage.vue'
-import Deck from '../components/stage-content/Deck.vue'
+import HeaderArea from '../../components/HeaderArea.vue'
+import TitleContent from '../../components/TitleContent.vue'
+import ProgressContent from '../../components/ProgressContent.vue'
+import Stage from '../../components/Stage.vue'
+import Deck from '../../components/Deck.vue'
 import type { UseAnimationControllerReturn } from '../../state/use_animation_controller'
 import type { DivinationPhase } from '../store/flow'
 
