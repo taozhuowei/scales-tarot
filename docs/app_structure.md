@@ -132,34 +132,3 @@ app/src/
 ├── uni.scss                           # uni-app 全局 scss 变量
 └── config.json                        # 应用配置
 ```
-
-## shared 五级就近规则
-
-共享文件放在**覆盖其全部消费者的最窄层**:
-
-| 级别 | 共享范围 | 位置 |
-|---|---|---|
-| L1 | 跨 state | `app/src/shared/` |
-| L2 | 单 state 跨 view+phase | `states/<state>/shared/` |
-| L2.5 | 单 state 跨多 view(不涉 phase) | `states/<state>/view/shared/`(仅 reading 有意义) |
-| L3 | 单 state 跨 phase(不涉 view) | `states/<state>/phases/shared/` |
-
-仅 1 个消费者时不建对应 shared 目录(idle 无 `phases/shared/`,单 view 的 state 无 `view/shared/`)。
-
-## components / composables / tasks 归属
-
-- **components**:按 L1~L3;单 view → `view/{containers,components}/`(`containers`=含逻辑大块,`components`=展示细粒度);单 phase → `phases/<phase>/components/`
-- **composables**:工程类(与 state 无关)→ `app/src/composables/`;其余按 L1~L3,单 view → `states/<state>/view/composables/`
-- **tasks**:按 L1~L3;仅单 phase 用的 task → 该 `<phase>_flow.ts` 文件内局部 function,不另建文件
-
-## 控制器位置
-
-- `states/state_controller.ts` — 全局唯一,管 state 间跳转(待机 → 占卜 → 解读 → 用户触发 → 待机,单向流)
-- `states/<state>/phase_controller.ts` — 每个 state 一个,管本 state 内 phase 间跳转
-
-## 关键不变点
-
-- `pages/` 是 uni-app 约定,**不可改名**;`pages/fallback/` 含 FallbackView,不归 state_controller 管
-- 顶层 `App.vue` `main.ts` `pages.json` `manifest.json` `styles/` 等 entry/config 原地不动
-- **不引入 `services/` 目录**;reading 的 API 走 `core/data/divinations.ts`
-- 文件命名:函数动词开头无 er 结尾(`reconcile` 非 `reconciler`);流程文件 `*_flow.ts` 后缀;控制器/对象可名词
