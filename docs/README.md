@@ -6,7 +6,6 @@
 
 - [../README.md](../README.md) — 根：项目总览 / 根目录架构 / 协作指导 / 授权声明
 - [../app/README.md](../app/README.md) — 前端 `app/` 目录架构与技术栈
-- [../app/docs/src_structure.md](../app/docs/src_structure.md) — `app/src/` 迁移目标深层结构
 - [../server/README.md](../server/README.md) — 后端 `server/` 目录架构与技术栈
 - [../scripts/README.md](../scripts/README.md) — 构建编排与质量门禁 `scripts/`
 - [../config/README.md](../config/README.md) — 根级工具配置 `config/`

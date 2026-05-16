@@ -30,7 +30,6 @@ scales-tarot/
 ```
 
 - 前端 [app/README.md](app/README.md) · 后端 [server/README.md](server/README.md) · 构建 [scripts/README.md](scripts/README.md) · 配置 [config/README.md](config/README.md)
-- `app/src/` 迁移目标深层结构：[app/docs/src_structure.md](app/docs/src_structure.md)
 - 架构索引导航页：[docs/app_structure.md](docs/app_structure.md)
 
 ## 技术栈
