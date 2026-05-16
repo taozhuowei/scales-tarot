@@ -23,7 +23,7 @@
   - 验收点：vue-tsc 通过；时序常量逐字未改；相关单测全绿
   - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test typewriter_model.test.ts typewriter_text.test.ts`
 
-- [ ] S2 拆 `scale.ts`
+- [x] S2 拆 `scale.ts`
   - 操作对象：`app/src/core/sizing/scale.ts`；新建同目录 `raf_shim.ts`
   - 操作步骤：将原 `:69-112` rAF/cAF 跨端垫片（含 eslint 行禁用注释整块）迁入 `raf_shim.ts`，导出 `raf`/`caf`；`scale.ts` 保留 re-export 段 + 抖动阈值 + 单例 composable，改 `import { raf, caf } from './raf_shim'`；composable 单例三件套不再细拆（共享 `singletonState` 闭包，强拆即逻辑改动）。留意条件编译注释规范（CLAUDE.md `#ifdef` 注释禁则）
   - 影响范围：新增 1 文件；`scale.ts` 改 import；`pages/main`/`scale.test.ts`/`use_css_var_bridge`/`solve_from_window`/`viewport_scene_layout`/`layout_solver` 取符号零变更
@@ -68,7 +68,7 @@
 
 ## 进度
 
-S1 完成（`reading_panel_timing.ts` 拆出，引擎保留 + re-export；vue-tsc exit 0，typewriter 2 文件 16 测试全绿）。收尾修正：文件头 `TODO(...)` 关键字触发 `TodoFixme`/`no-warning-comments` 新告警，改为陈述句消除（不绕过、不弱化检查），amend 入 S1。进行中：S2。
+S1 完成（`reading_panel_timing.ts` 拆出，引擎保留 + re-export；vue-tsc exit 0，typewriter 2 文件 16 测试全绿）。收尾修正：文件头 `TODO(...)` 关键字触发 `TodoFixme`/`no-warning-comments` 新告警，改为陈述句消除（不绕过、不弱化检查），amend 入 S1。S2 完成（`raf_shim.ts` 拆出，scale.ts 改 import + 文件头注释同步；vue-tsc exit 0，scale/layout_solver 2 文件 26 测试全绿）。进行中：S3。
 
 ## 搁置问题
 
