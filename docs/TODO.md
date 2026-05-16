@@ -36,7 +36,7 @@ S1 已判定，S4 走**分支A（删除）**。依据：
   - 验收点：vue-tsc 通过；`state/use_overlay` 无任何外部 import
   - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json` 无错误；`grep` 确认 `from '.../state/use_overlay'` 在 `app/src`/`app/test` 零命中 — 均已通过
 
-- [ ] S3 删除 `use_overlay.ts`
+- [x] S3 删除 `use_overlay.ts`
   - 操作对象：`app/src/state/use_overlay.ts`
   - 操作步骤：删除该文件（移除 `useOverlay` / `UseOverlayDeps` / 内部全部 computed，均死代码）
   - 影响范围：`app/src` 不再存在该模块；不影响生产编排（`pages/main` 直接编排 `useAnimationController` + `useReadingController`）
@@ -63,7 +63,7 @@ S1 已判定，S4 走**分支A（删除）**。依据：
 
 ## 进度
 
-S1 完成（调研判定）。S2 完成（常量迁入 reading/composables，归属修正）。进行中：S3。
+S1 完成（调研判定）。S2 完成（常量迁入 reading/composables，归属修正）。S3 完成（use_overlay.ts 已删，src vue-tsc exit 0、零引用）。进行中：S4。
 
 ## 搁置问题
 
