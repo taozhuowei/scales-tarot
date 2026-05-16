@@ -7,13 +7,15 @@
  *          (`readViewport`, `PhysicalViewport`, `WindowInfoShape`) from
  *          their dedicated modules, then layers the Vue composable
  *          (`useResponsiveScale`) on top — the only piece in this file
- *          that touches uni APIs and browser globals.
+ *          that touches uni platform APIs. The rAF/cAF browser-global
+ *          shim it depends on lives in `raf_shim.ts`.
  * Reason: the previous monolithic 473-line `scale.ts` mixed five concerns
  *          (constants, canvas clamp, sizes derivation, viewport adapter,
  *          Vue composable). Splitting the pure pieces into
- *          `responsive_breakpoints.ts` + `responsive_sizes.ts` keeps the
- *          public API stable for downstream importers while letting each
- *          file stay focused and well below the 300-line file budget.
+ *          `responsive_breakpoints.ts` + `responsive_sizes.ts` (and the
+ *          rAF/cAF shim into `raf_shim.ts`) keeps the public API stable
+ *          for downstream importers while letting each file stay focused
+ *          and well below the 300-line file budget.
  * Data flow: uni.getWindowInfo() / uni.onWindowResize ──▶
  *            pickCanvasWidth(viewportWidth) ──▶ deriveScale(canvasWidth) ──▶
  *            deriveSizes(canvasWidth) ──▶ Readonly<Ref<ResponsiveSizes>>
@@ -32,6 +34,7 @@ import {
   type ResponsiveSizes,
   type PhysicalViewport,
 } from './responsive_sizes'
+import { raf, caf } from './raf_shim'
 
 // Re-export the public surface from the split modules so existing importers
 // (`import { ... } from '.../core/sizing/scale'`) keep compiling without any
@@ -65,51 +68,6 @@ export {
   type PhysicalViewport,
   type WindowInfoShape,
 } from './responsive_sizes'
-
-// ---------------------------------------------------------------------------
-// rAF / cAF shims — UniApp targets H5 + mini-programs. The H5 runtime exposes
-// `requestAnimationFrame` / `cancelAnimationFrame` as globals, but mini-program
-// runtimes (WeChat, Alipay, etc.) do not — calling the bare globals there
-// throws ReferenceError. Feature-detect once at module load and fall back to
-// `setTimeout` (~16 ms ≈ 60 fps) so the composable works on every target.
-// ---------------------------------------------------------------------------
-
-// `setTimeout` returns `number` in browsers and `NodeJS.Timeout` (an object)
-// in Node — the union is opaque to TypeScript, so we narrow via `Number()`
-// once at the boundary. The rAF fallback path tracks the raw timer id so the
-// disposal hook (`cancelAnimationFrame` shim) clears it correctly even on
-// runtimes where `setTimeout` returns an object.
-//
-// The H5 globals are wrapped in `typeof === 'function'` feature detection so
-// mini-program runtimes (which raise ReferenceError on bare access) hit the
-// `setTimeout` fallback instead. The lint rule that bans these globals is
-// disabled per-line because the guarded access is the whole point of the
-// shim — without it the fallback branch becomes unreachable.
-const raf: (cb: FrameRequestCallback) => number =
-  // eslint-disable-next-line no-restricted-globals -- reason: H5-only DOM API behind feature-detect for the mini-program fallback path.
-  typeof requestAnimationFrame === 'function'
-    // eslint-disable-next-line no-restricted-globals -- reason: H5-only DOM API behind feature-detect for the mini-program fallback path.
-    ? requestAnimationFrame
-    : (cb) => {
-        const handle = setTimeout(
-          () => cb(typeof performance !== 'undefined' ? performance.now() : Date.now()),
-          16,
-        )
-        // Coerce both number-and-object timer ids into the numeric handle the
-        // composable stores. `Number(NodeJS.Timeout)` returns `NaN`, which the
-        // shim's cancel branch treats as "nothing to clear" — safe because the
-        // timer always fires before disposal in single-threaded JS.
-        return Number(handle)
-      }
-
-const caf: (handle: number) => void =
-  // eslint-disable-next-line no-restricted-globals -- reason: H5-only DOM API behind feature-detect for the mini-program fallback path.
-  typeof cancelAnimationFrame === 'function'
-    // eslint-disable-next-line no-restricted-globals -- reason: H5-only DOM API behind feature-detect for the mini-program fallback path.
-    ? cancelAnimationFrame
-    : (handle) => {
-        if (Number.isFinite(handle)) clearTimeout(handle)
-      }
 
 /**
  * Sub-pixel jitter threshold. If a recomputed `k` differs from the previous
