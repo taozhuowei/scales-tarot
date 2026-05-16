@@ -2,14 +2,9 @@
 
 仓库权威文档目录。目录架构说明已下沉到各目录自身 README，本目录存放产品需求、开发运维、术语与执行计划等跨目录文档。下为全局文档索引。
 
-## 分目录 README
+## 目录架构
 
-- [../README.md](../README.md) — 根：项目总览 / 根目录架构 / 协作指导 / 授权声明
-- [../app/README.md](../app/README.md) — 前端 `app/` 目录架构与技术栈
-- [../server/README.md](../server/README.md) — 后端 `server/` 目录架构与技术栈
-- [../scripts/README.md](../scripts/README.md) — 构建编排与质量门禁 `scripts/`
-- [../config/README.md](../config/README.md) — 根级工具配置 `config/`
-- [app_structure.md](app_structure.md) — 目录架构索引导航页（汇总以上链接）
+各目录职责与内部结构在该目录自身 README；分目录架构与各 README 的导航以 [architecture.md](architecture.md) 为唯一入口，本索引不再重列。
 
 ## 产品需求
 

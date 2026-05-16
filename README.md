@@ -29,8 +29,7 @@ scales-tarot/
 └── package-lock.json
 ```
 
-- 前端 [app/README.md](app/README.md) · 后端 [server/README.md](server/README.md) · 构建 [scripts/README.md](scripts/README.md) · 配置 [config/README.md](config/README.md)
-- 架构索引导航页：[docs/app_structure.md](docs/app_structure.md)
+- 分目录架构与各 README 的导航见 [docs/architecture.md](docs/architecture.md)（唯一架构入口）。
 
 ## 技术栈
 
