@@ -36,3 +36,18 @@ export interface DrawCardState extends CenterCardState {
 export interface InnerState {
   rotationY: number
 }
+
+/**
+ * Animation timeline contract that phase plugins consume. Decoupled from
+ * GSAP so the engine can be swapped without touching builders. (Merged
+ * here from the former single-interface core/animation/engine.ts during
+ * architecture cleanup — the file name no longer described its content.)
+ */
+export interface AnimationTimeline {
+  to(target: unknown, vars: Record<string, unknown>, position?: number | string): AnimationTimeline
+  fromTo(target: unknown, fromVars: Record<string, unknown>, toVars: Record<string, unknown>, position?: number | string): AnimationTimeline
+  add(fn: () => void, position?: number | string): AnimationTimeline
+  kill(): void
+  clear(): void
+  [key: string]: unknown
+}
