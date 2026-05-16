@@ -6,7 +6,6 @@ Rules + links only. On conflict, the docs below win.
 
 - [docs/PRD.md](docs/PRD.md) — product; modules in [docs/prd/](docs/prd/): [product.md](docs/prd/product.md) [state.md](docs/prd/state.md) [view.md](docs/prd/view.md) [animation.md](docs/prd/animation.md) [glossary.md](docs/prd/glossary.md).
 - [docs/TODO.md](docs/TODO.md) — execution plan / stage tracking.
-- [docs/architecture.md](docs/architecture.md) — architecture design: target + current + gap.
 - [README.md](README.md) — commands, env vars, deployment, git workflow.
 - [docs/tarot_glossary.md](docs/tarot_glossary.md) — tarot domain terms.
 

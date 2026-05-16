@@ -29,8 +29,6 @@ scales-tarot/
 └── package-lock.json
 ```
 
-- 分目录架构与各 README 的导航见 [docs/architecture.md](docs/architecture.md)（唯一架构入口）。
-
 ## 技术栈
 
 - **单体仓库**：npm workspaces（`app` + `server`），Node 22。
