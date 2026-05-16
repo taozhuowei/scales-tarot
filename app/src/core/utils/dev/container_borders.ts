@@ -16,7 +16,8 @@
  *   - H5: toggles the body-level CSS class so global selectors can apply
  *     dashed-outline rules to debug containers.
  *   - mp-weixin: the function body's DOM access is compiled out by uniapp's
- *     `// #ifdef H5` directive, leaving a no-op early-return. The defensive
+ *     `#ifdef H5` conditional-compilation directive, leaving a no-op
+ *     early-return. The defensive
  *     `typeof document === 'undefined'` guard is belt-and-suspenders so the
  *     module remains safe even if the conditional compilation step is
  *     bypassed (e.g. during unit tests that import the file directly).
