@@ -1,4 +1,4 @@
-const { spawnSync } = require('child_process')
+const { spawn, spawnSync } = require('child_process')
 
 const mode = process.argv[2] || 'full'
 
@@ -108,36 +108,125 @@ if (!steps) {
   process.exit(1)
 }
 
-for (const step of steps) {
-  console.log(`[quality] Running ${step.label}`)
+function resolveExecutable(command) {
+  return process.platform === 'win32' && command === 'npm' ? 'npm.cmd' : command
+}
 
-  const executable =
-    process.platform === 'win32' && step.command === 'npm'
-      ? 'npm.cmd'
-      : step.command
+// `staged` (pre-commit) MUST stay sequential: gitleaks runs first by design
+// so a credential leak fails before anything else touches disk, and
+// lint:fix -> `git add -u` is order-dependent. stdio is inherited so
+// lint:fix output / git add are visible live, exactly as before.
+function runSequential() {
+  for (const step of steps) {
+    console.log(`[quality] Running ${step.label}`)
 
-  const result = spawnSync(executable, step.args, {
-    stdio: step.quietOnSuccess ? 'pipe' : 'inherit',
-    env: process.env,
-    encoding: 'utf-8',
-  })
+    const result = spawnSync(resolveExecutable(step.command), step.args, {
+      stdio: step.quietOnSuccess ? 'pipe' : 'inherit',
+      env: process.env,
+      encoding: 'utf-8',
+    })
 
-  if (result.error) {
-    console.error(`[quality] Failed to start ${step.label}: ${result.error.message}`)
-    process.exit(1)
-  }
-
-  if (typeof result.status === 'number' && result.status !== 0) {
-    if (step.quietOnSuccess && result.stdout) {
-      process.stdout.write(result.stdout)
+    if (result.error) {
+      console.error(`[quality] Failed to start ${step.label}: ${result.error.message}`)
+      process.exit(1)
     }
-    if (step.quietOnSuccess && result.stderr) {
-      process.stderr.write(result.stderr)
-    }
-    process.exit(result.status)
-  }
 
-  if (step.quietOnSuccess) {
-    console.log(`[quality] ${step.label} passed`)
+    if (typeof result.status === 'number' && result.status !== 0) {
+      if (step.quietOnSuccess && result.stdout) process.stdout.write(result.stdout)
+      if (step.quietOnSuccess && result.stderr) process.stderr.write(result.stderr)
+      process.exit(result.status)
+    }
+
+    if (step.quietOnSuccess) console.log(`[quality] ${step.label} passed`)
   }
 }
+
+// `full` is 11 mutually-independent read-only checks (no --fix, no git
+// writes), so they parallelise without correctness risk. The limiter is
+// memory, not CPU: vue-tsc / tsc / vitest x2 / eslint / knip each peak at
+// 0.4-1GB and the WSL2 box has ~4GB free, so an unbounded fan-out OOMs.
+// Hence a bounded worker pool (default 4, override via
+// QUALITY_GATE_CONCURRENCY — an env var, not a new npm script, so the
+// 3-script surface is preserved).
+//
+// Failure semantics (per project decision): the first non-zero step kills
+// every still-running sibling and exits immediately — fastest feedback for
+// the dev loop. Each child is its own POSIX process group (detached) so the
+// kill reaches the npx -> node grandchild, not just the npx shim.
+function runParallel() {
+  const concurrency = Math.max(
+    1,
+    parseInt(process.env.QUALITY_GATE_CONCURRENCY || '4', 10) || 4,
+  )
+
+  let nextIndex = 0
+  let aborted = false
+  const running = new Set()
+
+  function killAll() {
+    for (const child of running) {
+      try {
+        if (process.platform === 'win32') child.kill('SIGKILL')
+        else process.kill(-child.pid, 'SIGKILL')
+      } catch {
+        /* already exited */
+      }
+    }
+  }
+
+  function fail(message, status) {
+    if (aborted) return
+    aborted = true
+    console.error(`[quality] ${message}`)
+    killAll()
+    process.exit(typeof status === 'number' && status !== 0 ? status : 1)
+  }
+
+  function launchNext() {
+    if (aborted || nextIndex >= steps.length) return
+    const step = steps[nextIndex++]
+    const startedAt = Date.now()
+    console.log(`[quality] start ${step.label}`)
+
+    const child = spawn(resolveExecutable(step.command), step.args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
+      detached: process.platform !== 'win32',
+    })
+
+    const chunks = { out: [], err: [] }
+    child.stdout.on('data', d => chunks.out.push(d))
+    child.stderr.on('data', d => chunks.err.push(d))
+
+    running.add(child)
+
+    child.on('error', err => {
+      running.delete(child)
+      fail(`Failed to start ${step.label}: ${err.message}`, 1)
+    })
+
+    child.on('exit', code => {
+      running.delete(child)
+      if (aborted) return
+
+      if (code !== 0) {
+        process.stdout.write(Buffer.concat(chunks.out))
+        process.stderr.write(Buffer.concat(chunks.err))
+        fail(`${step.label} failed (exit ${code})`, code)
+        return
+      }
+
+      console.log(`[quality] ${step.label} passed (${Date.now() - startedAt}ms)`)
+      launchNext()
+      if (running.size === 0 && nextIndex >= steps.length) {
+        console.log('[quality] all steps passed')
+        process.exit(0)
+      }
+    })
+  }
+
+  for (let i = 0; i < concurrency && i < steps.length; i += 1) launchNext()
+}
+
+if (mode === 'full') runParallel()
+else runSequential()
