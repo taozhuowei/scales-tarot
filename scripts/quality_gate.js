@@ -66,7 +66,7 @@ const stepsByMode = {
     {
       label: 'duplicate-code',
       command: 'npx',
-      args: ['jscpd', 'app/src', 'server/src', '--config', 'config/jscpd.json', '--silent'],
+      args: ['jscpd', 'app/src', 'server/src', 'scripts', '--config', 'config/jscpd.json', '--silent'],
       quietOnSuccess: true,
     },
   ],

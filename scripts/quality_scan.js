@@ -512,6 +512,44 @@ function scanFileSize() {
   }
 }
 
+// Shared AST helpers for the function-size + complexity scanners. jscpd
+// flagged the identical inner getFuncName + visit-preamble copy between
+// the two; these module-level helpers are pure and behaviour-identical
+// to the inlined copies they replace.
+function resolveFunctionName(node, sourceFile) {
+  if (ts.isFunctionDeclaration(node) && node.name) return node.name.getText(sourceFile)
+  if (ts.isMethodDeclaration(node) && node.name) return node.name.getText(sourceFile)
+  if (ts.isArrowFunction(node)) {
+    const parent = node.parent
+    if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
+    if (ts.isPropertyAssignment(parent) && parent.name) return parent.name.getText(sourceFile)
+    return '(arrow)'
+  }
+  if (ts.isFunctionExpression(node)) {
+    if (node.name) return node.name.getText(sourceFile)
+    const parent = node.parent
+    if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
+    return '(function)'
+  }
+  return '(anonymous)'
+}
+
+function isFunctionLikeNode(node) {
+  return (
+    ts.isFunctionDeclaration(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isArrowFunction(node) ||
+    ts.isFunctionExpression(node)
+  )
+}
+
+function describeFunctionNode(node, sourceFile, file) {
+  const funcName = resolveFunctionName(node, sourceFile)
+  const line = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1
+  const rel = path.relative(ROOT, file)
+  return { funcName, line, rel, key: `${rel}::${funcName}` }
+}
+
 // ─── 12. Function Size Scanner ───────────────────────────────────────────
 
 function scanFunctionSize(file, content) {
@@ -524,36 +562,10 @@ function scanFunctionSize(file, content) {
     return endLine - startLine + 1
   }
 
-  function getFuncName(node) {
-    if (ts.isFunctionDeclaration(node) && node.name) return node.name.getText(sourceFile)
-    if (ts.isMethodDeclaration(node) && node.name) return node.name.getText(sourceFile)
-    if (ts.isArrowFunction(node)) {
-      const parent = node.parent
-      if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
-      if (ts.isPropertyAssignment(parent) && parent.name) return parent.name.getText(sourceFile)
-      return '(arrow)'
-    }
-    if (ts.isFunctionExpression(node)) {
-      if (node.name) return node.name.getText(sourceFile)
-      const parent = node.parent
-      if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
-      return '(function)'
-    }
-    return '(anonymous)'
-  }
-
   function visit(node) {
-    if (
-      ts.isFunctionDeclaration(node) ||
-      ts.isMethodDeclaration(node) ||
-      ts.isArrowFunction(node) ||
-      ts.isFunctionExpression(node)
-    ) {
+    if (isFunctionLikeNode(node)) {
       const funcLines = countFunctionLines(node)
-      const funcName = getFuncName(node)
-      const line = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1
-      const rel = path.relative(ROOT, file)
-      const key = `${rel}::${funcName}`
+      const { funcName, line, key } = describeFunctionNode(node, sourceFile, file)
 
       if (funcLines > 120) {
         if (!isInBaseline('functionSize', key)) {
@@ -601,36 +613,10 @@ function scanComplexity(file, content) {
     return score
   }
 
-  function getFuncName(node) {
-    if (ts.isFunctionDeclaration(node) && node.name) return node.name.getText(sourceFile)
-    if (ts.isMethodDeclaration(node) && node.name) return node.name.getText(sourceFile)
-    if (ts.isArrowFunction(node)) {
-      const parent = node.parent
-      if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
-      if (ts.isPropertyAssignment(parent) && parent.name) return parent.name.getText(sourceFile)
-      return '(arrow)'
-    }
-    if (ts.isFunctionExpression(node)) {
-      if (node.name) return node.name.getText(sourceFile)
-      const parent = node.parent
-      if (ts.isVariableDeclaration(parent) && parent.name) return parent.name.getText(sourceFile)
-      return '(function)'
-    }
-    return '(anonymous)'
-  }
-
   function visit(node) {
-    if (
-      ts.isFunctionDeclaration(node) ||
-      ts.isMethodDeclaration(node) ||
-      ts.isArrowFunction(node) ||
-      ts.isFunctionExpression(node)
-    ) {
+    if (isFunctionLikeNode(node)) {
       const score = countComplexity(node)
-      const funcName = getFuncName(node)
-      const line = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1
-      const rel = path.relative(ROOT, file)
-      const key = `${rel}::${funcName}`
+      const { funcName, line, key } = describeFunctionNode(node, sourceFile, file)
 
       if (score > 15) {
         if (!isInBaseline('complexity', key)) {

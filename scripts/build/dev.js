@@ -27,33 +27,13 @@
 
 'use strict'
 
-const { spawn } = require('child_process')
-const path = require('path')
 const { killOccupierAndStart } = require('../lib/port_kill')
+const { REPO_ROOT, VITE_BIN, makeProcessRunner } = require('../lib/run_process')
 
 const VITE_PORT = 4123
 const SERVER_PORT = 4124
 
-const REPO_ROOT = path.resolve(__dirname, '..', '..')
-
-function run(label, command, args, env = {}) {
-  return new Promise((resolve, reject) => {
-    console.log(`\n[dev] ${label}`)
-    const child = spawn(command, args, {
-      cwd: REPO_ROOT,
-      stdio: 'inherit',
-      env: { ...process.env, ...env },
-      shell: process.platform === 'win32',
-    })
-    child.on('error', reject)
-    child.on('exit', code => {
-      if (code === 0) resolve()
-      else reject(new Error(`${label} exited with code ${code}`))
-    })
-  })
-}
-
-const VITE_BIN = 'node_modules/@dcloudio/vite-plugin-uni/bin/uni.js'
+const run = makeProcessRunner('dev')
 
 function buildConcurrentlyArgs(targets) {
   const names = []
