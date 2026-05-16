@@ -12,7 +12,10 @@ import gsap from 'gsap'
 import type { AnimationTimeline } from '../../types'
 import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../flow/types'
 import { prefersReducedMotion } from '../../../utils/accessibility'
-import { SHUFFLE_SPREAD_X } from '../../../config/layout_constants'
+
+/** Default horizontal spread of the shuffle fan when motion-metrics
+ *  produce a degenerate value (very narrow viewport). */
+const SHUFFLE_SPREAD_X = 120
 
 export interface ShufflePhaseConfig {
   spreadX: number

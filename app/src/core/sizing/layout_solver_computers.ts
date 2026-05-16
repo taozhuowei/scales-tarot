@@ -16,8 +16,22 @@
 
 import type { PhysicalViewport, ResponsiveSizes } from './scale'
 import { CARD_ASPECT_RATIO } from './scale'
-import { INITIAL_DRAWER_HEIGHT_RATIO } from '../config/layout_constants'
 import type { DrawerGeometry, LayoutEnvelope, StageRect } from './layout_solver_types'
+
+/**
+ * Initial drawer height as a fraction of the viewport height (0..1).
+ *
+ * The drawer's top edge anchors to the result card's bottom so the drawer
+ * naturally hugs the card. Historically `initialHeight` filled the entire
+ * gap between that anchor and the safe-area bottom, which left the sheet
+ * extremely shallow on tall phones (the card pushed the drawer down to a
+ * sliver). Per new product requirement N3 the initial height now equals a
+ * fixed fraction of the viewport — the drawer is allowed to overlap the
+ * card on first reveal because the user can drag it back down to inspect
+ * the card if needed. `maxHeight` still represents "fully expanded sheet"
+ * and remains capped at viewport.height − safeAreaBottom.
+ */
+export const INITIAL_DRAWER_HEIGHT_RATIO = 0.4
 
 /**
  * Compute the largest 1:1.6 stage rect that fits inside the canvas after

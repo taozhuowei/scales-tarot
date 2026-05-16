@@ -6,9 +6,10 @@ import {
   PHASE_MANIFEST,
   getPhaseSnap,
   getPhaseOrder,
+  MAX_CUT_PILES,
   type PhaseSnapDeps,
 } from '../src/core/animation/phases/registry'
-import { MAX_CARD_COUNT, MAX_CUT_PILES } from '../src/core/config/layout_constants'
+import { MAX_CARD_COUNT } from '../src/core/animation/state'
 import type { SceneLayout } from '../src/core/sizing/layout_solver'
 
 /**

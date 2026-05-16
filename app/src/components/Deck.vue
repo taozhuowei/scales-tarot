@@ -87,7 +87,7 @@ import type { UseAnimationControllerReturn } from '../state/use_animation_contro
 import { useTarotStore } from '../store/tarot'
 import { useThemeStore } from '../store/theme'
 import { usePlayDeckAnimation } from '../state/use_play_deck_animation'
-import { RESULT_LIFT_MARGIN_PX } from '../core/config/layout_constants'
+import { RESULT_LIFT_MARGIN_PX } from '../state/use_overlay'
 import type { DivinationPhase } from '../store/flow'
 import DeckFanStack from './DeckFanStack.vue'
 import DeckRig from './DeckRig.vue'

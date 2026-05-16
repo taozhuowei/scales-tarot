@@ -28,11 +28,18 @@ import {
   presentFooter,
 } from '../core/utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
-import {
-  MAX_CARD_COUNT,
-  MAX_CUT_PILES,
-  AUTO_REVEAL_DELAY_MS,
-} from '../core/config/layout_constants'
+import { MAX_CARD_COUNT } from '../core/animation/state'
+import { MAX_CUT_PILES } from '../core/animation/phases/registry'
+
+/**
+ * Delay between the draw landing and the auto-flip kick-off (ms).
+ *
+ * Per requirement N2 this is now 0 — the deal-stage already provides a
+ * settle beat (alignment tween + per-card settle), so an additional
+ * pre-flip pause is dead weight. Keep the constant in place so phase
+ * builders that read it stay configurable, but ship with no extra wait.
+ */
+const AUTO_REVEAL_DELAY_MS = 0
 
 const DECK_COUNT: number = (overlayConfig as { deckCount?: number }).deckCount ?? 12
 const CUT_PILE_COUNT: number = Math.min(

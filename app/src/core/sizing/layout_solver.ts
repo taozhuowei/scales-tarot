@@ -35,8 +35,8 @@ import {
   type PhysicalViewport,
   type ResponsiveSizes,
 } from './scale'
-import { INITIAL_DRAWER_HEIGHT_RATIO } from '../config/layout_constants'
 import {
+  INITIAL_DRAWER_HEIGHT_RATIO,
   computeDrawCardSize,
   computeDrawer,
   computeEnvelope,

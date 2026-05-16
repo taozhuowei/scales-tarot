@@ -15,8 +15,11 @@
 import type { Ref } from 'vue'
 import { solveLayout, type LayoutEnvelope } from '../layout_solver'
 import { clamp } from '../../utils/math'
-import { SHUFFLE_EDGE_MARGIN } from '../../config/layout_constants'
 import { buildPhysicalViewport, getSizes, type Scene } from './viewport_scene_layout'
+
+/** Padding kept between the outermost shuffle card and the safe-frame edge
+ *  so cards never visually clip the stage during the riffle. */
+const SHUFFLE_EDGE_MARGIN = 12
 
 /** Cut motion axis — horizontal on wide screens, vertical on narrow. */
 export type CutAxis = 'horizontal' | 'vertical'

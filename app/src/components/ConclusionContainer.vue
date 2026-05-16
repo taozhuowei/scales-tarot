@@ -50,13 +50,13 @@
  */
 import { useReadingPanelController } from '../state/shared/use_reading_panel_controller'
 import TypewriterText from './TypewriterText.vue'
-import {
-  HERO_TITLE_START_DELAY,
-  HERO_TITLE_CHAR_INTERVAL,
-  HERO_QUESTION_START_DELAY,
-  HERO_QUESTION_CHAR_INTERVAL,
-} from '../core/config/layout_constants'
 import type { ReadingResult } from '../core/api/types'
+
+// ---- Hero typewriter timing (ms) ----
+const HERO_TITLE_START_DELAY = 180
+const HERO_TITLE_CHAR_INTERVAL = 38
+const HERO_QUESTION_START_DELAY = 420
+const HERO_QUESTION_CHAR_INTERVAL = 26
 
 const props = defineProps<{
   readingResult: ReadingResult | null

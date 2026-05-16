@@ -9,12 +9,15 @@
 import { computed, nextTick, onMounted, onUnmounted, type Ref } from 'vue'
 import { useTarotStore } from '../store/tarot'
 import { useThemeStore } from '../store/theme'
-import { RESULT_LIFT_MARGIN_PX } from '../core/config/layout_constants'
 import { DEFAULT_OVERLAY_TEXT } from '../core/utils/overlay_progress'
 import type { OverlayPhase } from '../core/flow/types'
 
 import { useAnimationController } from './use_animation_controller'
 import { useReadingController } from './use_reading_controller'
+
+/** Vertical margin added to the result-card lift transform so the bottom
+ *  of the card never touches the drawer's top edge during the reveal. */
+export const RESULT_LIFT_MARGIN_PX = 16
 
 export interface UseOverlayDeps {
   tarotStore: ReturnType<typeof useTarotStore>

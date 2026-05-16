@@ -21,9 +21,11 @@
 
 import type { Ref } from 'vue'
 import { useTarotStore } from '../../store/tarot'
-import { DECK_CLICK_SAFETY_MS } from '../../core/config/layout_constants'
 import type { DivinationPhase } from '../../store/flow'
 import type { PlayDeckRuntime } from './play_deck_runtime_types'
+
+/** Minimum gap between deck-click events to debounce double-taps (ms). */
+const DECK_CLICK_SAFETY_MS = 2000
 
 /** Cooldown after a click before the lock releases. Mirrors the legacy
  *  idle composable so double-tap protection is preserved. */

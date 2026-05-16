@@ -15,8 +15,10 @@
 import type { OverlayPhase, PhaseContext } from '../../flow/types'
 import type { DrawCardState } from '../types'
 import type { SceneLayout } from '../../sizing/layout_solver'
-import { MAX_CUT_PILES } from '../../config/layout_constants'
 export type { OverlayPhase } from '../../flow/types'
+
+/** Maximum number of cut piles the cut animation pre-allocates. */
+export const MAX_CUT_PILES = 8
 
 export interface PhaseStep {
   phase: OverlayPhase

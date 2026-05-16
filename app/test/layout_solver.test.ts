@@ -25,7 +25,7 @@ import {
   RESULT_CARD_FILL_RATIO,
   type PhysicalViewport,
 } from '../src/core/sizing/scale'
-import { INITIAL_DRAWER_HEIGHT_RATIO } from '../src/core/config/layout_constants'
+import { INITIAL_DRAWER_HEIGHT_RATIO } from '../src/core/sizing/layout_solver_computers'
 
 // ---------------------------------------------------------------------------
 // Helpers

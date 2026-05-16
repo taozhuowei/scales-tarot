@@ -12,6 +12,11 @@ import {
 } from './initial_states'
 import type { CardState, CenterCardState, DrawCardState, InnerState } from './types'
 
+/** Maximum number of result cards a future spread could ever ask for. The
+ *  animation state allocates this many GSAP targets up front to keep
+ *  refs / arrays aligned regardless of the active spread. */
+export const MAX_CARD_COUNT = 10
+
 export interface AnimationStateOptions {
   deckCount: number
   shuffleHalfCount: number
