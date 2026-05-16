@@ -79,10 +79,14 @@ function _innerStyleObj(state: { rotationY: number }): Record<string, string> {
   return { transform: `rotateY(${state.rotationY}deg)` }
 }
 
-export function createStyleReconciler(
-  state: AnimationState,
-  opts: StyleReconcilerOptions,
-): StyleReconciler {
+type StyleRefs = ReturnType<typeof createStyleRefs>
+
+/**
+ * Allocate every reactive style ref + the overlay CSS-var computed.
+ * Extracted from createStyleReconciler verbatim (behaviour-identical) so
+ * the reconciler factory stays under the function-size cap.
+ */
+function createStyleRefs(state: AnimationState, opts: StyleReconcilerOptions) {
   const layoutCardWidth = ref(172)
   const layoutCardHeight = ref(275)
 
@@ -118,74 +122,6 @@ export function createStyleReconciler(
     `--card-width: ${layoutCardWidth.value}px; --card-height: ${layoutCardHeight.value}px`,
   )
 
-  const refreshBg = () => {
-    bgStyle.value = { opacity: String(state.bg.opacity) }
-  }
-  const refreshStage = () => {
-    stageStyle.value = { transform: `translateY(${state.stage.y}px)` }
-  }
-  const refreshHeader = () => {
-    headerStyle.value = {
-      transform: `translateY(${state.header.y}px)`,
-      opacity: String(state.header.opacity),
-    }
-  }
-  const refreshFooter = () => {
-    footerStyle.value = {
-      transform: `translateY(${state.footer.y}px)`,
-      opacity: String(state.footer.opacity),
-    }
-  }
-  const refreshDeckCtn = () => {
-    deckCtnStyle.value = { transform: `translateX(${state.deckCtn.x}px)` }
-  }
-  const refreshInitials = () => {
-    initialsStyle.value = state.initials.map(_cardStyleObj)
-  }
-  const refreshLefts = () => {
-    leftsStyle.value = state.lefts.map(_cardStyleObj)
-  }
-  const refreshRights = () => {
-    rightsStyle.value = state.rights.map(_cardStyleObj)
-  }
-  const refreshPiles = () => {
-    pilesStyle.value = state.piles.map(_centerStyleObj)
-  }
-  const refreshDraws = () => {
-    drawsStyle.value = state.draws.map(_centerStyleObj)
-    drawsSizeStyle.value = state.draws.map((d) => ({
-      width: `${d.width}px`,
-      height: `${d.height}px`,
-    }))
-  }
-  const refreshInners = () => {
-    innersStyle.value = state.inners.map(_innerStyleObj)
-  }
-
-  function setDrawCardSizes(layout: SceneLayoutResult) {
-    state.draws.forEach((d, index) => {
-      const card = layout.cards[index]
-      d.width = card?.width ?? layout.cardWidth
-      d.height = card?.height ?? layout.cardHeight
-    })
-    layoutCardWidth.value = layout.cardWidth
-    layoutCardHeight.value = layout.cardHeight
-  }
-
-  // Automatic style refresh: when GSAP mutates the plain state objects,
-  // Vue watch(deep: true) tracks property mutations and triggers the corresponding refresh callbacks.
-  watch(() => state.bg, refreshBg, { deep: true, immediate: true })
-  watch(() => state.stage, refreshStage, { deep: true, immediate: true })
-  watch(() => state.header, refreshHeader, { deep: true, immediate: true })
-  watch(() => state.footer, refreshFooter, { deep: true, immediate: true })
-  watch(() => state.deckCtn, refreshDeckCtn, { deep: true, immediate: true })
-  watch(() => state.initials, refreshInitials, { deep: true, immediate: true })
-  watch(() => state.lefts, refreshLefts, { deep: true, immediate: true })
-  watch(() => state.rights, refreshRights, { deep: true, immediate: true })
-  watch(() => state.piles, refreshPiles, { deep: true, immediate: true })
-  watch(() => state.draws, refreshDraws, { deep: true, immediate: true })
-  watch(() => state.inners, refreshInners, { deep: true, immediate: true })
-
   return {
     layoutCardWidth,
     layoutCardHeight,
@@ -202,6 +138,60 @@ export function createStyleReconciler(
     drawsSizeStyle,
     innersStyle,
     overlayVarsStyle,
+  }
+}
+
+/**
+ * Build the per-group refresh callbacks. Each writes the GSAP-mutated
+ * state into its style ref; bodies are verbatim from the previous inline
+ * closures (now reading the refs off the `refs` bag).
+ */
+function createRefreshers(state: AnimationState, refs: StyleRefs) {
+  const refreshBg = () => {
+    refs.bgStyle.value = { opacity: String(state.bg.opacity) }
+  }
+  const refreshStage = () => {
+    refs.stageStyle.value = { transform: `translateY(${state.stage.y}px)` }
+  }
+  const refreshHeader = () => {
+    refs.headerStyle.value = {
+      transform: `translateY(${state.header.y}px)`,
+      opacity: String(state.header.opacity),
+    }
+  }
+  const refreshFooter = () => {
+    refs.footerStyle.value = {
+      transform: `translateY(${state.footer.y}px)`,
+      opacity: String(state.footer.opacity),
+    }
+  }
+  const refreshDeckCtn = () => {
+    refs.deckCtnStyle.value = { transform: `translateX(${state.deckCtn.x}px)` }
+  }
+  const refreshInitials = () => {
+    refs.initialsStyle.value = state.initials.map(_cardStyleObj)
+  }
+  const refreshLefts = () => {
+    refs.leftsStyle.value = state.lefts.map(_cardStyleObj)
+  }
+  const refreshRights = () => {
+    refs.rightsStyle.value = state.rights.map(_cardStyleObj)
+  }
+  const refreshPiles = () => {
+    refs.pilesStyle.value = state.piles.map(_centerStyleObj)
+  }
+  const refreshDraws = () => {
+    refs.drawsStyle.value = state.draws.map(_centerStyleObj)
+    refs.drawsSizeStyle.value = state.draws.map((d) => ({
+      width: `${d.width}px`,
+      height: `${d.height}px`,
+    }))
+  }
+  const refreshInners = () => {
+    refs.innersStyle.value = state.inners.map(_innerStyleObj)
+  }
+
+  return {
     refreshBg,
     refreshStage,
     refreshHeader,
@@ -213,6 +203,43 @@ export function createStyleReconciler(
     refreshPiles,
     refreshDraws,
     refreshInners,
+  }
+}
+
+export function createStyleReconciler(
+  state: AnimationState,
+  opts: StyleReconcilerOptions,
+): StyleReconciler {
+  const refs = createStyleRefs(state, opts)
+  const refreshers = createRefreshers(state, refs)
+
+  function setDrawCardSizes(layout: SceneLayoutResult) {
+    state.draws.forEach((d, index) => {
+      const card = layout.cards[index]
+      d.width = card?.width ?? layout.cardWidth
+      d.height = card?.height ?? layout.cardHeight
+    })
+    refs.layoutCardWidth.value = layout.cardWidth
+    refs.layoutCardHeight.value = layout.cardHeight
+  }
+
+  // Automatic style refresh: when GSAP mutates the plain state objects,
+  // Vue watch(deep: true) tracks property mutations and triggers the corresponding refresh callbacks.
+  watch(() => state.bg, refreshers.refreshBg, { deep: true, immediate: true })
+  watch(() => state.stage, refreshers.refreshStage, { deep: true, immediate: true })
+  watch(() => state.header, refreshers.refreshHeader, { deep: true, immediate: true })
+  watch(() => state.footer, refreshers.refreshFooter, { deep: true, immediate: true })
+  watch(() => state.deckCtn, refreshers.refreshDeckCtn, { deep: true, immediate: true })
+  watch(() => state.initials, refreshers.refreshInitials, { deep: true, immediate: true })
+  watch(() => state.lefts, refreshers.refreshLefts, { deep: true, immediate: true })
+  watch(() => state.rights, refreshers.refreshRights, { deep: true, immediate: true })
+  watch(() => state.piles, refreshers.refreshPiles, { deep: true, immediate: true })
+  watch(() => state.draws, refreshers.refreshDraws, { deep: true, immediate: true })
+  watch(() => state.inners, refreshers.refreshInners, { deep: true, immediate: true })
+
+  return {
+    ...refs,
+    ...refreshers,
     setDrawCardSizes,
   }
 }
