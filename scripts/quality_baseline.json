@@ -1,29 +1,9 @@
 {
-  "fileSize": [
-    "server/src/services/theme_loader.ts:325"
-  ],
+  "fileSize": [],
   "functionSize": [
-    "app/src/core/animation/reconciler.ts::createStyleReconciler",
-    "app/src/core/animation/phases/draw/builder.ts::buildDrawPhaseRunner",
-    "app/src/core/animation/phases/draw/builder.ts::run",
     "app/src/state/use_animation_controller.ts::useAnimationController",
-    "app/src/state/use_overlay.ts::useOverlay",
-    "app/src/core/animation/phases/cut/builder.ts::buildCutPhaseRunner",
-    "app/src/core/animation/phases/shuffle/builder.ts::buildShufflePhaseRunner",
-    "app/src/core/animation/phases/shuffle/builder.ts::run",
-    "app/src/core/sizing/overlay_layout/use_overlay_layout.ts::useOverlayLayout",
-    "app/src/core/animation/use_animation_state.ts::useAnimationState",
-    "app/src/shared/store/reading.ts::createReadingState",
-    "app/src/shared/store/theme.ts::(arrow)",
-    "app/src/core/utils/reading/reading_orchestrator.ts::createReadingOrchestrator",
-    "app/src/core/utils/typing/typewriter_model.ts::createTypewriterModel",
     "app/src/state/use_lifecycle.ts::useLifecycle",
-    "app/src/state/commands/start.ts::runPipelineCommand",
-    "app/src/state/commands/pipeline_builder.ts::buildPhaseRunners"
+    "app/src/state/use_overlay.ts::useOverlay"
   ],
-  "complexity": [
-    "app/src/state/use_animation_controller.ts::useAnimationController",
-    "app/src/state/use_overlay.ts::useOverlay",
-    "app/src/core/utils/reading/reading_orchestrator.ts::createReadingOrchestrator"
-  ]
+  "complexity": []
 }
