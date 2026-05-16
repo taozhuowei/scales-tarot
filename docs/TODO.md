@@ -27,12 +27,14 @@ S1 已判定，S4 走**分支A（删除）**。依据：
   - 验收点：得出每个测试文件的处置结论（删除 / 重定向到生产实现 / 仅改注释保留）
   - 验收方式：`grep -rn` 全仓 + 阅读生产编排确认等价物有无；结论写入本文「调研结论」小节
 
-- [ ] S2 迁出存活常量 `RESULT_LIFT_MARGIN_PX`
-  - 操作对象：`app/src/state/use_overlay.ts:20`、新建 `app/src/flows/divination/composables/result_card_lift_margin.ts`、`app/src/components/Deck.vue:90,121`
-  - 操作步骤：新建仅含 `RESULT_LIFT_MARGIN_PX` 的常量文件（附一行职责注释）；将 `Deck.vue` 的 import 改指向新文件
-  - 影响范围：新增 1 文件；`Deck.vue` 1 处 import 路径变更，运行行为不变
-  - 验收点：类型检查通过；`Deck.vue` 渲染与上浮计算不变；全仓再无指向 `state/use_overlay` 的常量 import
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`grep -rn "state/use_overlay" app/src` 仅余 `use_overlay.ts` 自身
+- [x] S2 迁出存活常量 `RESULT_LIFT_MARGIN_PX`
+  - 操作对象：新建 `app/src/flows/reading/composables/result_card_lift_margin.ts`、`app/src/components/Deck.vue:90`、`app/src/state/use_overlay.ts:17`
+  - 归属修正：原计划落点 `divination/composables`，调研后改为 **reading/composables**——`Deck.vue:108-126` 该常量语义为"结果卡相对解读底部抽屉的上浮呼吸边距"（drawer = reading 窄屏抽屉），按代码语义属 reading 流程
+  - 操作步骤：新建仅含 `RESULT_LIFT_MARGIN_PX` 的常量文件（带文件头职责注释 + 原行内语义注释）；`Deck.vue:90` import 改指向新文件；`use_overlay.ts` 删除本地 `export const` 定义、改为 import 新文件常量（其 `:78` 死逻辑仍引用，随 S3 整文件删除时 import 行一并消失）
+  - 方案调整：原计划"保留 `use_overlay.ts:20` 本地定义至 S3"被质量门禁 `DuplicateExport` 否决（同一符号不可两处导出）；改为单一真相源 = 新文件，`use_overlay.ts` 仅 import 引用——零逻辑变化，符合门禁 "consolidate to a single canonical location"
+  - 影响范围：新增 1 文件；`Deck.vue` 与 `use_overlay.ts` 各 1 处 import 路径变更，运行行为不变（常量值 16 不变）
+  - 验收点：vue-tsc 通过；`state/use_overlay` 无任何外部 import
+  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json` 无错误；`grep` 确认 `from '.../state/use_overlay'` 在 `app/src`/`app/test` 零命中 — 均已通过
 
 - [ ] S3 删除 `use_overlay.ts`
   - 操作对象：`app/src/state/use_overlay.ts`
@@ -61,7 +63,7 @@ S1 已判定，S4 走**分支A（删除）**。依据：
 
 ## 进度
 
-S1 完成（调研判定，无源码改动）。进行中：S2。
+S1 完成（调研判定）。S2 完成（常量迁入 reading/composables，归属修正）。进行中：S3。
 
 ## 搁置问题
 
