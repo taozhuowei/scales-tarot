@@ -105,8 +105,8 @@ import ReadingSplitView from '../../components/ReadingSplitView.vue'
 import ReadingDrawerView from '../../components/ReadingDrawerView.vue'
 import NotificationHost from '../../components/NotificationHost.vue'
 import DevToolsPanel from '../../components/DevToolsPanel.vue'
-import { useMainStage } from '../../composables/use_main_stage'
-import { useHeaderPresentation } from '../../composables/use_header_presentation'
+import { useMainStage } from '../../composables/flows/index/use_main_stage'
+import { useHeaderPresentation } from '../../composables/flows/index/use_header_presentation'
 import { useCardsLoadError } from '../../core/composables/use_cards_load_error'
 
 const {

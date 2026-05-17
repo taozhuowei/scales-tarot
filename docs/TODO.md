@@ -34,7 +34,7 @@ app/src/composables/flows/
   - 验收：本文件为新计划；`node scripts/quality_gate.js full` = exit 0。
   - 影响：仅文档。回滚：`git checkout -- docs/TODO.md`。
 
-- [ ] R1 建 flows/index，迁 6 文件 + import 重写 + consumer
+- [x] R1 建 flows/index，迁 6 文件 + import 重写 + consumer
   - 上下文：根 6 文件 [use_main_stage](../app/src/composables/use_main_stage.ts) [use_main_handlers](../app/src/composables/use_main_handlers.ts) [use_dev_tools](../app/src/composables/use_dev_tools.ts) [use_active_view](../app/src/composables/use_active_view.ts) [use_header_presentation](../app/src/composables/use_header_presentation.ts) [use_play_deck_animation](../app/src/composables/use_play_deck_animation.ts)；消费者：`pages/main/index.vue:108-109`（use_main_stage、use_header_presentation）、`Deck.vue`（use_play_deck_animation，行执行时 grep）、`use_main_stage` 聚合 use_main_handlers/use_dev_tools/use_active_view（互引）。app/test 无引用、quality_baseline 无关联（已 grep 证）。
   - 操作：
     1. `mkdir -p app/src/composables/flows/index`。
@@ -62,7 +62,7 @@ app/src/composables/flows/
 
 ## 进度
 
-R0 完成（TODO 重写，full gate exit 0）。R1 进行中。
+R0–R1 完成。R1：建 flows/index，6 文件 git mv + 内部 import 规则化重写 + 3 consumer（pages/main 2 行、Deck.vue 1 行），grep 旧路径空、vue-tsc、full gate exit 0。R2 进行中。
 
 ## 搁置问题
 

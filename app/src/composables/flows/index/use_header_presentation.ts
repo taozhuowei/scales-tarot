@@ -10,8 +10,8 @@
  *          style consumed by HeaderArea in pages/main/index.vue.
  */
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { UseAnimationControllerReturn } from './flows/divination/use_animation_controller'
-import type { DivinationPhase } from '../core/store/flow'
+import type { UseAnimationControllerReturn } from '../divination/use_animation_controller'
+import type { DivinationPhase } from '../../../core/store/flow'
 
 export interface HeaderPresentation {
   /** Idle gate — selects TitleContent vs ProgressContent + ARIA semantics. */
