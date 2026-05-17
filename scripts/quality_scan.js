@@ -37,7 +37,7 @@ const ts = require('typescript')
 
 const ROOT = path.resolve(__dirname, '..')
 const APP_SRC = path.join(ROOT, 'app/src')
-const STYLES_DIR = path.join(APP_SRC, 'styles')
+const STYLES_DIR = path.join(APP_SRC, 'core', 'styles')
 
 const SEVERITY_ERROR = 2
 const SEVERITY_WARN = 1

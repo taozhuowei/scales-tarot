@@ -1,5 +1,5 @@
 /**
- * Name: styles/overlay/_tokens.css
+ * Name: core/styles/overlay/_tokens.css
  * Purpose: overlay-specific design tokens extracted from global.css (Phase 4).
  * Reason: isolates divination-overlay variables so global.css stays lean.
  * Data flow: imported by App.vue (or any overlay host) after global.css.

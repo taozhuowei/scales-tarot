@@ -120,7 +120,7 @@
   /* 焦点态边框 */
   --color-border-focus: rgba(122, 92, 20, 0.35);
 
-  /* Overlay-specific tokens moved to styles/overlay/_tokens.css */
+  /* Overlay-specific tokens moved to core/styles/overlay/_tokens.css */
   --color-badge-reversed-from: #8b6f5e;
   --color-badge-reversed-to: #5c3d2e;
 

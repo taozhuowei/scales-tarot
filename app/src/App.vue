@@ -76,14 +76,14 @@ async function bootstrap(launchedFromFallback: boolean): Promise<void> {
  * the global token / utility imports come first. The H5-only
  * @font-face declarations follow below.
  */
-@import "./styles/global.css";
-@import "./styles/overlay/_tokens.css";
+@import "./core/styles/global.css";
+@import "./core/styles/overlay/_tokens.css";
 
 /*
  * Font faces — H5 only.
  * ----------------------------------------------------------------
  * Declared here (in the App.vue SFC <style> block) instead of in
- * styles/global.css because uni-app's conditional compilation
+ * core/styles/global.css because uni-app's conditional compilation
  * directives (#ifdef H5 / #endif) reliably strip blocks only inside
  * SFC styles and .scss inputs. Plain .css files imported via @import
  * are processed by vite/postcss before the mp-weixin asset rewriter
