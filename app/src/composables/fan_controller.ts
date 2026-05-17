@@ -20,7 +20,7 @@
 
 import { gsap } from 'gsap'
 import { prefersReducedMotion } from '../core/utils/accessibility'
-import { buildFanTimeline } from '../core/animation/phases/fan/builder'
+import { buildFanTimeline } from './flows/idle/fan'
 import type { FanController, PlayDeckRuntime } from './play_deck_runtime_types'
 
 /**

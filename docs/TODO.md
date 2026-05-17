@@ -115,7 +115,7 @@ app/src/composables/flows/fallback/
   - 验收：vue-tsc；`vitest --dir app/test` 全量（含 overlay_phase_registry/snap、replay、progress）；`grep -rn "phases/registry\|phase_types\|core/flow\|overlay_progress" app --include=*.ts --include=*.vue`（空）；full gate = exit 0。
   - 影响：12 文件迁移、删 3 壳、phase_types 拆解、~15 处 import + 6 测试。回滚：反向 `git mv` + 恢复壳 + 还原 import。
 
-- [ ] P5 迁 flows/idle + flows/fallback，清空 core/animation
+- [x] P5 迁 flows/idle + flows/fallback，清空 core/animation
   - 上下文：[phases/fan/builder.ts](../app/src/core/animation/phases/fan/builder.ts)（buildFanTimeline）；[phases/fallback/builder.ts](../app/src/core/animation/phases/fallback/builder.ts)（createDefaultPlanets/startFallbackAnimation，ticker 驱动）；importer [fan_controller.ts:23](../app/src/composables/fan_controller.ts) [FallbackOrbits.vue:50](../app/src/components/FallbackOrbits.vue)。
   - 操作：
     1. `git mv` `phases/fan/builder.ts`→`composables/flows/idle/fan.ts`；`phases/fallback/builder.ts`→`composables/flows/fallback/orbits.ts`。
@@ -146,7 +146,7 @@ app/src/composables/flows/fallback/
 
 ## 进度
 
-P0–P4 完成。P5 待开始。
+P0–P5 完成。P6 待开始。
 
 ## 搁置问题
 

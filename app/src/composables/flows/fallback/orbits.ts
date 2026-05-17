@@ -11,7 +11,7 @@
  */
 
 import gsap from 'gsap'
-import { prefersReducedMotion } from '../../../utils/accessibility'
+import { prefersReducedMotion } from '../../../core/utils/accessibility'
 
 export interface OrbitingPlanet {
   /** Current orbit angle in radians. */
