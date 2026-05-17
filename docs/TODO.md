@@ -4,141 +4,117 @@
 
 ## 目标
 
-把动画相关代码按分层重构：`core/gsap/` 仅留对 GSAP 库本身的封装；动画基建（状态/原子/管道/契约）下沉 `composables/shared/animations/`；占卜/待机/降级三类流程编排迁入 `composables/flows/{divination,idle,fallback}/`。删除纯转发壳（`registry`、`phase_types` 伞文件、`overlay_progress/index`），解散定位模糊的 `core/flow/`，消除 `core→composables` 反向依赖。命名直观化：看名知意。
+把 [`app/src/composables/`](../app/src/composables) 根目录 25 个 `.ts` 按职责归位：底层 store 适配下沉 [`core/composables/`](../app/src/core)（新建）；解读流程聚为 `composables/flows/reading/`（新建，与 idle/fallback 对称）；占卜管线编排迁 [`composables/flows/divination/`](../app/src/composables/flows/divination)；Deck 舞台状态机簇按单一职责拆解后按消费者归 `flows/idle`/`flows/divination`，跨 flow 编排器残留根；删除无单一 flow 的类型伞文件 `play_deck_runtime_types.ts`。命名直观化：看名知意。
 
 ## 禁止项（决策冻结）
 
-1. 禁止修改任何内部动画/布局/编排核心逻辑：各 builder 的 GSAP 关键帧/时序/缓动、[computeDrawTimings/appendCardDealTween](../app/src/core/animation/phases/draw/draw_timeline.ts)、snap 赋值、style-sync 同步算法、pipeline 执行算法——逐字保留。允许的仅：文件移动、改名、删纯转发壳、改 import 路径、按归属合并/拆分类型声明（声明本身不改）。
-2. `core/gsap` 是 GSAP 封装集合（编排器 + 批量 kill），非"全项目唯一 import gsap"——builder/原子/fan/orbits 内部仍各自 `import gsap` 写关键帧（属核心逻辑，不重写）。
+1. 仅文件移动 / 改名 / 删伞文件 / 改 import 路径 / 按归属拆分搬移类型声明（声明本身逐字不改）/ 按职责把函数体逐字抽到独立文件。**禁改任何运行时逻辑、功能、界面**：GSAP 关键帧/时序、watch 条件、状态机分支、computed 体、锁与定时器语义——逐字保留。
+2. 遇必须改逻辑的点 → 停，讲清原因+操作，交决策。遇目录/函数名不达意 → 直接改对。遇明显 bug 或坏味道且修法无异议、不影响功能界面 → 直接改；否则停并交决策。
 3. 不改 e2e 锚定类名与任何运行时行为；重构零行为变更。
-4. 每阶段独立可编译、测试绿后方可 commit；禁跳阶段；禁 `--no-verify`/`--force`/任何门禁绕过；分提交前 `git stash push --staged` 隔离他人改动。
+4. 每阶段独立可编译、测试绿后方可 commit；禁跳阶段；禁 `--no-verify`/`--force`/任何门禁绕过。当前工作区干净、单任务无他人改动，逐阶段全量 commit。
 
-## 最终架构（目标目录树，标注 新建 / 迁自X / 删除）
+## 最终落点（25 文件，标注 迁入 / 新建 / 删除 / 留根）
 
 ```
-app/src/core/gsap/
-  timeline.ts                  迁自 core/animation/adapters/gsap.ts（TimelineOrchestrator + createTimelineOrchestrator，逐字）
-  tween.ts                     迁自 core/animation/adapters/gsap.ts（killAnimationTargets，逐字）
+app/src/core/composables/                         （新建目录）
+  use_app_phase.ts            迁自 composables/（tarotStore.phase 薄 seam）
+  use_cards_load_error.ts     迁自 composables/（卡资源加载错误+retry 薄透传）
 
-app/src/composables/shared/animations/
-  contracts.ts                 新建：合并 core/flow/types.ts(OverlayPhase/PhaseContext/PhaseRunner) + core/animation/atoms/types.ts(AtomFn/AtomContext)
-  card_state.ts                迁自 core/animation/types.ts（CardState/CenterCardState/DrawCardState/InnerState/AnimationTimeline）
-  state.ts                     迁自 core/animation/state.ts（含从 adapters 内联的 getAllTargets）
-  style_sync.ts                迁自 core/animation/reconciler.ts（改名；导出名不改）
-  visibility.ts                迁自 core/animation/visibility.ts
-  initial_states.ts            迁自 core/animation/initial_states.ts
-  use_animation_state.ts       迁自 core/animation/use_animation_state.ts（组合根）
-  use_playback.ts              迁自 core/animation/use_playback.ts
-  pipeline.ts                  迁自 core/animation/pipeline.ts
-  flip.ts                      迁自 core/animation/atoms/flip.ts
-  grow.ts                      迁自 core/animation/atoms/grow.ts
+app/src/composables/flows/reading/                （新建目录）
+  use_reading_controller.ts        迁自 composables/
+  use_reading_panel_controller.ts  迁自 composables/
+  use_result_card_shrink.ts        迁自 composables/
+  result_card_lift_margin.ts       迁自 composables/（纯常量）
 
-app/src/composables/flows/divination/
-  phases/shuffle.ts            迁自 core/animation/phases/shuffle/builder.ts
-  phases/cut.ts                迁自 core/animation/phases/cut/builder.ts
-  phases/draw.ts               迁自 core/animation/phases/draw/builder.ts
-  phases/draw_timeline.ts      迁自 core/animation/phases/draw/draw_timeline.ts
-  phases/reveal.ts             迁自 core/animation/phases/reveal/builder.ts
-  phase_manifest.ts            迁自 core/animation/phases/phase_manifest.ts（吸收 phase_types 的 PhaseStep/PhaseManifest/MAX_CUT_PILES）
-  phase_entry_snapshots.ts     迁自 core/animation/phases/phase_entry_snaps.ts（吸收 phase_types 的 PhaseSnapDeps）
-  pipeline_deps.ts             迁自 core/flow/pipeline_shared_deps.ts
-  progress_model.ts            迁自 core/utils/overlay_progress/phase_progress_model.ts
-  progress_presenter.ts        迁自 core/utils/overlay_progress/phase_progress_presenter.ts
-  overlay_text.ts              迁自 core/utils/overlay_progress/overlay_text.ts
+app/src/composables/flows/divination/             （迁入 10）
+  use_phases.ts use_presentation.ts start.ts pipeline_builder.ts
+  skip_to_reading.ts replay_from_phase.ts use_lifecycle.ts
+  use_lifecycle_types.ts use_animation_controller.ts   迁自 composables/（P3）
+  divination_rig.ts            迁自 composables/，内联 DivinationRig 接口（P4）
 
-app/src/composables/flows/idle/
-  fan.ts                       迁自 core/animation/phases/fan/builder.ts
+app/src/composables/flows/idle/                   （迁入 2 + 新建 3）
+  fan_controller.ts            迁自 composables/，内联 FanController 接口（P4）
+  click_handler.ts             迁自 composables/（P4）
+  deck_runtime.ts              新建：DECK_SIZE + PlayDeckRuntime 接口 + createPlayDeckRuntime()
+  deck_card_size.ts            新建：resolveDeckCardSize()
+  entrance_hint.ts             新建：runEntranceHint()
 
-app/src/composables/flows/fallback/
-  orbits.ts                    迁自 core/animation/phases/fallback/builder.ts
+留根 composables/（6）：use_main_stage use_main_handlers use_dev_tools
+  use_active_view use_header_presentation use_play_deck_animation（拆出 3 helper 后的跨 flow 编排器残留；唯一消费者 components/Deck.vue）
 
-删除：core/animation/adapters/gsap.ts、core/animation/types.ts、core/animation/atoms/types.ts、
-      core/flow/types.ts、core/animation/phases/registry.ts、core/animation/phases/phase_types.ts、
-      core/utils/overlay_progress/index.ts、空目录 core/animation/、core/flow/、core/utils/overlay_progress/
-不动（仅改 import）：composables 顶层调用方、components/DevToolsPanel.vue、DevToolsPhaseRow.vue、
-      components/FallbackOrbits.vue、app/test/ 相关测试用例（逻辑不动，仅 import 路径）
+删除：composables/play_deck_runtime_types.ts
+  （DivinationRig→divination_rig 内联；FanController→fan_controller 内联；
+   PlayDeckRuntime+DECK_SIZE→flows/idle/deck_runtime.ts；createPlayDeckRuntime
+   /resolveDeckCardSize/runEntranceHint→flows/idle 三新建文件）
 ```
 
-边界：`core/deck/*`、`core/sizing/*`、`core/utils/*`（除 overlay_progress）、`core/store/*` 不动；`core→composables` 重构后零反向依赖（P4 后 overlay_progress 上移即根除）。
+判定依据（仅据当前代码）：`use_app_phase`/`use_cards_load_error` 仅 `storeToRefs`+透传无 flow 无动画→core；解读 4 文件构成独立 reading flow；占卜 10 文件 import 链全指 `flows/divination/*` 且只服务占卜管线；`play_deck_runtime_types` 字段全为 idle-deck 态、`divination_rig` 全程不引用 `rt`，故类型按归属拆解、`fan_controller`/`click_handler` 归 idle、`divination_rig` 归 divination、跨 flow 编排器残留根。
 
 ## 任务清单
 
-> 每步：按操作改 → 验收（命令逐条 exit 0）→ 更新「进度」勾选 → commit（[pre-commit 门禁](../README.md) 真实跑通）→ 下一步。禁跳步。
+> 每步：按操作改 → 验收（命令逐条 exit 0）→ 勾「进度」→ commit（[pre-commit 门禁](../README.md) 真实跑通）→ 下一步。禁跳步。相对 import 深度按文件新位置实算。
 
 - [x] P0 清空并重写本 TODO（本步）
-  - 操作：覆盖 `docs/TODO.md` 为本计划。
+  - 操作：覆盖 [docs/TODO.md](TODO.md) 为本计划。
   - 验收：本文件为新计划；`node scripts/quality_gate.js full` = exit 0。
   - 影响：仅文档。回滚：`git checkout -- docs/TODO.md`。
 
-- [x] P1 建 core/gsap，拆 adapters/gsap.ts
-  - 上下文：源 [core/animation/adapters/gsap.ts](../app/src/core/animation/adapters/gsap.ts)（getAllTargets / TimelineOrchestrator / createTimelineOrchestrator / killAnimationTargets）；getAllTargets 唯一消费者 [use_animation_state.ts:11,93](../app/src/core/animation/use_animation_state.ts)。
+- [ ] P1 建 core/composables，迁 use_app_phase + use_cards_load_error
+  - 上下文：[use_app_phase.ts](../app/src/composables/use_app_phase.ts)（import `../core/store/tarot`、`../core/store/flow`，含 `export type { DivinationPhase }` re-export）、[use_cards_load_error.ts](../app/src/composables/use_cards_load_error.ts)（import `../core/store/tarot`）。消费者：`use_app_phase`←[use_main_stage.ts:14](../app/src/composables/use_main_stage.ts)；`use_cards_load_error`←[CardsLoadError.vue](../app/src/components/CardsLoadError.vue)、[pages/main/index.vue](../app/src/pages/main/index.vue)。
   - 操作：
-    1. 新建 `app/src/core/gsap/timeline.ts`：逐字搬入 `TimelineOrchestrator` 接口 + `createTimelineOrchestrator`（含 `import gsap`、tree-shaking 注释）。
-    2. 新建 `app/src/core/gsap/tween.ts`：逐字搬入 `killAnimationTargets`（含 `import gsap`）。
-    3. `getAllTargets(state)` 函数体逐字内联进 [use_animation_state.ts](../app/src/core/animation/use_animation_state.ts) 第 93 行调用点（删 `import { getAllTargets } from './adapters/gsap'`，改为本文件内 `function getAllTargets(state){…}` 原样拼接，不改逻辑）。
-    4. 删除 `app/src/core/animation/adapters/`（整目录）。
-    5. 改 import（路径按各文件位置实算）：[use_playback.ts:9-10](../app/src/core/animation/use_playback.ts) `./adapters/gsap`→`../gsap/timeline`；[pipeline.ts:15](../app/src/core/animation/pipeline.ts) `./adapters/gsap`→`../gsap/timeline`；[use_lifecycle.ts:12](../app/src/composables/use_lifecycle.ts) `../core/animation/adapters/gsap`→`../core/gsap/tween`；[use_animation_controller.ts:24](../app/src/composables/use_animation_controller.ts) `../core/animation/adapters/gsap`→`../core/gsap/tween`；[pipeline_shared_deps.ts:17](../app/src/core/flow/pipeline_shared_deps.ts) `../animation/adapters/gsap`→`../gsap/timeline`；[overlay_timeline.test.ts:4](../app/test/overlay_timeline.test.ts)→ 拆 `../src/core/gsap/timeline`+`../src/core/gsap/tween`；[overlay_pipeline.test.ts:6](../app/test/overlay_pipeline.test.ts)→`../src/core/gsap/timeline`。
-  - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test overlay_timeline.test.ts overlay_pipeline.test.ts use_animation_state.test.ts`；`grep -rn "animation/adapters" app --include=*.ts --include=*.vue`（空）；`node scripts/quality_gate.js full` = exit 0。
-  - 影响：新增 2 文件、删 adapters、7 处 import、1 处内联。回滚：反向恢复 adapters + 还原 import/内联。
+    1. `mkdir -p app/src/core/composables`。
+    2. `git mv app/src/composables/use_app_phase.ts app/src/composables/use_cards_load_error.ts app/src/core/composables/`。
+    3. 改两文件内部 import：`../core/store/tarot`→`../store/tarot`、`../core/store/flow`→`../store/flow`（含 re-export 那行）。
+    4. 改消费者 import 路径：`use_main_stage.ts` 的 `./use_app_phase`→`../core/composables/use_app_phase`；`CardsLoadError.vue` 的 `../composables/use_cards_load_error`→`../composables/core/composables/use_cards_load_error`；`pages/main/index.vue` 的 `../../composables/use_cards_load_error`→`../../composables/core/composables/use_cards_load_error`。
+  - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`grep -rn "composables/use_app_phase\|composables/use_cards_load_error" app --include=*.ts --include=*.vue`（仅 core/composables 新路径，无旧根路径）；`node scripts/quality_gate.js full` = exit 0。
+  - 影响：新建目录 + 2 迁移 + 各文件 import。回滚：反向 `git mv` + 还原 import + 删空目录。
 
-- [x] P2 契约归位（解散 core/flow/types、合并类型）
-  - 上下文：[core/flow/types.ts](../app/src/core/flow/types.ts)（OverlayPhase/PhaseContext/PhaseRunner）、[core/animation/atoms/types.ts](../app/src/core/animation/atoms/types.ts)（AtomFn/AtomContext）、[core/animation/types.ts](../app/src/core/animation/types.ts)（CardState/CenterCardState/DrawCardState/InnerState/AnimationTimeline）。
+- [ ] P2 建 flows/reading，迁解读流程 4 文件
+  - 上下文：[use_reading_controller.ts](../app/src/composables/use_reading_controller.ts)、[use_reading_panel_controller.ts](../app/src/composables/use_reading_panel_controller.ts)、[use_result_card_shrink.ts](../app/src/composables/use_result_card_shrink.ts)、[result_card_lift_margin.ts](../app/src/composables/result_card_lift_margin.ts)（纯常量无 import）。消费者：`use_reading_controller`←[use_main_handlers.ts](../app/src/composables/use_main_handlers.ts)、[use_main_stage.ts](../app/src/composables/use_main_stage.ts)；`use_reading_panel_controller`←[ConclusionContainer.vue](../app/src/components/ConclusionContainer.vue)、[CardMeaningContainer.vue](../app/src/components/CardMeaningContainer.vue)、[ReadingTextContainer.vue](../app/src/components/ReadingTextContainer.vue)；`use_result_card_shrink`←`use_main_stage`；`result_card_lift_margin`←[Deck.vue](../app/src/components/Deck.vue)。
   - 操作：
-    1. 新建 `composables/shared/animations/card_state.ts`：逐字搬入 `core/animation/types.ts` 全部声明（无外部依赖）。
-    2. 新建 `composables/shared/animations/contracts.ts`：逐字搬入 `core/flow/types.ts` + `core/animation/atoms/types.ts` 的声明合并；内部 import 调整为 `./card_state`（DrawCardState）、`../../../core/deck/types`（DeckGeometry）、`../../../core/sizing/layout_solver`（CardLayout）、`gsap`（AtomFn 用）。
-    3. 删除 `core/flow/types.ts`、`core/animation/types.ts`、`core/animation/atoms/types.ts`。
-    4. 改 `core/flow/types` 全部 importer → `composables/shared/animations/contracts`（按各文件相对深度算路径）：[skip_to_reading.ts:14](../app/src/composables/skip_to_reading.ts) [use_animation_controller.ts:30](../app/src/composables/use_animation_controller.ts) [use_presentation.ts:15](../app/src/composables/use_presentation.ts) [start.ts:12](../app/src/composables/start.ts) [use_main_stage.ts:25](../app/src/composables/use_main_stage.ts) [use_lifecycle.ts:14](../app/src/composables/use_lifecycle.ts) [use_phases.ts:10](../app/src/composables/use_phases.ts) [use_lifecycle_types.ts:9](../app/src/composables/use_lifecycle_types.ts) [use_dev_tools.ts:20](../app/src/composables/use_dev_tools.ts) [pipeline_builder.ts:16](../app/src/composables/pipeline_builder.ts) [replay_from_phase.ts:20](../app/src/composables/replay_from_phase.ts) [DevToolsPanel.vue:78](../app/src/components/DevToolsPanel.vue) [DevToolsPhaseRow.vue:37](../app/src/components/DevToolsPhaseRow.vue) [overlay_pipeline.test.ts:7](../app/test/overlay_pipeline.test.ts) [replay_from_phase.test.ts:19](../app/test/replay_from_phase.test.ts) [overlay_phase_registry.test.ts:11](../app/test/overlay_phase_registry.test.ts)；以及仍在原位的 `core/animation/phases/*`、`core/animation/pipeline.ts`、`core/animation/phases/phase_types.ts`、`core/flow/pipeline_shared_deps.ts` 中对 `flow/types` 与 `atoms/types` 的 import 一并改向 contracts。
-    5. 改 `core/animation/types` 全部 importer → `card_state`：[use_result_card_shrink.ts:40](../app/src/composables/use_result_card_shrink.ts) [use_lifecycle_types.ts:8](../app/src/composables/use_lifecycle_types.ts) [use_animation_controller.ts:13](../app/src/composables/use_animation_controller.ts) [initial_states.ts:7](../app/src/core/animation/initial_states.ts) [state.ts:13](../app/src/core/animation/state.ts) [phase_types.ts:12](../app/src/core/animation/phases/phase_types.ts) `core/animation/phases/*`（AnimationTimeline）。
-  - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`（纯类型移动，tsc 全覆盖）；`npx vitest run --config app/vitest.config.ts --dir app/test`；`grep -rn "core/flow/types\|animation/types'\|animation/atoms/types" app --include=*.ts --include=*.vue`（空）；full gate = exit 0。
-  - 影响：新增 2 文件、删 3 文件、~25 处 import。回滚：恢复 3 文件 + 反向 import。
+    1. `mkdir -p app/src/composables/flows/reading`。
+    2. `git mv` 上 4 文件 → `composables/flows/reading/`。
+    3. 改各文件内部 import 相对深度（根→flows/reading 深 2 级）：`../core/X`→`../../../core/X`；`./shared/animations/X`→`../../shared/animations/X`；`./flows/divination/X`→`../divination/X`（逐文件 Read 实算）。
+    4. 改消费者 import：`use_main_handlers`/`use_main_stage` 的 `./use_reading_controller`→`./flows/reading/use_reading_controller`、`./use_result_card_shrink`→`./flows/reading/use_result_card_shrink`；3 解读组件 `../composables/use_reading_panel_controller`→`../composables/flows/reading/use_reading_panel_controller`；`Deck.vue` 的 `../composables/result_card_lift_margin`→`../composables/flows/reading/result_card_lift_margin`。
+  - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "composables/use_reading_controller\|use_reading_panel_controller\|use_result_card_shrink\|composables/result_card_lift_margin" app --include=*.ts --include=*.vue`（仅新路径）；full gate = exit 0。
+  - 影响：新建目录 + 4 迁移 + 内外 import。回滚：反向 `git mv` + 还原 import + 删空目录。
 
-- [x] P3 迁 shared/animations 运行时
-  - 上下文：[state.ts](../app/src/core/animation/state.ts) [reconciler.ts](../app/src/core/animation/reconciler.ts) [visibility.ts](../app/src/core/animation/visibility.ts) [initial_states.ts](../app/src/core/animation/initial_states.ts) [use_animation_state.ts](../app/src/core/animation/use_animation_state.ts) [use_playback.ts](../app/src/core/animation/use_playback.ts) [pipeline.ts](../app/src/core/animation/pipeline.ts) [atoms/flip.ts](../app/src/core/animation/atoms/flip.ts) [atoms/grow.ts](../app/src/core/animation/atoms/grow.ts)。
+- [ ] P3 迁 flows/divination 9 文件 + quality_baseline 联动
+  - 上下文：9 文件 [use_phases](../app/src/composables/use_phases.ts) [use_presentation](../app/src/composables/use_presentation.ts) [start](../app/src/composables/start.ts) [pipeline_builder](../app/src/composables/pipeline_builder.ts) [skip_to_reading](../app/src/composables/skip_to_reading.ts) [replay_from_phase](../app/src/composables/replay_from_phase.ts) [use_lifecycle](../app/src/composables/use_lifecycle.ts) [use_lifecycle_types](../app/src/composables/use_lifecycle_types.ts) [use_animation_controller](../app/src/composables/use_animation_controller.ts)；互引（迁后同在 flows/divination，`./xxx` 不变）。`use_animation_controller` import `../config.json`。硬编码：[scripts/quality_baseline.json:4-5](../scripts/quality_baseline.json)（`use_animation_controller`、`use_lifecycle` 路径）。`use_animation_state.ts` 按文件名豁免与本步无关。消费者：`use_animation_controller`←`use_main_handlers`、`use_main_stage`、`divination_rig`、`use_play_deck_animation`、`use_header_presentation`、[ProgressContent.vue](../app/src/components/ProgressContent.vue)、[DeckRig.vue](../app/src/components/DeckRig.vue)、`Deck.vue`（8 处）；其余 8 文件均单一消费者（见 grep）。
   - 操作：
-    1. `git mv` 上 9 文件 → `composables/shared/animations/`，`reconciler.ts`→`style_sync.ts`（仅文件名；导出名 `createStyleReconciler` 不改），`atoms/flip.ts`→`flip.ts`、`atoms/grow.ts`→`grow.ts`。
-    2. 改各文件内部 import 相对深度：`../utils/accessibility`/`../utils/secure_random`→`../../../core/utils/...`；`./adapters/gsap`(P1 后已是 `../gsap/...`)→`../../../core/gsap/...`；`./state`/`./reconciler`/`./visibility`/`./initial_states`→同目录 `./state`/`./style_sync`/`./visibility`/`./initial_states`；`../types`/`./types`→`./card_state`；`../../flow/types`/`./contracts`→`./contracts`。
-    3. 改外部 importer：[use_animation_controller.ts:14,18,21,31](../app/src/composables/use_animation_controller.ts)（reconciler→`shared/animations/style_sync`、use_animation_state、use_playback、state MAX_CARD_COUNT）；[start.ts:11](../app/src/composables/start.ts)（pipeline，PipelinePhase）；测试 [use_animation_state.test.ts:6](../app/test/use_animation_state.test.ts) [atom_grow.test.ts:10-11](../app/test/atom_grow.test.ts) [atom_flip.test.ts:10-11](../app/test/atom_flip.test.ts) [overlay_pipeline.test.ts:4-5](../app/test/overlay_pipeline.test.ts) [replay_from_phase.test.ts:21](../app/test/replay_from_phase.test.ts) [overlay_phase_snap.test.ts:12](../app/test/overlay_phase_snap.test.ts)（MAX_CARD_COUNT from state）。
-    4. `core/animation/phases/*`（仍在原位）对 `../state`/`../pipeline`/`../atoms/*`/`../reconciler` 的 import 改向 `composables/shared/animations/*`。
-  - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "core/animation/\(state\|reconciler\|visibility\|initial_states\|use_animation_state\|use_playback\|pipeline\|atoms\)" app`（空）；full gate = exit 0。
-  - 影响：9 文件迁移 + 内外 import 链。回滚：反向 `git mv` + 还原 import。
+    1. `git mv` 9 文件 → `composables/flows/divination/`。
+    2. 改各文件内部 import 相对深度：`../core/X`→`../../../core/X`；`../config.json`→`../../../config.json`；`./shared/animations/X`→`../../shared/animations/X`；`./flows/divination/X`→同目录 `./X`；9 文件互引 `./xxx` 保持。
+    3. 改消费者 import：留根的 `use_main_handlers`/`use_main_stage`/`use_header_presentation` 中 `./use_animation_controller`→`./flows/divination/use_animation_controller`、`./use_reading_controller` 已于 P2 处理勿重复；`divination_rig`/`use_play_deck_animation` 中 `./use_animation_controller`→`./flows/divination/use_animation_controller`（P4 还会动，此处先正确）；`ProgressContent.vue`/`DeckRig.vue`/`Deck.vue` 的 `../composables/use_animation_controller`→`../composables/flows/divination/use_animation_controller`。
+    4. 改 [scripts/quality_baseline.json:4-5](../scripts/quality_baseline.json)：`app/src/composables/use_animation_controller.ts::useAnimationController`→`app/src/composables/flows/divination/use_animation_controller.ts::useAnimationController`；`use_lifecycle.ts` 同理。
+  - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "composables/use_animation_controller\|composables/use_lifecycle\b\|composables/use_phases\|composables/use_presentation\|composables/start'\|composables/pipeline_builder\|composables/skip_to_reading\|composables/replay_from_phase\|composables/use_lifecycle_types" app --include=*.ts --include=*.vue`（仅 flows/divination 新路径）；`node scripts/quality_gate.js full`（函数大小豁免须命中新路径，exit 0）。
+  - 影响：9 迁移 + 内外 import + quality_baseline 2 行。回滚：反向 `git mv` + 还原 import + 还原 baseline。
 
-- [x] P4 迁 flows/divination（删 registry/phase_types/index 壳，解散 core/flow）
-  - 上下文：[phases/{shuffle,cut,draw,reveal}/builder.ts](../app/src/core/animation/phases/) [draw/draw_timeline.ts](../app/src/core/animation/phases/draw/draw_timeline.ts) [phase_manifest.ts](../app/src/core/animation/phases/phase_manifest.ts) [phase_entry_snaps.ts](../app/src/core/animation/phases/phase_entry_snaps.ts) [phase_types.ts](../app/src/core/animation/phases/phase_types.ts) [registry.ts](../app/src/core/animation/phases/registry.ts) [pipeline_shared_deps.ts](../app/src/core/flow/pipeline_shared_deps.ts) [overlay_progress/](../app/src/core/utils/overlay_progress/)。执行前先 `grep -rn "overlay_progress\|createProgressModel\|phase_progress" app/src --include=*.ts --include=*.vue` 确认 progress 真实消费者并补入本步 importer 清单。
+- [ ] P4 状态机簇单一职责拆解 + 按消费者归位
+  - 上下文：[play_deck_runtime_types.ts](../app/src/composables/play_deck_runtime_types.ts)（`PlayDeckRuntime`/`FanController`/`DivinationRig` 三接口）；[fan_controller.ts](../app/src/composables/fan_controller.ts)（import gsap、`../core/utils/accessibility`、`./flows/idle/fan`、`./play_deck_runtime_types`）；[click_handler.ts](../app/src/composables/click_handler.ts)（import `../core/store/tarot`、`../core/store/flow`、`./play_deck_runtime_types`）；[divination_rig.ts](../app/src/composables/divination_rig.ts)（import `./use_animation_controller`、`./play_deck_runtime_types`；全程不引用 `rt`）；[use_play_deck_animation.ts](../app/src/composables/use_play_deck_animation.ts)（`DECK_SIZE=12`:34；`createPlayDeckRuntime`:61-74；`resolveDeckCardSize`:81-91；`runEntranceHint`:97-109；`watchPhaseStateMachine`:128-152；`usePlayDeckAnimation`:155-218；唯一消费者 [Deck.vue:73](../app/src/components/Deck.vue)）。`DECK_SIZE` 被 `createPlayDeckRuntime`(:65,:68) 与残留 `:212 deckSize:DECK_SIZE` 共用 → 随 `deck_runtime.ts`，残留反向 import（合理拆分，无逻辑变更）。
   - 操作：
-    1. `git mv`：`phases/shuffle/builder.ts`→`flows/divination/phases/shuffle.ts`；`cut/builder.ts`→`phases/cut.ts`；`draw/builder.ts`→`phases/draw.ts`；`draw/draw_timeline.ts`→`phases/draw_timeline.ts`；`reveal/builder.ts`→`phases/reveal.ts`；`phase_manifest.ts`→`flows/divination/phase_manifest.ts`；`phase_entry_snaps.ts`→`flows/divination/phase_entry_snapshots.ts`；`core/flow/pipeline_shared_deps.ts`→`flows/divination/pipeline_deps.ts`；`overlay_progress/phase_progress_model.ts`→`flows/divination/progress_model.ts`；`phase_progress_presenter.ts`→`progress_presenter.ts`；`overlay_text.ts`→`flows/divination/overlay_text.ts`。
-    2. 拆解 `phase_types.ts`：`PhaseStep`/`PhaseManifest`/`MAX_CUT_PILES` 声明搬入 `phase_manifest.ts`；`PhaseSnapDeps` 搬入 `phase_entry_snapshots.ts`；`OverlayPhase` 已在 contracts（P2）；删 `phase_types.ts`。
-    3. 删 `registry.ts`、`overlay_progress/index.ts`。
-    4. 改各迁移文件内部 import 相对深度（contracts/card_state→`../../shared/animations/*`；gsap→`../../../core/gsap/*`；core/utils accessibility/secure_random→`../../../core/utils/*`；sizing/deck→`../../../core/*`；phases 内互引同目录）。
-    5. 改 registry 消费者为直接 import：[pipeline_builder.ts:11-15](../app/src/composables/pipeline_builder.ts)（buildXxxPhaseRunner→`flows/divination/phases/*`、PHASE_MANIFEST→`phase_manifest`）；[replay_from_phase.ts:15-19](../app/src/composables/replay_from_phase.ts)、[skip_to_reading.ts:12-13](../app/src/composables/skip_to_reading.ts)（getPhaseSnap→`phase_manifest`、PhaseSnapDeps→`phase_entry_snapshots`）；[use_lifecycle.ts:13](../app/src/composables/use_lifecycle.ts)（PhaseSnapDeps→`phase_entry_snapshots`）；[use_animation_controller.ts:32](../app/src/composables/use_animation_controller.ts)（MAX_CUT_PILES→`phase_manifest`）；`shared/animations/pipeline.ts`（P3 后）对 OverlayPhase→`./contracts`；progress_model/presenter 内 `../../animation/phases/registry`→ 同目录 `./phase_manifest`、`./overlay_text`。
-    6. 测试改 import（用例逻辑不动）：[overlay_phase_registry.test.ts:10-11](../app/test/overlay_phase_registry.test.ts)→`phase_manifest`；[overlay_phase_snap.test.ts:11](../app/test/overlay_phase_snap.test.ts)→`phase_manifest`/`phase_entry_snapshots`；[replay_from_phase.test.ts:20](../app/test/replay_from_phase.test.ts)→`phase_manifest`；[overlay_progress_model.test.ts](../app/test/overlay_progress_model.test.ts) [overlay_progress_presenter.test.ts](../app/test/overlay_progress_presenter.test.ts)→`flows/divination/*`；[overlay_pipeline.test.ts](../app/test/overlay_pipeline.test.ts) 中 phase 相关 import 同步。
-    7. 删空目录 `core/flow/`、`core/utils/overlay_progress/`、`core/animation/phases/{shuffle,cut,draw,reveal}/`（fan/fallback 仍在，P5 处理）。
-  - 验收：vue-tsc；`vitest --dir app/test` 全量（含 overlay_phase_registry/snap、replay、progress）；`grep -rn "phases/registry\|phase_types\|core/flow\|overlay_progress" app --include=*.ts --include=*.vue`（空）；full gate = exit 0。
-  - 影响：12 文件迁移、删 3 壳、phase_types 拆解、~15 处 import + 6 测试。回滚：反向 `git mv` + 恢复壳 + 还原 import。
+    1. 新建 `flows/idle/deck_runtime.ts`：逐字搬入 `const DECK_SIZE=12`、`PlayDeckRuntime` 接口（from play_deck_runtime_types，含 `Ref`/`gsap` type import 按新位置算）、`createPlayDeckRuntime()` 函数体（from use_play_deck_animation:61-74，逐字）；导出三者。
+    2. 新建 `flows/idle/deck_card_size.ts`：逐字搬入 `resolveDeckCardSize()`（:81-91）+ 其依赖 import `solveLayoutFromWindow`（`../../../core/sizing/solve_from_window`）；导出。
+    3. 新建 `flows/idle/entrance_hint.ts`：逐字搬入 `runEntranceHint()`（:97-109）+ import `gsap`、`prefersReducedMotion`（`../../../core/utils/accessibility`）；导出。
+    4. `git mv fan_controller.ts → flows/idle/`：把 `FanController` 接口声明从 play_deck_runtime_types 逐字内联进本文件（紧邻 `createFanController`）；import 改：`./play_deck_runtime_types`(PlayDeckRuntime)→`./deck_runtime`；`./flows/idle/fan`→`./fan`；`../core/utils/accessibility`→`../../../core/utils/accessibility`。
+    5. `git mv click_handler.ts → flows/idle/`：import 改：`./play_deck_runtime_types`(PlayDeckRuntime)→`./deck_runtime`；`../core/store/tarot`→`../../../core/store/tarot`；`../core/store/flow`→`../../../core/store/flow`。
+    6. `git mv divination_rig.ts → flows/divination/`：把 `DivinationRig` 接口从 play_deck_runtime_types 逐字内联进本文件（紧邻 `createDivinationRig`）；import 改：`./use_animation_controller`→同目录 `./use_animation_controller`（P3 后已在此目录，路径不变）；删 `./play_deck_runtime_types` 行。
+    7. 删除 `composables/play_deck_runtime_types.ts`（三接口已全部归位）。
+    8. 改 `use_play_deck_animation.ts`（留根，编排器残留）：删除被抽出的 `DECK_SIZE`/`createPlayDeckRuntime`/`resolveDeckCardSize`/`runEntranceHint` 定义；新增 import：`./flows/idle/deck_runtime`(DECK_SIZE, PlayDeckRuntime, createPlayDeckRuntime)、`./flows/idle/deck_card_size`(resolveDeckCardSize)、`./flows/idle/entrance_hint`(runEntranceHint)、`./flows/idle/fan_controller`(createFanController, FanController)、`./flows/idle/click_handler`(buildClickHandler)、`./flows/divination/divination_rig`(createDivinationRig, DivinationRig)、`./flows/divination/use_animation_controller`(UseAnimationControllerReturn)；删 `./play_deck_runtime_types` 行；`watchPhaseStateMachine`/`usePlayDeckAnimation`/`deckContainerStyle`/lifecycle 主体逐字不动。`Deck.vue:73` import 路径不变（仍 `../composables/use_play_deck_animation`）。
+  - 验收：vue-tsc；`vitest --dir app/test` 全量（含 fan/click/rig/play 相关用例）；`grep -rn "play_deck_runtime_types" app --include=*.ts --include=*.vue`（空）；`grep -rn "composables/fan_controller\|composables/click_handler\|composables/divination_rig" app --include=*.ts --include=*.vue`（仅 flows 新路径）；full gate = exit 0。
+  - 影响：3 新建 + 3 迁移 + 类型内联 + 删 1 伞文件 + 残留改写。回滚：反向 `git mv` + 恢复 play_deck_runtime_types + 还原 use_play_deck_animation + 删新建。
 
-- [x] P5 迁 flows/idle + flows/fallback，清空 core/animation
-  - 上下文：[phases/fan/builder.ts](../app/src/core/animation/phases/fan/builder.ts)（buildFanTimeline）；[phases/fallback/builder.ts](../app/src/core/animation/phases/fallback/builder.ts)（createDefaultPlanets/startFallbackAnimation，ticker 驱动）；importer [fan_controller.ts:23](../app/src/composables/fan_controller.ts) [FallbackOrbits.vue:50](../app/src/components/FallbackOrbits.vue)。
+- [ ] P5 文件头注释对齐 + 全局回归
+  - 上下文：迁移/拆分文件头 `Name:` 与文中提及旧路径需对齐新位置；新建文件需写规范头注释（[文档/注释约定](../CLAUDE.md)，`.ts` 注释符勿紧贴 `#ifdef`）。命名复核：`deck_runtime`/`deck_card_size`/`entrance_hint`、`createPlayDeckRuntime`/`resolveDeckCardSize`/`runEntranceHint` 是否看名知意（不达意直接改对并连带改引用）。
   - 操作：
-    1. `git mv` `phases/fan/builder.ts`→`composables/flows/idle/fan.ts`；`phases/fallback/builder.ts`→`composables/flows/fallback/orbits.ts`。
-    2. 改两文件内部 import：`../../../utils/accessibility`→`../../../core/utils/accessibility`；`gsap` 不变。
-    3. 改 importer：`fan_controller.ts:23`→`./flows/idle/fan`（按其位置算相对路径）；`FallbackOrbits.vue:50`→`../composables/flows/fallback/orbits`。
-    4. 删空目录 `core/animation/phases/`、`core/animation/`（应已全空）。
-  - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "core/animation" app --include=*.ts --include=*.vue`（空）；`test ! -d app/src/core/animation && test ! -d app/src/core/flow`；full gate = exit 0。
-  - 影响：2 文件迁移 + 2 importer + 删空目录。回滚：反向 `git mv` + 还原 import。
-
-- [x] P6 收尾：守卫规则 / 文件头注释 / 文档对齐 / 全局回归
-  - 上下文：全仓。各迁移文件头 `Name:` 注释多为旧路径（如 `Name: animation/...`、`core/flow/...`）；[docs/README.md](README.md)、[README.md](../README.md)、`app/src/**/README.md`；架构守卫 [config/dependency-cruiser.cjs:252-273](../config/dependency-cruiser.cjs)（`core-is-leaf` 的 `to` 未含 composables；`animation-not-to-reading` 的 `from` 仍为 `^app/src/core/animation/`）、[scripts/quality_scan.js:341](../scripts/quality_scan.js)（`animation/engine` 失效死豁免；`use_animation_state.ts` 按文件名豁免，迁移后仍有效不动）。说明：P1–P5 期间不动这两文件——`core-is-leaf` 的 `to` 不含 composables，故中间态 `core/animation/*→composables/shared/animations` 不被拦；`animation-not-to-reading` 的 `from=core/animation` 在其存在期间继续有效守卫；P5 后 core 内已无指向 composables 的依赖，此时收紧规则不会误拦。
-  - 操作：
-    1. 更新 [dependency-cruiser.cjs](../config/dependency-cruiser.cjs)：`core-is-leaf` 的 `to` path 增加 `composables`（收紧为 core 不得依赖 composables，守护本次建立的分层）；`animation-not-to-reading` 的 `from` 由 `^app/src/core/animation/` 改为新动画位置正则（`^app/src/core/gsap/`、`^app/src/composables/shared/animations/`、`^app/src/composables/flows/divination/`），`to` 按 reading 业务实际位置核定，注释同步。规则语义不弱化、不删除。
-    2. 清理 [quality_scan.js:341](../scripts/quality_scan.js) 失效的 `animation/engine` 死豁免分支（`engine` 目录早已合并删除，重构前后均匹配不到）；先验证移除后 `ExternalPrivateAccess` 不新增误报再删，否则保留并记「搁置问题」。
-    3. 同步所有迁移文件头 `Name:` 与文件内提及的旧路径注释为新路径（不改代码逻辑）。
-    4. `grep -rn "core/animation\|core/flow\|overlay_progress\|phases/registry" docs README.md app/src --include=*.md` 核查文档/README 旧目录路径描述，按实际结构对齐（仅路径，不改语义）。
-    5. 全局回归：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`npx vitest run --config server/vitest.config.ts --dir server/test`；`npx eslint app/src/ app/test/`；`node scripts/quality_gate.js full`；H5 构建 `node scripts/build/index.js --prod --target h5 --skip-quality`。
-  - 验收：上述命令全 exit 0；`core-is-leaf`/`animation-not-to-reading` 规则路径与最终结构一致且 depcruise 0 error；全仓 grep 旧路径零残留；H5 构建 DONE。
-  - 影响：守卫规则 + 注释/文档 + 回归。回滚：按失败项定位对应 P 步 `git revert`。
+    1. 同步所有本次迁移/拆分文件头 `Name:` 与正文旧路径注释为新路径（仅注释，零代码改动）。
+    2. 命名直观性逐一复核；如改名，连带改全部引用并重跑该范围验收。
+    3. 全局回归：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`npx vitest run --config server/vitest.config.ts --dir server/test`；`npx eslint app/src/ app/test/ server/src/ server/test/`；`node scripts/quality_gate.js full`；H5 构建 `node scripts/build/index.js --prod --target h5 --skip-quality`。
+  - 验收：上述命令全 exit 0；全仓 `grep -rn "composables/play_deck_runtime_types"` 等旧路径零残留；H5 构建 DONE；更新「进度」。
+  - 影响：注释 + 可能改名 + 全量回归。回滚：按失败项定位对应 P 步反向处置。
 
 ## 执行约束
 
-每步先改 → 验收（vue-tsc 用 [vue-tsc 不用 tsc](../CLAUDE.md)；vitest 必带 `--dir app/test` 匹配 config）→ 更新「进度」→ commit（pre-commit 真实跑通，禁绕过；分提交前 `git stash push --staged` 隔离他人改动）→ 下一步。禁跳步。遇验收失败即停并报告，按「回滚」处置，不绕过门禁。
+每步先改 → 验收（类型检查用 [vue-tsc 不用 tsc](../CLAUDE.md)；vitest 必带 `--dir app/test`/`--dir server/test` 匹配 config）→ 更新「进度」→ commit（pre-commit 真实跑通，禁绕过）→ 下一步。禁跳步。遇验收失败即停并报告，按「回滚」处置，不绕过门禁。遇必须改逻辑/名不达意/疑似 bug → 按「禁止项 2」停或直改。
 
 ## 回滚
 
@@ -146,7 +122,7 @@ app/src/composables/flows/fallback/
 
 ## 进度
 
-P0–P6 全部完成。core/animation→gsap 分层重构结束：core/gsap 仅 GSAP 封装，动画基建在 composables/shared/animations，占卜/待机/降级编排在 composables/flows/{divination,idle,fallback}，registry/phase_types/overlay_progress 壳已删，core/flow 解散，core→composables 反向依赖消除并由 dependency-cruiser core-is-leaf 守卫。回归：vue-tsc + app 166/server 54 单测 + full gate（含 arch:check/knip）+ H5 构建 perf Δ0.0% 全绿。
+P0 完成（TODO 重写，full gate exit 0）。P1 进行中。
 
 ## 搁置问题
 
