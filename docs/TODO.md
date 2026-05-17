@@ -104,7 +104,7 @@ app/src/composables/flows/idle/                   （迁入 2 + 新建 3）
   - 验收：vue-tsc；`vitest --dir app/test` 全量（含 fan/click/rig/play 相关用例）；`grep -rn "play_deck_runtime_types" app --include=*.ts --include=*.vue`（空）；`grep -rn "composables/fan_controller\|composables/click_handler\|composables/divination_rig" app --include=*.ts --include=*.vue`（仅 flows 新路径）；full gate = exit 0。
   - 影响：3 新建 + 3 迁移 + 类型内联 + 删 1 伞文件 + 残留改写。回滚：反向 `git mv` + 恢复 play_deck_runtime_types + 还原 use_play_deck_animation + 删新建。
 
-- [ ] P5 文件头注释对齐 + 全局回归
+- [x] P5 文件头注释对齐 + 全局回归
   - 上下文：迁移/拆分文件头 `Name:` 与文中提及旧路径需对齐新位置；新建文件需写规范头注释（[文档/注释约定](../CLAUDE.md)，`.ts` 注释符勿紧贴 `#ifdef`）。命名复核：`deck_runtime`/`deck_card_size`/`entrance_hint`、`createPlayDeckRuntime`/`resolveDeckCardSize`/`runEntranceHint` 是否看名知意（不达意直接改对并连带改引用）。
   - 操作：
     1. 同步所有本次迁移/拆分文件头 `Name:` 与正文旧路径注释为新路径（仅注释，零代码改动）。
@@ -123,8 +123,8 @@ app/src/composables/flows/idle/                   （迁入 2 + 新建 3）
 
 ## 进度
 
-P0–P4 完成。P1：core/composables 2 文件。P2：flows/reading 4 文件。P3：flows/divination 9 文件。P4：新建 flows/idle/{deck_runtime,deck_card_size,entrance_hint}（逐字抽 DECK_SIZE/PlayDeckRuntime/createPlayDeckRuntime/resolveDeckCardSize/runEntranceHint），fan_controller/click_handler→flows/idle（内联 FanController），divination_rig→flows/divination（内联 DivinationRig），删 play_deck_runtime_types，use_play_deck_animation 留根编排器残留；full gate exit 0。P5 进行中。
+P0–P5 全部完成。composables 根 25 文件归类结束：core/composables 2（use_app_phase/use_cards_load_error）；flows/reading 4（解读流程）；flows/divination 10（占卜管线 9 + divination_rig，内联 DivinationRig）；flows/idle 5（fan_controller 内联 FanController、click_handler 迁入 + 新建 deck_runtime/deck_card_size/entrance_hint）；留根 6（use_main_stage/use_main_handlers/use_dev_tools/use_active_view/use_header_presentation/use_play_deck_animation 跨 flow 编排器残留）；play_deck_runtime_types 伞文件已删。全程纯移动/拆解，零逻辑/功能/界面变更。回归：vue-tsc + app/server 全量单测 + eslint + full gate（arch/dead-code/dup/audit）+ H5 prod 构建 perf Δ0.0% 全绿。文件头 Name 统一为 composables/... 全路径惯例。
 
 ## 搁置问题
 
-（暂无）
+1. 上一轮迁移遗留的过期注释（非本次 25 文件范围，按最小变更未动）：[phases/shuffle.ts:4](../app/src/composables/flows/divination/phases/shuffle.ts) [phases/cut.ts:4](../app/src/composables/flows/divination/phases/cut.ts) 的 `migrated from utils/overlay_animation/phases/...` 渊源、[phases/draw_timeline.ts:329](../app/src/composables/flows/divination/phases/draw_timeline.ts) 的 `animation/phases/reveal/builder.ts` 引用——指向已不存在的旧路径，待后续注释清理批次统一对齐。

@@ -1,5 +1,5 @@
 /**
- * Name: use_presentation
+ * Name: composables/flows/divination/use_presentation
  * Purpose: derive progress header, footer, and phase step UI state from phase + results.
  * Reason: extracted from use_animation_controller to isolate presentation computeds.
  * Data flow: receives phase and showResults refs via DI; returns computed-only presentation.

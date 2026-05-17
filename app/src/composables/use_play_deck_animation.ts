@@ -1,5 +1,5 @@
 /**
- * Name: use_play_deck_animation
+ * Name: composables/use_play_deck_animation
  * Purpose: drives the single persistent Deck stage-content (idle fan loop +
  *          divination rig). Holds the runtime container, lifecycle wiring,
  *          and the phase-driven state-machine watch; the fan loop, the
@@ -13,7 +13,7 @@
  *   - injected animationController owns the divination GSAP rig — this
  *     composable kicks it off on idle→divination via `animCtrl.start()`,
  *     and tears it down on phase→idle reset.
- *   - layout solver (`solve_from_window('draw_stage')`) gives the fan
+ *   - flows/idle/deck_card_size (`resolveDeckCardSize`) gives the fan
  *     stack the same card size as the draw card so idle→shuffle keeps
  *     stable visual scale.
  */

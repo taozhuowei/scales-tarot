@@ -1,5 +1,5 @@
 /**
- * Name: use_reading_controller
+ * Name: composables/flows/reading/use_reading_controller
  * Purpose: manage divination lifecycle (start, retry, reset, destroy) and
  *          expose request state to the overlay templates.
  * Reason: decouples divination orchestration from animation; this module

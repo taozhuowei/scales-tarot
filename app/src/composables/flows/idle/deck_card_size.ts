@@ -1,5 +1,5 @@
 /**
- * Name: flows/idle/deck_card_size
+ * Name: composables/flows/idle/deck_card_size
  * Purpose: resolve the idle fan-stack card width/height from the
  *          draw-stage layout solver so idle → divination keeps a stable
  *          card size with no visual jump.

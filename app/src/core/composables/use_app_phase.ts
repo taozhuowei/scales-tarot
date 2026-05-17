@@ -1,5 +1,5 @@
 /**
- * Name: use_app_phase
+ * Name: core/composables/use_app_phase
  * Purpose: re-export the application-level 4-stage phase ref from the tarot
  *          store and provide named transition helpers, so the main page can
  *          provide() a single phase ref to all views/containers and switch

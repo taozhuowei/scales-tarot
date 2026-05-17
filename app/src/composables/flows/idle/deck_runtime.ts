@@ -1,5 +1,5 @@
 /**
- * Name: flows/idle/deck_runtime
+ * Name: composables/flows/idle/deck_runtime
  * Purpose: idle Deck-stage runtime state — the 12-card fan-stack size
  *          constant, the mutable PlayDeckRuntime container shape shared by
  *          the fan controller and the click guard, and its factory.

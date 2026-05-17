@@ -1,7 +1,7 @@
 /**
- * Name: commands/start
+ * Name: composables/flows/divination/start
  * Purpose: run the four-phase animation pipeline from a given start index.
- * Reason: extracted from phase_pipeline to isolate pipeline orchestration as a
+ * Reason: extracted from the phase pipeline to isolate pipeline orchestration as a
  *         standalone command. Receives all deps via DI, creates no state.
  * Data flow: deps in → GSAP timeline side-effects out; callbacks fire on phase change.
  */

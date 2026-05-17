@@ -1,7 +1,7 @@
 /**
- * Name: commands/replay_from_phase
+ * Name: composables/flows/divination/replay_from_phase
  * Purpose: replay the animation pipeline starting from a specified phase.
- * Reason: extracted from phase_pipeline to isolate replay logic as a standalone command.
+ * Reason: extracted from the phase pipeline to isolate replay logic as a standalone command.
  *         Now delegates per-phase entry-state setup to PHASE_MANIFEST.snapToEntryState
  *         via getPhaseSnap() so the visual contract for each phase lives next to its
  *         metadata, not duplicated across this command and skip_to_reading.

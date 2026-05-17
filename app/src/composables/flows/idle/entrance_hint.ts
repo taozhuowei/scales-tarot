@@ -1,5 +1,5 @@
 /**
- * Name: flows/idle/entrance_hint
+ * Name: composables/flows/idle/entrance_hint
  * Purpose: the idle touch-hint fade — runs once per idle entrance so it
  *          doesn't compete with the title GSAP entrance. Honors
  *          reduced-motion.

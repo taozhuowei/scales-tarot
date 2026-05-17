@@ -1,5 +1,5 @@
 /**
- * Name: state/play/click_handler
+ * Name: composables/flows/idle/click_handler
  * Purpose: build the idle-tap click handler with the double-tap lock
  *          guard. Releases the lock after `DECK_CLICK_RELEASE_MS` and
  *          falls back to a safety timer (`DECK_CLICK_SAFETY_MS`) so the

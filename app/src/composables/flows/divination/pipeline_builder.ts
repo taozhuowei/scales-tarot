@@ -1,5 +1,5 @@
 /**
- * Name: commands/pipeline_builder
+ * Name: composables/flows/divination/pipeline_builder
  * Purpose: pure helpers that build PhaseContext and PhaseRunner[] from deps.
  * Reason: extracted from commands/start to keep start.ts within the 180-line TS limit.
  *         buildPhaseRunners now iterates the PHASE_MANIFEST so adding/reordering

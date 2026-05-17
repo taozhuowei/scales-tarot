@@ -1,5 +1,5 @@
 /**
- * Name: state/play/fan_controller
+ * Name: composables/flows/idle/fan_controller
  * Purpose: imperative GSAP plumbing for the idle 12-card fan loop. Owns
  *          the timeline reference, the per-card transform flush, and the
  *          reset-to-stack snap used during phase hand-off.
@@ -13,7 +13,7 @@
  *          - the runtime container (PlayDeckRuntime) is owned by the
  *            main composable; this module mutates it via reference.
  *          - buildFanTimeline owns the actual GSAP keyframes (lives
- *            under animation/phases/fan/), this module only kicks it
+ *            under composables/flows/idle/fan), this module only kicks it
  *            off, kills it, and bridges its onUpdate back into the
  *            reactive cardsStyle ref.
  */

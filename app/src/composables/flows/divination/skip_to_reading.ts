@@ -1,7 +1,7 @@
 /**
- * Name: commands/skip_to_reading
+ * Name: composables/flows/divination/skip_to_reading
  * Purpose: skip directly to the revealing phase, bypassing shuffle/cut/draw animations.
- * Reason: extracted from phase_pipeline to isolate skip logic as a standalone command.
+ * Reason: extracted from the phase pipeline to isolate skip logic as a standalone command.
  *         Now reuses the manifest's snap-to-revealing-entry helper so the visual state
  *         contract for revealing lives in one place (registry.ts) — previously this
  *         command hand-rolled a draws[i] assignment loop that drifted from the contract.

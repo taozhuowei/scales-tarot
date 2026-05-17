@@ -1,5 +1,5 @@
 /**
- * Name: use_cards_load_error
+ * Name: core/composables/use_cards_load_error
  * Purpose: surface the idle-only card-resource load error state + retry
  *          action, self-served from the tarot store, so the CardsLoadError
  *          component carries no props/emit chain.

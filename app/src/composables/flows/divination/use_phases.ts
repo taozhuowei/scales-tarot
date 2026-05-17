@@ -1,5 +1,5 @@
 /**
- * Name: use_phases
+ * Name: composables/flows/divination/use_phases
  * Purpose: manage OverlayPhase lifecycle and progress model.
  * Reason: extracted from use_animation_controller to isolate phase transition concerns.
  * Data flow: receives no external deps; exposes phase ref, progress model, and transitionPhase command.

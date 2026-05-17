@@ -1,5 +1,5 @@
 /**
- * Name: use_lifecycle_types
+ * Name: composables/flows/divination/use_lifecycle_types
  * Purpose: type definitions for use_lifecycle — separated to keep use_lifecycle.ts ≤ 150 lines.
  * Data flow: imported by use_lifecycle and use_animation_controller.
  */

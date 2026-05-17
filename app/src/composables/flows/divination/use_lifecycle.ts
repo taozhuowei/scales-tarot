@@ -1,5 +1,5 @@
 /**
- * Name: use_lifecycle
+ * Name: composables/flows/divination/use_lifecycle
  * Purpose: overlay animation lifecycle — entry settling, scene reset, animation interruption,
  *          and pipeline orchestration (start / skip / replay).
  * Reason: extracted from use_animation_controller to isolate lifecycle concerns. Owns the

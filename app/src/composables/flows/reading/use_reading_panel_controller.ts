@@ -1,5 +1,5 @@
 /**
- * Name: use_reading_panel_controller
+ * Name: composables/flows/reading/use_reading_panel_controller
  * Purpose: provide presentation-ready data for reading panel rendering.
  * Reason: separate reading data transformation from UI rendering.
  * Data flow: reading result flows in; view-model data flows out.

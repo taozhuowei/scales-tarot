@@ -1,5 +1,5 @@
 /**
- * Name: use_result_card_shrink
+ * Name: composables/flows/reading/use_result_card_shrink
  * Purpose: drive the second stage of the two-phase result-card reveal —
  *          when the reading drawer mounts (narrow viewports only), the
  *          card animates from its full safe-area size (240×384 phone-
