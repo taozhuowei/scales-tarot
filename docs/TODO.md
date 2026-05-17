@@ -1,85 +1,218 @@
 # 执行计划与进度跟踪
 
-> 唯一执行跟踪文档。仅记录当前进行中的计划与进度，不留历史归档与未来设想。
+> 唯一执行跟踪文档。仅记录当前进行中的计划与进度，不留历史归档与未来设想。每个任务为独立单步：读「本任务描述 + 其超链接引用的文档与代码」即可获得全部上下文，知道怎么做、怎么测。
 
 ## 目标
 
-在 core 内部按单一职责拆分 5 个混合职责大文件：拆出的新文件**留在原目录**，零逻辑改动；不迁移到 flows、不动 state，靠原文件转 facade / 保留主体 + re-export 使所有 core 外调用方（state/components/test）的 import 路径与符号**完全不变**。
+把 `app/src/flows/` 重构为「持久 Shell + 每 flow 自管 + 共享归 shared + flow 视觉逻辑从 state 下沉」架构。先建好全部目标目录，再把架构写进 [flows/README.md](../app/src/flows/README.md)，再按零行为变更优先、reading 4:6 flex 末批的顺序分单步重构。
 
-## 范围边界
+## 最终架构
 
-仅 core 内部拆分。不迁移、不改 core 外任何文件。流程归属（`registry` 的 snap 语义属 divination、`reading_panel_timing` 属 reading）仅在拆出文件头与 TODO 标注，待后续 flows 批次迁移，本批不迁。轻微混合小文件经实读评估为单一职责成立、不值得拆，本批不动：`animation/adapters/gsap.ts`（gsap 隔离单一职责）、`sizing/responsive_sizes.ts`、`sizing/overlay_layout/breakpoints.ts`、`sizing/overlay_layout/viewport_scene_layout.ts`、`api/client.ts`（拆会引入跨端 `#ifdef` 重复，违反 CLAUDE.md）。
+### 目标目录树（标注 新建 / 迁自X / 保留）
 
-## 调研结论
+```
+app/src/flows/
+  README.md                                改写（去 views/ 与 registry 旧述）
+  shared/
+    components/
+      Shell.vue                            新建  持久骨架 HeaderArea(单一可换页眉)+Stage>Deck；page 无 key 渲染、永不 remount；逐字平移 PlayView.vue:32-59
+      Stage.vue                            迁自 flows/shared/Stage.vue
+      Deck.vue                             迁自 flows/shared/Deck.vue（移除 :115-126 resultCardLiftY 内联）
+      Card.vue                             新建  单一卡牌，props 形态=纯牌背 | 完整双面(牌面+牌背)；牌堆仅中央结果卡完整双面、抽牌落下翻开
+      HeaderArea.vue                       迁自 flows/shared/HeaderArea.vue
+      TitleContent.vue                     迁自 flows/shared/TitleContent.vue（idle+fallback 双 variant，多处用→shared）
+      NotificationHost.vue                 迁自 flows/shared/
+      DevToolsPanel.vue + 5 子行 SFC       迁自 flows/shared/（不另设 dev/ 子层）
+    composables/
+      use_header_metrics.ts                新建  页眉尺寸/位置基线，Title/Progress 共用（集中 CSS 常量，视觉零风险）
+      use_play_deck.ts                     迁自 state/use_play_deck_animation.ts（Deck 装配 fan/rig/click）
+      play/click_handler.ts                迁自 state/play/click_handler.ts
+      play/play_deck_runtime_types.ts      迁自 state/play/play_deck_runtime_types.ts
+      use_card_motion.ts                   新建  Card 翻牌/落下控制，派生注入 animationController、不重复其状态
+  idle/
+    index.vue                              新建  idle 壳：page 以 v-show by phase 控显隐；持本 flow 非舞台 UI 接线
+    components/DeckFanStack.vue            迁自 flows/idle/views/DeckFanStack.vue（v-for→<Card 纯牌背>）
+    composables/use_fan_loop.ts            迁自 state/play/fan_controller.ts（保留导出名）
+  divination/
+    index.vue                              新建  divination 壳：v-show by phase
+    components/
+      ProgressContent.vue                  迁自 flows/divination/views/ProgressContent.vue
+      ProgressIcon.vue                     新建  单阶段图标(双 image 堆叠)，ProgressContent v-for ×4
+      DeckRig.vue                          迁自 flows/divination/views/DeckRig.vue（堆叠 v-for→<Card 纯牌背>，中央→<Card 完整双面>）
+    composables/use_divination_rig.ts      迁自 state/play/divination_rig.ts（保留导出名）
+  reading/
+    index.vue                              新建  按注入 isWide 选 Split/Drawer（上移 pages/main/index.vue:30-54）；不含常驻物，v-if 可挂卸
+    components/                            迁自 flows/reading/views/ 8 个 SFC：
+      ReadingSplitView ReadingDrawerView ReadingPanel ConclusionContainer
+      CardMeaningContainer ReadingTextContainer TypewriterText ActionArea
+    composables/
+      use_reading_panel_view_model.ts      迁自 state/shared/use_reading_panel_controller.ts
+      use_result_card_geometry.ts          新建  合并 state/use_result_card_shrink.ts + Deck:115-126 + result_card_lift_margin
+  fallback/
+    index.vue                              新建  HeaderArea>TitleContent(fallback)+Stage>FallbackOrbits；并入消灭游离 app/src/fallback/
+    components/FallbackOrbits.vue           迁自 app/src/fallback/FallbackOrbits.vue
+```
 
-两轮实读调研已定方案，均确认可零逻辑改动达成单一职责。通用兼容惯例：原文件留作 facade 或保留主体并 re-export 拆出符号；barrel/facade 只 re-export 有运行时/测试消费者的符号（无消费者 re-export 会被 knip 判 dead export，门禁 fail）；拆出文件头 `Name/Purpose/Reason` 按新职责重写（项目有文件头遗留旧路径污染教训）。
+边界：`core/**`、`store/**`、应用级 `state/*`（[use_app_phase](../app/src/state/use_app_phase.ts) / [use_active_view](../app/src/state/use_active_view.ts) / use_animation_controller / use_reading_controller / use_main_handlers / use_phases / use_presentation / use_lifecycle / commands/**）原地不动；`core→flows` 零反向依赖（实读已验）。`pages/main/index.vue` 保留为编排者+唯一 provider；`pages/fallback/index.vue` 仅改 import。迁空后删 `state/play/`、`state/shared/`、`app/src/fallback/`。
+
+### 组合机制（核心不变量解法，业内持久 layout 模式，已验证）
+
+1. `pages/main/index.vue` 无条件、不加 key 渲染 `<Shell/>` → Shell 内 Stage/Deck 整个 app 生命周期单实例、零 remount（task 8.2.3 不变量构造性保证）。
+2. idle↔divination 唯一 DOM 变更：Shell 内 HeaderArea 的单个 `<component :is="phaseHeader">`（注入 appPhase 决定，外裹 `<Transition>`）；Stage/Deck 为该 swap 之外稳定兄弟 vnode，零 re-render、零 remount。
+3. `flows/{idle,divination}/index.vue` 与 Shell 同级兄弟、始终挂载，page 用 `v-show` 按 phase 控显隐；`flows/reading/index.vue` 不含常驻物，`v-if="showReadingView"` 真实挂卸。
+4. 不用 Teleport（uni-app mp-weixin 不支持 Teleport/Suspense，已验证）；页眉结构上在 Shell 内，flow 只贡献组件不贡献 DOM 位置。
+5. provide/inject 链不变：page 仍唯一 provider，Shell 与各 flow 全走 inject。
+6. e2e 全程锚定类名 `.idle-deck-content` / `.progress-content__step-icon` / `.reading-split-view` / `.reading-drawer-view__sheet`，重构全程不得改这些类名，确保零 e2e 回归。
+
+## 决策冻结
+
+1. reading 解读空间：以 4:6 flex 为准，废 `MAX_CANVAS_WIDTH=440` 居中模型（宽屏横向 4:6、窄屏纵向 4:6，占卜 pane 等比缩小）。
+2. Card：单一组件，props 控形态（纯牌背 | 完整双面 牌面+牌背）；仅中央结果卡完整双面、抽牌落下翻开；翻/落控制下沉 `shared/composables/use_card_motion.ts`。
+3. 归属：多处用→`flows/shared/`；TitleContent→shared/components（idle+fallback），ProgressContent→divination/components（divination 专属）；组件→`components/`，逻辑→`composables/`。
+4. Shell 为独立共享组件置 `shared/components/`，不内联进 page（实读：`scripts/quality_scan.js:505` >300 行 WARN，内联会破 baseline 棘轮、违单一职责；`config/dependency-cruiser.cjs` 无分层禁则故合法）。
+5. fallback 并入 `flows/fallback/`，消灭游离 `app/src/fallback/`。
+6. idle 卡资源错误带：留 Deck 内 `isIdle&&cardsLoadError`，随骨架 byte-identical 平移进 Shell（零行为变更）。
+7. flow 逻辑迁移仅改文件名、保留原导出函数名（最小 diff）；`result_card_lift_margin` 并入 `use_result_card_geometry`。
+8. 组件命名保留 `TitleContent`/`ProgressContent`（最小 churn）；DevTools 6 件入 `shared/components/` 不另设子层；idle/divination 的 index.vue 初期为薄壳（满足每 flow 各有 index.vue 意图、为演进留位）。
 
 ## 任务清单
 
-- [x] S1 拆 `typewriter_model.ts`
-  - 操作对象：`app/src/core/utils/typing/typewriter_model.ts`；新建同目录 `reading_panel_timing.ts`
-  - 操作步骤：将原 `:120-153`（`TypewriterFieldTiming` / `calculateFieldTiming` / `calculateKeywordTiming`）整块迁入 `reading_panel_timing.ts`（文件头注明语义属 reading、加 `TODO(flows-batch)` 待迁注释；不带入 `prefersReducedMotion` import）；`typewriter_model.ts` 保留引擎 `:1-118` 并新增 `export { calculateFieldTiming, calculateKeywordTiming, type TypewriterFieldTiming } from './reading_panel_timing'`
-  - 影响范围：新增 1 文件；`typewriter_model.ts` 内部缩减 + 加 re-export；`TypewriterText.vue`/`use_reading_panel_controller.ts`/`typewriter_model.test.ts` import 零变更
-  - 验收点：vue-tsc 通过；时序常量逐字未改；相关单测全绿
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test typewriter_model.test.ts typewriter_text.test.ts`
+> 每步：按操作改 → 验收（命令逐条跑通）→ 更新本文档勾选与「进度」→ commit（[pre-commit 门禁](../README.md) 真实跑通，禁 `--no-verify`/`--force`/任何绕过）→ 下一步。禁跳步。分提交前 `git stash push --staged` 隔离他人改动。每步须保持 vue-tsc + `vitest --dir app/test` + `node scripts/quality_gate.js full` 全绿后方可提交。
 
-- [x] S2 拆 `scale.ts`
-  - 操作对象：`app/src/core/sizing/scale.ts`；新建同目录 `raf_shim.ts`
-  - 操作步骤：将原 `:69-112` rAF/cAF 跨端垫片（含 eslint 行禁用注释整块）迁入 `raf_shim.ts`，导出 `raf`/`caf`；`scale.ts` 保留 re-export 段 + 抖动阈值 + 单例 composable，改 `import { raf, caf } from './raf_shim'`；composable 单例三件套不再细拆（共享 `singletonState` 闭包，强拆即逻辑改动）。留意条件编译注释规范（CLAUDE.md `#ifdef` 注释禁则）
-  - 影响范围：新增 1 文件；`scale.ts` 改 import；`pages/main`/`scale.test.ts`/`use_css_var_bridge`/`solve_from_window`/`viewport_scene_layout`/`layout_solver` 取符号零变更
-  - 验收点：vue-tsc 通过；raf/caf 仍模块顶层一次性特性探测；抖动阈值/单例契约未改
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test scale.test.ts layout_solver.test.ts`
+- [ ] T1 建全部目标目录骨架
+  - 上下文：本文件「最终架构 → 目标目录树」。仅建目录，不动任何现有文件内容。
+  - 操作：按目标树建空目录并各放 `.gitkeep`：`app/src/flows/shared/{components,composables}`、`app/src/flows/shared/composables/play`、`app/src/flows/idle/{components,composables}`、`app/src/flows/divination/{components,composables}`、`app/src/flows/reading/{components,composables}`、`app/src/flows/fallback/{components}`。保留现有 `views/`、`composables/.gitkeep` 不动（后续步骤迁移后再清理）。
+  - 验收：`find app/src/flows -type d` 与目标树一致；`node scripts/quality_gate.js full` = exit 0（新增空目录+gitkeep 不影响门禁）。
+  - 影响：仅新增空目录。回滚：删新建目录。
 
-- [x] S3 拆 `layout_solver.ts`
-  - 操作对象：`app/src/core/sizing/layout_solver.ts`；新建同目录 `layout_solver_reading.ts`、`layout_solver_draw.ts`
-  - 操作步骤：原 `:64-163`（`readingStageReservation`/`fitResultCard`/`solveReadingStageLayout`）迁 `layout_solver_reading.ts`；原 `:171-209`（`solveDrawStageLayout`）迁 `layout_solver_draw.ts`，两文件 import 改从 `./layout_solver_types`/`./layout_solver_computers`/`./scale` 直取；`layout_solver.ts` 保留类型 re-export 段 + `solveLayout` 调度（改 import 两新文件），分支调用顺序与参数逐字保留
-  - 影响范围：新增 2 文件；`layout_solver.ts` 内部缩减；11 处外部 import（取 `solveLayout` + 类型）零变更
-  - 验收点：vue-tsc 通过；`solveLayout` reading/draw 分支求解顺序与参数不变；`fitResultCard` 浮点等值判断未改
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test layout_solver.test.ts`
+- [ ] T2 写 flows/README 新架构
+  - 上下文：本文件「最终架构」「决策冻结」；现 [flows/README.md](../app/src/flows/README.md)（旧 views/registry 描述将被覆盖）；文档约定见 [CLAUDE.md](../CLAUDE.md) 与 docs 编写硬约束（无废话、索引必超链接、无表格）。
+  - 操作：覆盖重写 `app/src/flows/README.md`：写清最终目录结构（每 flow `index.vue`+`components/`+`composables/`、`shared/{components,composables}`、fallback 并入）、组合机制 6 条、目录即语义约定、Shell 持久不加 key 与 e2e 类名不变约束。所有引用用相对超链接，禁表格。
+  - 验收：README 覆盖目录树+组合机制+约定且与本文件「最终架构」一致；无 markdown 表格；`node scripts/quality_gate.js full` = exit 0。
+  - 影响：仅文档。回滚：`git checkout -- app/src/flows/README.md`。
 
-- [x] S4 拆 `phase_progress_presenter.ts`
-  - 操作对象：`app/src/core/utils/overlay_progress/phase_progress_presenter.ts`；新建同目录 `overlay_text.ts`
-  - 操作步骤：原 `:42-56`（`OverlayText` 接口 + `DEFAULT_OVERLAY_TEXT`）迁 `overlay_text.ts`；presenter 保留三个 present* 函数 + 其余类型，新增 `export type { OverlayText } from './overlay_text'` 与 `export { DEFAULT_OVERLAY_TEXT } from './overlay_text'`（测试直连 presenter 取该常量，须 re-export）；`presentFooter` 不单拆（11 行、同关注点）；**barrel `overlay_progress/index.ts` 不得新增 `DEFAULT_OVERLAY_TEXT` re-export**（沿用本仓既有惯例）
-  - 影响范围：新增 1 文件；presenter 内部缩减 + 两条 re-export；barrel 与测试路径符号零变更
-  - 验收点：vue-tsc 通过；`DEFAULT_OVERLAY_TEXT` 字面量逐字未改；默认参数仍解析同一常量
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test overlay_progress_presenter.test.ts`
+- [ ] T3 迁 shared 原子组件 → shared/components
+  - 上下文：源 [Stage.vue](../app/src/flows/shared/Stage.vue) [HeaderArea.vue](../app/src/flows/shared/HeaderArea.vue) [TitleContent.vue](../app/src/flows/shared/TitleContent.vue) [NotificationHost.vue](../app/src/flows/shared/NotificationHost.vue) [DevToolsPanel.vue](../app/src/flows/shared/DevToolsPanel.vue) 及其 5 个 DevTools 子行 SFC；现 importer：[PlayView.vue](../app/src/flows/shared/PlayView.vue)、[app/src/fallback/FallbackView.vue](../app/src/fallback/FallbackView.vue)、[pages/main/index.vue](../app/src/pages/main/index.vue:96)。
+  - 操作：`git mv` 上述 SFC 到 `app/src/flows/shared/components/` 同名；全量修正所有 importer 相对路径；DevToolsPanel 对 5 子行同目录 import 保持。文件内容零改动（仅位置）。
+  - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`node scripts/quality_gate.js full` = exit 0。
+  - 影响：import 路径。回滚：反向 `git mv` + 还原 import。
 
-- [x] S5 拆 `registry.ts`（最复杂，含隐式契约）
-  - 操作对象：`app/src/core/animation/phases/registry.ts`；新建同目录 `phase_types.ts`、`phase_entry_snaps.ts`、`phase_manifest.ts`
-  - 操作步骤：类型/常量契约（原 `:15-28`+`:50-75`：`OverlayPhase` 转发、`MAX_CUT_PILES`、`PhaseStep`、`PhaseSnapDeps`、`PhaseManifest`）→ `phase_types.ts`；三个 `snapTo*Entry`（原 `:77-191`，含不变式 JSDoc 原样）→ `phase_entry_snaps.ts`；`PHASE_MANIFEST`+`PHASE_STEPS`+查询/调度（原 `:193-279`）→ `phase_manifest.ts`（`snapToEntryState` 箭头包装原样引用 snap 函数，`PHASE_MANIFEST` 须在 `PHASE_STEPS` 前定义）；`registry.ts` 清空主体转 facade，re-export `phase_types`+`phase_manifest` 全部对外符号（含 `export type { OverlayPhase }`），snap 三函数不 re-export（无外部消费者）
-  - 影响范围：新增 3 文件；`registry.ts` 转 facade；8 处外部 import + 3 测试路径符号零变更
-  - 验收点：vue-tsc 通过；manifest→snap 引用链完整无环；snap 函数体逐字未改；`PHASE_STEPS` 求值顺序正确
-  - 验收方式：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test overlay_phase_registry.test.ts overlay_phase_snap.test.ts replay_from_phase.test.ts overlay_progress_model.test.ts overlay_pipeline.test.ts`
+- [ ] T4 迁 reading 8 SFC → reading/components
+  - 上下文：源 [flows/reading/views/](../app/src/flows/reading/views/) 8 个 SFC；唯一按路径强引用的测试 [app/test/typewriter_text.test.ts](../app/test/typewriter_text.test.ts:6)；importer [pages/main/index.vue](../app/src/pages/main/index.vue:94)。
+  - 操作：`git mv` 8 SFC 到 `app/src/flows/reading/components/`；修组件间相对 import（同目录互引不变）、对 `../../../core/*`/`../../../store/*` 升级层级、`pages/main` import、`typewriter_text.test.ts:6` 路径。内容零改动。
+  - 验收：vue-tsc；`npx vitest run --config app/vitest.config.ts --dir app/test typewriter_text.test.ts`；全量 `vitest --dir app/test`；`npx playwright test --config=app/playwright.config.ts`（reading 相关）；full gate = exit 0。
+  - 影响：import + 1 测试路径。回滚：反向 `git mv` + 还原。
 
-- [x] S6 全局回归
-  - 操作对象：全仓校验，不改源码
-  - 操作步骤：跑 full 质量门禁
-  - 影响范围：全仓
-  - 验收点：full gate 全步骤通过；knip exit 0、无新 dead export/file
-  - 验收方式：`node scripts/quality_gate.js full` = exit 0
+- [ ] T5 迁 idle/divination 视图 → 各 flow components
+  - 上下文：源 [DeckFanStack.vue](../app/src/flows/idle/views/DeckFanStack.vue) [DeckRig.vue](../app/src/flows/divination/views/DeckRig.vue) [ProgressContent.vue](../app/src/flows/divination/views/ProgressContent.vue)；importer [Deck.vue](../app/src/flows/shared/Deck.vue:92) [PlayView.vue](../app/src/flows/shared/PlayView.vue:87)。
+  - 操作：`git mv` DeckFanStack→`idle/components/`，DeckRig+ProgressContent→`divination/components/`；修 Deck/PlayView import 与三者对 `state/*` 的相对层级。内容零改动。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（占卜全流程动画用例）；full gate = exit 0。
+  - 影响：import 路径。回滚：反向 `git mv` + 还原。
+
+- [ ] T6 迁 Deck → shared/components
+  - 上下文：源 [Deck.vue](../app/src/flows/shared/Deck.vue)；依赖 idle/divination components(T5 后)、`state/use_play_deck_animation`、`flows/reading/composables/result_card_lift_margin`。
+  - 操作：`git mv` Deck.vue→`app/src/flows/shared/components/Deck.vue`；修其对 `../../idle/components/DeckFanStack`、`../../divination/components/DeckRig`、`../../../state/*`、reading composable 的相对路径；importer（PlayView）同步。内容零改动（resultCardLiftY 内联保留至 T14 再迁）。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`；full gate = exit 0。
+  - 影响：import 路径。回滚：反向 `git mv` + 还原。
+
+- [ ] T7 新建 Shell.vue 并删 PlayView
+  - 上下文：源骨架 [PlayView.vue:32-59](../app/src/flows/shared/PlayView.vue)（含其 `<style scoped>` 全部 `.play-view*` 规则）；importer [pages/main/index.vue:93](../app/src/pages/main/index.vue)；组合机制见本文件「最终架构 → 组合机制」第 1/2 条；类名不变约束见第 6 条。
+  - 操作：新建 `app/src/flows/shared/components/Shell.vue`，把 PlayView 模板 `:32-59` 与对应 scoped CSS **逐字平移**（DOM 结构、class、inline-style、`isIdle` 三元页眉、Stage>Deck、idle 错误带、ARIA、retry emit 全部 byte-identical）；删 `PlayView.vue`；`pages/main/index.vue` 改 `import Shell` 渲 `<Shell/>`（替换 `<PlayView>`，props/emit 不变）。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（divination_flow + viewport_smoke 全绿，类名未变即应绿）+ idle/divination 截图与重构前 byte-identical 比对；full gate = exit 0。
+  - 影响：删 1 文件、新增 1 文件、page import。回滚：恢复 PlayView、删 Shell、还原 page。
+
+- [ ] T8 建 flow index.vue 并改 page 组合
+  - 上下文：现 reading 覆盖块 [pages/main/index.vue:30-54](../app/src/pages/main/index.vue)（split/drawer 二选一）；组合机制第 3 条；薄壳决策见「决策冻结」#8。
+  - 操作：新建 `flows/idle/index.vue`、`flows/divination/index.vue`（初期薄壳，预留各 flow 非舞台 UI 挂载点）、`flows/reading/index.vue`（把 `:30-54` 的 `v-if isWide` Split / `v-else` Drawer 整体上移进来，props/emit 转发不变，注入 isWide/readingController）；`pages/main/index.vue` 模板改为：`<Shell/>` + `<IdleFlow v-show="phase==='idle'"/>` + `<DivinationFlow v-show="phase!=='idle'"/>` + `<ReadingFlow v-if="showReadingView"/>` + Notification + DevTools。provide 不变。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright` 全流程（idle→divination→reading→decision，宽/窄）与 T7 行为等价 + 截图无回归；full gate = exit 0。
+  - 影响：新增 3 文件、page 模板与 import。回滚：还原 page、删 3 文件。
+
+- [ ] T9 fallback 并入 flows
+  - 上下文：源 [app/src/fallback/FallbackView.vue](../app/src/fallback/FallbackView.vue)（import shared HeaderArea/TitleContent/Stage）、[FallbackOrbits.vue](../app/src/fallback/FallbackOrbits.vue)；importer [pages/fallback/index.vue:24](../app/src/pages/fallback/index.vue)；路由证据 [pages.json](../app/src/pages.json)。
+  - 操作：`git mv` FallbackOrbits→`flows/fallback/components/FallbackOrbits.vue`；新建 `flows/fallback/index.vue`（迁自 FallbackView，import 改 `../shared/components/{HeaderArea,TitleContent,Stage}` + `./components/FallbackOrbits`）；删 `app/src/fallback/FallbackView.vue` 与空目录 `app/src/fallback/`；`pages/fallback/index.vue` import 改指 `../../flows/fallback/index.vue`。
+  - 验收：vue-tsc；`vitest --dir app/test`；fallback 路由 playwright/手测渲染正常；full gate = exit 0（depcruise no-orphans 不报）。
+  - 影响：迁/删 fallback、pages/fallback import。回滚：恢复 app/src/fallback、还原 import。
+
+- [ ] T10 下沉 idle 扇形逻辑 → flows/idle/composables
+  - 上下文：源 [state/play/fan_controller.ts](../app/src/state/play/fan_controller.ts)；唯一消费 [state/use_play_deck_animation.ts](../app/src/state/use_play_deck_animation.ts)。
+  - 操作：`git mv`→`flows/idle/composables/use_fan_loop.ts`，**保留原导出名**；修消费方 import。内容零改动。
+  - 验收：vue-tsc；`vitest --dir app/test`（fan/deck 相关）；`playwright`（idle 扇形 + idle→divination）；full gate + knip 无新增 unused = exit 0。
+  - 影响：1 文件路径 + 1 importer。回滚：反向 `git mv` + 还原。
+
+- [ ] T11 下沉 divination rig 逻辑 → flows/divination/composables
+  - 上下文：源 [state/play/divination_rig.ts](../app/src/state/play/divination_rig.ts)；消费 [state/use_play_deck_animation.ts](../app/src/state/use_play_deck_animation.ts)。
+  - 操作：`git mv`→`flows/divination/composables/use_divination_rig.ts`，保留导出名；修 importer。内容零改动。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（占卜 rig 全流程）；full gate + knip = exit 0。
+  - 影响：1 文件 + importer。回滚：反向 `git mv` + 还原。
+
+- [ ] T12 下沉 Deck 装配逻辑 → flows/shared/composables
+  - 上下文：源 [state/use_play_deck_animation.ts](../app/src/state/use_play_deck_animation.ts)、[state/play/click_handler.ts](../app/src/state/play/click_handler.ts)、[state/play/play_deck_runtime_types.ts](../app/src/state/play/play_deck_runtime_types.ts)；消费 [Deck.vue:89](../app/src/flows/shared/components/Deck.vue)。
+  - 操作：`git mv` use_play_deck_animation→`flows/shared/composables/use_play_deck.ts`，click_handler/play_deck_runtime_types→`flows/shared/composables/play/`；保留导出名；修 Deck 与内部相互 import（对 `state/*`/`core/*` 层级重算）；删空 `state/play/`。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（点击触发占卜 + 全流程）；full gate + knip = exit 0。
+  - 影响：3 文件路径 + import 链。回滚：反向 `git mv` + 还原 + 恢复 state/play。
+
+- [ ] T13 下沉 reading panel 视图模型 → flows/reading/composables
+  - 上下文：源 [state/shared/use_reading_panel_controller.ts](../app/src/state/shared/use_reading_panel_controller.ts)；消费 reading 三容器 [CardMeaningContainer](../app/src/flows/reading/components/CardMeaningContainer.vue) [ReadingTextContainer](../app/src/flows/reading/components/ReadingTextContainer.vue) [ConclusionContainer](../app/src/flows/reading/components/ConclusionContainer.vue)。
+  - 操作：`git mv`→`flows/reading/composables/use_reading_panel_view_model.ts`，保留导出名；修三容器 import 为 `../composables/use_reading_panel_view_model`、其内部对 `core/utils/*` 层级重算；删空 `state/shared/`。
+  - 验收：vue-tsc；`vitest --dir app/test`（reading/typewriter 相关）；`playwright`（解读打字机全流程）；full gate + knip = exit 0。
+  - 影响：1 文件 + 3 importer。回滚：反向 `git mv` + 还原 + 恢复 state/shared。
+
+- [ ] T14 合并 reading 结果卡几何 → use_result_card_geometry
+  - 上下文：源 [state/use_result_card_shrink.ts](../app/src/state/use_result_card_shrink.ts)、[Deck.vue:115-126](../app/src/flows/shared/components/Deck.vue) 的 resultCardLiftY、[reading/composables/result_card_lift_margin.ts](../app/src/flows/reading/composables/result_card_lift_margin.ts)；page 调用 [pages/main/index.vue:107,171-177](../app/src/pages/main/index.vue)。
+  - 操作：新建 `flows/reading/composables/use_result_card_geometry.ts`，把三处逻辑**逐字搬运合并**（不改算法/数值/浮点判定），`result_card_lift_margin` 常量并入；Deck 改 inject/调用该 composable 取 liftY；`pages/main` 的 `useResultCardShrink` 调用改指新 composable；删 `state/use_result_card_shrink.ts` 与原 `result_card_lift_margin.ts`。
+  - 验收：vue-tsc；`vitest --dir app/test`（layout/shrink/lift 相关全绿）；`playwright`（窄屏抽屉首次 reveal 卡尺寸/上移与重构前截图 byte-identical）；full gate + knip = exit 0。
+  - 影响：3 处合 1、Deck 与 page 调用。回滚：还原三源文件、删新文件、还原调用。
+
+- [ ] T15 抽 use_header_metrics（Title/Progress 共享）
+  - 上下文：源页眉基线 [TitleContent.vue:167](../app/src/flows/shared/components/TitleContent.vue)、[ProgressContent.vue:94](../app/src/flows/divination/components/ProgressContent.vue)（均用 `calc((var(--header-height)-44px)/2)` + 44px 图标常量）；决策冻结 #3。
+  - 操作：新建 `flows/shared/composables/use_header_metrics.ts`，集中页眉基线常量/计算（保持仍由 CSS 变量驱动，组件 CSS 表达式不改语义，视觉零风险）；Title/Progress 改为引用同一来源消除重复常量。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright` + 页眉 idle/divination 基线截图与重构前 byte-identical；full gate = exit 0。
+  - 影响：新增 1 文件、2 组件引用。回滚：删文件、还原 2 组件。
+
+- [ ] T16 抽 ProgressIcon（×4 子组件）
+  - 上下文：源 [ProgressContent.vue](../app/src/flows/divination/components/ProgressContent.vue) 的单阶段双 image 堆叠块；e2e 锚定类名 `.progress-content__step-icon` 不得改（组合机制第 6 条）。
+  - 操作：新建 `flows/divination/components/ProgressIcon.vue`，把单阶段 inactive/active 双 image 堆叠整体抽出（class/inline 行为 byte-identical，保留 e2e 类名）；`ProgressContent` 改 `v-for` 渲 `ProgressIcon` ×4。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（progress e2e 选择器仍命中 + 4 阶段高亮推进截图无回归）；full gate = exit 0。
+  - 影响：新增 1 文件、ProgressContent 改写。回滚：删文件、还原 ProgressContent。
+
+- [ ] T17 抽 Card + use_card_motion
+  - 上下文：源卡牌渲染 [DeckFanStack.vue](../app/src/flows/idle/components/DeckFanStack.vue)（卡背 v-for）、[DeckRig.vue](../app/src/flows/divination/components/DeckRig.vue)（堆叠 v-for + 中央翻牌 3D 双面 + animationController 驱动）；决策冻结 #2；类名不变约束第 6 条。
+  - 操作：新建 `flows/shared/components/Card.vue`，props 控形态（纯牌背 | 完整双面 牌面+牌背背靠背），class/inline-style 透传，核心渲染外的翻/落控制下沉新建 `flows/shared/composables/use_card_motion.ts`（派生注入 animationController 面、不重复其状态、按单一职责拆文件，逻辑少则保留 Card 内）；DeckFanStack 全 v-for 改渲 `<Card 纯牌背>`；DeckRig 堆叠 v-for 改渲 `<Card 纯牌背>`、中央抽牌位改渲 `<Card 完整双面>`；DOM/class/inline-style/动画 target key byte-identical。
+  - 验收：vue-tsc；`vitest --dir app/test`；`playwright`（摊牌/洗牌/切牌/抽牌/翻牌全流程与重构前截图 byte-identical，时序与 animationController 一致）；full gate = exit 0。
+  - 影响：新增 2 文件、2 Deck 子件改写。回滚：删 2 文件、还原 2 子件。
+
+- [ ] T18 glossary 去行为化（纯术语）
+  - 上下文：[docs/prd/glossary.md](prd/glossary.md)（含行为/布局描述如「从屏幕右外侧滑入到右半屏，与占卜视图左右分栏」「高度上限不超过结果卡牌底部，可手动拖动调整」「不越过结果卡牌底部」）；文档约定见 [CLAUDE.md](../CLAUDE.md)（glossary 仅术语→中文释义）。
+  - 操作：审计 `docs/prd/glossary.md`，把行为/布局/过渡描述删改为纯术语指代（不写 4:6、不写分栏/拖动行为），相应行为描述确认已由 `view.md`/`animation.md` 承载（T19 同步）。仅文档，安全先做（与现实现无关）。
+  - 验收：glossary 仅含术语释义、无行为/布局；无表格；`node scripts/quality_gate.js full` = exit 0。
+  - 影响：仅文档。回滚：`git checkout -- docs/prd/glossary.md`。
+
+- [ ] T19 reading 4:6 flex 重构（唯一行为变更，重点回归）
+  - 上下文：现模型 [pages/main/index.vue:243-259](../app/src/pages/main/index.vue)（.canvas 440 定宽+translateX 居中）、[ReadingSplitView.vue:68-93](../app/src/flows/reading/components/ReadingSplitView.vue)（left:440 absolute）、[ReadingDrawerView.vue](../app/src/flows/reading/components/ReadingDrawerView.vue)；几何 [use_result_card_geometry](../app/src/flows/reading/composables/use_result_card_geometry.ts)、[use_active_view.ts](../app/src/state/use_active_view.ts)；PRD [view.md](prd/view.md) [animation.md](prd/animation.md)；决策冻结 #1。
+  - 操作：`pages/main/index.vue` `.canvas`/`.is-reading-wide` 与 reading flow 根 CSS：absolute/translateX/440cap → flex；常驻层与 ReadingFlow 为 flex 兄弟，宽屏横向 `flex 4:6`、窄屏纵向 `flex 4:6`，占卜 pane 随 reading 出现等比缩小；适配 `use_result_card_geometry`（lift/shrink 改为适配 flex 缩放而非覆盖补偿）；核对 `use_active_view`；同一步同步改 `docs/prd/view.md`、`docs/prd/animation.md` 为 4:6 flex 模型、废 440cap 居中描述（文档随代码）。
+  - 验收：vue-tsc；`vitest --dir app/test`（layout_solver/use_active_view 相关全绿）；`playwright`（宽屏分栏 + 窄屏抽屉 + 拖动 + 多视口 viewport_smoke 全绿 + 截图无错位/跳变）；PRD 与实现一致；full gate = exit 0。
+  - 影响：主页面布局模型、reading 几何、2 PRD 文档。回滚：`git revert` 本步提交（独立批，不与他步混合）。
+
+- [ ] T20 全局回归
+  - 上下文：全仓。
+  - 操作：`node scripts/quality_gate.js full` + 全量 `npx playwright test --config=app/playwright.config.ts` + 视觉比对汇总；核对 knip 无新增 unused file/export、`state/play`+`state/shared`+`app/src/fallback` 已删尽、`flows/*/views/` 残留与空 `.gitkeep` 清理。
+  - 验收：full gate = exit 0；e2e 全绿；knip 无新增；视觉无回归。
+  - 影响：不改源码（仅清理残留）。回滚：按失败项定位对应 T 步 `git revert`。
 
 ## 执行约束
 
-每步：先按方案改文件 → 验收（vue-tsc + 针对性单测）→ 更新本文档勾选与进度 → commit（pre-commit 门禁真实跑通，禁绕过）→ 下一步。禁跳步。遇不合适命名必改；明显且无影响问题可改；影响大的搁置并记本文末「搁置问题」。
+每步先改 → 验收（vue-tsc 用 [vue-tsc 不用 tsc](../CLAUDE.md)；vitest 必带 `--dir app/test` 匹配 config；T7/T8/T14/T16/T17/T19 加 playwright + 截图比对）→ 更新本文档勾选与「进度」→ commit（pre-commit 真实跑通，禁绕过；分提交前 `git stash push --staged` 隔离他人改动）→ 下一步。禁跳步。重构全程不得改 e2e 锚定类名（组合机制第 6 条）。遇不合适命名必改；明显且无影响问题可改；影响大的搁置并记本文末。
 
 ## 回滚
 
-任一步验收失败即停并报告，不绕过门禁；改动未提交，`git checkout -- <file>` 与删除新建文件即可复原。
+任一步验收失败即停并报告，不绕过门禁。改动未提交：`git checkout -- <file>` + 删新建文件 + 反向 `git mv` 复原。已提交：按步粒度 `git revert` 对应提交，不跨步混合（T19 尤须独立）。
 
 ## 进度
 
-S1 完成（`reading_panel_timing.ts` 拆出，引擎保留 + re-export；vue-tsc exit 0，typewriter 2 文件 16 测试全绿）。收尾修正：文件头 `TODO(...)` 关键字触发 `TodoFixme`/`no-warning-comments` 新告警，改为陈述句消除（不绕过、不弱化检查），amend 入 S1。S2 完成（`raf_shim.ts` 拆出，scale.ts 改 import + 文件头注释同步；vue-tsc exit 0，scale/layout_solver 2 文件 26 测试全绿）。S3 完成（`layout_solver_reading.ts` + `layout_solver_draw.ts` 拆出，原文件保留类型 re-export + `solveLayout` 调度、文件头同步；vue-tsc exit 0，layout_solver 12 测试全绿）。S4 完成（`overlay_text.ts` 拆出 `OverlayText`+`DEFAULT_OVERLAY_TEXT`，presenter import+re-export 二者、barrel 不动；vue-tsc exit 0，presenter 11 测试全绿）。S5 完成（`registry.ts` 三拆 `phase_types`+`phase_entry_snaps`+`phase_manifest`，原文件转 facade、manifest→snap 箭头包装与求值顺序保留、snap 不 re-export；vue-tsc exit 0，registry/snap/replay/progress/pipeline 5 文件 45 测试全绿）。S6 完成（`quality_gate full` = exit 0，全步骤 passed）。**全部完成。**
-
-## 验收
-
-- S1–S6 全步完成，未跳步；每步先改→验收→更新文档→commit，pre-commit 门禁逐次真实跑通，无绕过。S1 收尾发现自引入 `TODO` 关键字告警，已根因修正（改陈述句、不弱化检查）amend 入 S1。
-- 终态 `node scripts/quality_gate.js full` = exit 0：quality-scan / type-check:app(vue-tsc) / type-check:server / test:app / test:server / lint / audit / arch:check / duplicate-code / dead-code 全 passed；knip 无新增 unused file/export。
-- 净效果：7 个 core 文件按单一职责拆出新文件并留原目录（`reading_panel_timing` / `raf_shim` / `layout_solver_reading` / `layout_solver_draw` / `overlay_text` / `phase_types` / `phase_entry_snaps` / `phase_manifest`；`registry.ts` 转 facade），原文件经 facade/主体+re-export 使所有 core 外调用方 import 路径与符号零变更。零逻辑改动，无 core 外文件改动。
-- 流程归属标注（待后续 flows 批次迁移）：`reading_panel_timing.ts`→reading；`phase_entry_snaps.ts`→divination。
+待 T1 开始。
 
 ## 搁置问题
 
-> 影响中等且非本批次职责，留待后续专项，勿在本批扩张范围。
+> 影响中等且非本批职责，留待后续专项，勿在本批扩张范围。
 
-1. `usePlayback`（`app/src/core/animation/use_playback.ts`，34 行）无独立单元测试（上一 use_overlay 批次遗留）。纯转发 `TimelineOrchestrator`，时间线编排已由 `overlay_timeline`/`overlay_pipeline` 覆盖，回归风险低。补测试属新增逻辑，超出"仅拆解"范围，搁置。
-2. core 内 knip 既有基线噪音（`Unused exported types`、`scripts/lib` 的 `findOccupiers`）不触发失败退出码、不阻断门禁，非本批职责。
+（暂无）
