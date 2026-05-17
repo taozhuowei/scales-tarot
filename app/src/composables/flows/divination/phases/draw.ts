@@ -4,7 +4,7 @@
  *          that picks the reduced-motion vs full animated timeline.
  * Reason: timeline construction lives in ./draw_timeline so this file
  *          stays a small, stable PhaseRunner adapter (consumed by
- *          state/commands/pipeline_builder).
+ *          pipeline_builder).
  */
 
 import type { AnimationTimeline } from '../../../shared/animations/card_state'

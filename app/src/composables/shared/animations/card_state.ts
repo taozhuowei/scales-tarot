@@ -2,7 +2,7 @@
  * Name: composables/shared/animations/card_state
  * Purpose: shared animation state shapes for overlay animations.
  * Reason: keep animation state contracts explicit and reusable; lives in the
- *   shared animation base layer (migrated verbatim from core/animation/types).
+ *   shared animation base layer that all flows consume.
  */
 
 export interface CardState {
@@ -40,9 +40,7 @@ export interface InnerState {
 
 /**
  * Animation timeline contract that phase plugins consume. Decoupled from
- * GSAP so the engine can be swapped without touching builders. (Merged
- * here from the former single-interface core/animation/engine.ts during
- * architecture cleanup — the file name no longer described its content.)
+ * GSAP so the engine can be swapped without touching builders.
  */
 export interface AnimationTimeline {
   to(target: unknown, vars: Record<string, unknown>, position?: number | string): AnimationTimeline

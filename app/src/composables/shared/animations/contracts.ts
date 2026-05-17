@@ -2,9 +2,7 @@
  * Name: composables/shared/animations/contracts
  * Purpose: flow-orchestration + phase-runner + animation-atom type contracts.
  * Reason: decouple phase execution order from individual phase logic, and
- *   give atoms a shared signature. Merged verbatim from the former
- *   core/flow/types.ts and core/animation/atoms/types.ts during the
- *   core→composables layered refactor; contracts live with the animation
+ *   give atoms a shared signature; contracts live with the animation
  *   base layer that defines them.
  */
 

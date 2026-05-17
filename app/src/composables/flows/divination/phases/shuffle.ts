@@ -1,7 +1,7 @@
 /**
  * Name: composables/flows/divination/phases/shuffle
  * Purpose: PhaseRunner implementation for the shuffle phase.
- * Reason: migrated from utils/overlay_animation/phases/shuffle_phase.ts to consume PhaseContext.
+ * Reason: self-contained PhaseRunner consuming PhaseContext (composed by pipeline_builder).
  */
 
 // Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is

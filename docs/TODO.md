@@ -79,8 +79,10 @@ app/src/components/
 
 ## 进度
 
+D1：全仓 7 处指向已不存在路径的遗留注释清理完毕（shuffle/cut Reason、draw Reason 续行、draw_timeline:329、card_state ×2、contracts），去死路径保留有效语义、不杜撰、纯注释；grep 残留空、full gate exit 0。无搁置遗留。
+
 C0–C2 全部完成。24 组件聚类结束：components/{shared 4, flows/{index 7, idle 2, divination 2, fallback 2, reading 7}}，与 composables/flows 完全对称。import 全量重写（组件自身深度 + 组件间跨目录互引 + pages 11 处 + 1 测试）。C2 核查：组件 Name 惯例为裸名+角色、注释无 components/ 路径串，移动未引入过期注释，无注释需改。全程纯移动零逻辑/模板/样式变更。回归：vue-tsc + app/server 全量单测 + eslint + full gate（arch/dead-code/dup/audit）+ H5 prod 构建 perf Δ0.0% 全绿。components 根目录已无散落 .vue。
 
 ## 搁置问题
 
-1. 上一轮迁移遗留的过期注释（非本次范围）：[phases/shuffle.ts:4](../app/src/composables/flows/divination/phases/shuffle.ts) [phases/cut.ts:4](../app/src/composables/flows/divination/phases/cut.ts) 的 `migrated from utils/overlay_animation/phases/...`、[phases/draw_timeline.ts:329](../app/src/composables/flows/divination/phases/draw_timeline.ts) 的 `animation/phases/reveal/builder.ts` 引用——指向已不存在旧路径，待后续注释清理批次统一对齐。
+（暂无）

@@ -326,7 +326,7 @@ export function buildAnimatedDrawTimeline(
   }, alignTime + 0.1)
 
   // Flip animation lives in the reveal phase now. See
-  // animation/phases/reveal/builder.ts for the grow + flip composition.
+  // ./reveal.ts for the grow + flip composition.
 
   // Phase change
   timeline.add(() => {
