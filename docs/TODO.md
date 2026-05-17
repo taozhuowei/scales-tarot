@@ -65,19 +65,19 @@ app/src/composables/flows/fallback/
 
 > 每步：按操作改 → 验收（命令逐条 exit 0）→ 更新「进度」勾选 → commit（[pre-commit 门禁](../README.md) 真实跑通）→ 下一步。禁跳步。
 
-- [ ] P0 清空并重写本 TODO（本步）
+- [x] P0 清空并重写本 TODO（本步）
   - 操作：覆盖 `docs/TODO.md` 为本计划。
   - 验收：本文件为新计划；`node scripts/quality_gate.js full` = exit 0。
   - 影响：仅文档。回滚：`git checkout -- docs/TODO.md`。
 
-- [ ] P1 建 core/gsap，拆 adapters/gsap.ts
+- [x] P1 建 core/gsap，拆 adapters/gsap.ts
   - 上下文：源 [core/animation/adapters/gsap.ts](../app/src/core/animation/adapters/gsap.ts)（getAllTargets / TimelineOrchestrator / createTimelineOrchestrator / killAnimationTargets）；getAllTargets 唯一消费者 [use_animation_state.ts:11,93](../app/src/core/animation/use_animation_state.ts)。
   - 操作：
     1. 新建 `app/src/core/gsap/timeline.ts`：逐字搬入 `TimelineOrchestrator` 接口 + `createTimelineOrchestrator`（含 `import gsap`、tree-shaking 注释）。
     2. 新建 `app/src/core/gsap/tween.ts`：逐字搬入 `killAnimationTargets`（含 `import gsap`）。
     3. `getAllTargets(state)` 函数体逐字内联进 [use_animation_state.ts](../app/src/core/animation/use_animation_state.ts) 第 93 行调用点（删 `import { getAllTargets } from './adapters/gsap'`，改为本文件内 `function getAllTargets(state){…}` 原样拼接，不改逻辑）。
     4. 删除 `app/src/core/animation/adapters/`（整目录）。
-    5. 改 import：[use_playback.ts:9-10](../app/src/core/animation/use_playback.ts)→`../../gsap/timeline`；[pipeline.ts:15](../app/src/core/animation/pipeline.ts)→`../../gsap/timeline`；[use_lifecycle.ts:12](../app/src/composables/use_lifecycle.ts)→`../core/gsap/tween`；[use_animation_controller.ts:24](../app/src/composables/use_animation_controller.ts)→`../core/gsap/tween`；[pipeline_shared_deps.ts:17](../app/src/core/flow/pipeline_shared_deps.ts)→`../gsap/timeline`；[overlay_timeline.test.ts:4](../app/test/overlay_timeline.test.ts)→ 拆 `../src/core/gsap/timeline`+`../src/core/gsap/tween`；[overlay_pipeline.test.ts:6](../app/test/overlay_pipeline.test.ts)→`../src/core/gsap/timeline`。
+    5. 改 import（路径按各文件位置实算）：[use_playback.ts:9-10](../app/src/core/animation/use_playback.ts) `./adapters/gsap`→`../gsap/timeline`；[pipeline.ts:15](../app/src/core/animation/pipeline.ts) `./adapters/gsap`→`../gsap/timeline`；[use_lifecycle.ts:12](../app/src/composables/use_lifecycle.ts) `../core/animation/adapters/gsap`→`../core/gsap/tween`；[use_animation_controller.ts:24](../app/src/composables/use_animation_controller.ts) `../core/animation/adapters/gsap`→`../core/gsap/tween`；[pipeline_shared_deps.ts:17](../app/src/core/flow/pipeline_shared_deps.ts) `../animation/adapters/gsap`→`../gsap/timeline`；[overlay_timeline.test.ts:4](../app/test/overlay_timeline.test.ts)→ 拆 `../src/core/gsap/timeline`+`../src/core/gsap/tween`；[overlay_pipeline.test.ts:6](../app/test/overlay_pipeline.test.ts)→`../src/core/gsap/timeline`。
   - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test overlay_timeline.test.ts overlay_pipeline.test.ts use_animation_state.test.ts`；`grep -rn "animation/adapters" app --include=*.ts --include=*.vue`（空）；`node scripts/quality_gate.js full` = exit 0。
   - 影响：新增 2 文件、删 adapters、7 处 import、1 处内联。回滚：反向恢复 adapters + 还原 import/内联。
 
@@ -125,14 +125,16 @@ app/src/composables/flows/fallback/
   - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "core/animation" app --include=*.ts --include=*.vue`（空）；`test ! -d app/src/core/animation && test ! -d app/src/core/flow`；full gate = exit 0。
   - 影响：2 文件迁移 + 2 importer + 删空目录。回滚：反向 `git mv` + 还原 import。
 
-- [ ] P6 收尾：文件头注释 / 文档对齐 / 全局回归
-  - 上下文：全仓。各迁移文件头 `Name:` 注释多为旧路径（如 `Name: animation/...`、`core/flow/...`）；[docs/README.md](README.md)、[README.md](../README.md)、`app/src/**/README.md`。
+- [ ] P6 收尾：守卫规则 / 文件头注释 / 文档对齐 / 全局回归
+  - 上下文：全仓。各迁移文件头 `Name:` 注释多为旧路径（如 `Name: animation/...`、`core/flow/...`）；[docs/README.md](README.md)、[README.md](../README.md)、`app/src/**/README.md`；架构守卫 [config/dependency-cruiser.cjs:252-273](../config/dependency-cruiser.cjs)（`core-is-leaf` 的 `to` 未含 composables；`animation-not-to-reading` 的 `from` 仍为 `^app/src/core/animation/`）、[scripts/quality_scan.js:341](../scripts/quality_scan.js)（`animation/engine` 失效死豁免；`use_animation_state.ts` 按文件名豁免，迁移后仍有效不动）。说明：P1–P5 期间不动这两文件——`core-is-leaf` 的 `to` 不含 composables，故中间态 `core/animation/*→composables/shared/animations` 不被拦；`animation-not-to-reading` 的 `from=core/animation` 在其存在期间继续有效守卫；P5 后 core 内已无指向 composables 的依赖，此时收紧规则不会误拦。
   - 操作：
-    1. 同步所有迁移文件头 `Name:` 与文件内提及的旧路径注释为新路径（不改代码逻辑）。
-    2. `grep -rn "core/animation\|core/flow\|overlay_progress\|phases/registry" docs README.md app/src --include=*.md` 核查文档/README 是否有旧目录路径描述，按实际结构对齐（仅路径，不改语义）。
-    3. 全局回归：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`npx vitest run --config server/vitest.config.ts --dir server/test`；`npx eslint app/src/ app/test/`；`node scripts/quality_gate.js full`；H5 构建 `node scripts/build/index.js --prod --target h5 --skip-quality`。
-  - 验收：上述命令全 exit 0；全仓 grep 旧路径零残留；H5 构建 DONE。
-  - 影响：注释/文档 + 回归。回滚：按失败项定位对应 P 步 `git revert`。
+    1. 更新 [dependency-cruiser.cjs](../config/dependency-cruiser.cjs)：`core-is-leaf` 的 `to` path 增加 `composables`（收紧为 core 不得依赖 composables，守护本次建立的分层）；`animation-not-to-reading` 的 `from` 由 `^app/src/core/animation/` 改为新动画位置正则（`^app/src/core/gsap/`、`^app/src/composables/shared/animations/`、`^app/src/composables/flows/divination/`），`to` 按 reading 业务实际位置核定，注释同步。规则语义不弱化、不删除。
+    2. 清理 [quality_scan.js:341](../scripts/quality_scan.js) 失效的 `animation/engine` 死豁免分支（`engine` 目录早已合并删除，重构前后均匹配不到）；先验证移除后 `ExternalPrivateAccess` 不新增误报再删，否则保留并记「搁置问题」。
+    3. 同步所有迁移文件头 `Name:` 与文件内提及的旧路径注释为新路径（不改代码逻辑）。
+    4. `grep -rn "core/animation\|core/flow\|overlay_progress\|phases/registry" docs README.md app/src --include=*.md` 核查文档/README 旧目录路径描述，按实际结构对齐（仅路径，不改语义）。
+    5. 全局回归：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`npx vitest run --config server/vitest.config.ts --dir server/test`；`npx eslint app/src/ app/test/`；`node scripts/quality_gate.js full`；H5 构建 `node scripts/build/index.js --prod --target h5 --skip-quality`。
+  - 验收：上述命令全 exit 0；`core-is-leaf`/`animation-not-to-reading` 规则路径与最终结构一致且 depcruise 0 error；全仓 grep 旧路径零残留；H5 构建 DONE。
+  - 影响：守卫规则 + 注释/文档 + 回归。回滚：按失败项定位对应 P 步 `git revert`。
 
 ## 执行约束
 
@@ -144,7 +146,7 @@ app/src/composables/flows/fallback/
 
 ## 进度
 
-P0 进行中。
+P0–P1 完成。P2 待开始。
 
 ## 搁置问题
 

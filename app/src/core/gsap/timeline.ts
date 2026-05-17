@@ -1,10 +1,10 @@
 /**
- * Name: animation/adapters/gsap
- * Purpose: GSAP adapter — collect all tweenable targets into a flat array
- *   and orchestrate GSAP timelines for overlay animations.
- * Reason: centralize GSAP-specific logic so the rest of the animation system
- *   never imports gsap directly.
- * Data flow: animation configurations flow in; timeline controls flow out.
+ * Name: core/gsap/timeline
+ * Purpose: GSAP master-timeline orchestrator — create a timeline and expose
+ *   playback control (play/pause/resume/seek/step/rate/clear/kill/add).
+ * Reason: centralize GSAP timeline lifecycle so the rest of the system never
+ *   touches gsap.core.Timeline directly.
+ * Data flow: paused flag in; orchestrator controls out.
  */
 
 // Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
@@ -12,25 +12,6 @@
 // function exports (to, timeline, killTweensOf) are not available from
 // gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
-import type { AnimationState } from '../state'
-
-/* ── getAllTargets ────────────────────────────────────────────────── */
-
-export function getAllTargets(state: AnimationState): unknown[] {
-  return [
-    state.bg,
-    state.stage,
-    state.header,
-    state.footer,
-    state.deckCtn,
-    ...state.initials,
-    ...state.lefts,
-    ...state.rights,
-    ...state.piles,
-    ...state.draws,
-    ...state.inners,
-  ]
-}
 
 /* ── TimelineOrchestrator ─────────────────────────────────────────── */
 
@@ -115,11 +96,4 @@ export function createTimelineOrchestrator(
       return masterTimeline.add(child, position)
     },
   }
-}
-
-/**
- * Kill all tweens for the given targets.
- */
-export function killAnimationTargets(targets: unknown[]): void {
-  gsap.killTweensOf(targets)
 }

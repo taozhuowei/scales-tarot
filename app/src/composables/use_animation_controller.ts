@@ -21,7 +21,7 @@ import { usePhases } from './use_phases'
 import { usePlayback } from '../core/animation/use_playback'
 import { usePresentation } from './use_presentation'
 import { useLifecycle } from './use_lifecycle'
-import { killAnimationTargets } from '../core/animation/adapters/gsap'
+import { killAnimationTargets } from '../core/gsap/tween'
 import {
   calculatePhaseProgress,
   presentProgressHeader,

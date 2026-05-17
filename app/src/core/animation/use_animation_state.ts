@@ -8,7 +8,29 @@
 import { createAnimationState } from './state'
 import { createStyleReconciler } from './reconciler'
 import { createVisibilityController } from './visibility'
-import { getAllTargets } from './adapters/gsap'
+import type { AnimationState } from './state'
+
+/**
+ * Flatten every tweenable target into one array. Inlined verbatim from the
+ * former animation/adapters/gsap (P1: adapters dissolved into core/gsap; this
+ * state-shaped helper belongs with the state it enumerates, not in the
+ * library-only core/gsap layer).
+ */
+function getAllTargets(state: AnimationState): unknown[] {
+  return [
+    state.bg,
+    state.stage,
+    state.header,
+    state.footer,
+    state.deckCtn,
+    ...state.initials,
+    ...state.lefts,
+    ...state.rights,
+    ...state.piles,
+    ...state.draws,
+    ...state.inners,
+  ]
+}
 
 export function useAnimationState(opts: {
   deckCount: number
