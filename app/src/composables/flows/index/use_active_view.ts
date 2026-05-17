@@ -1,5 +1,5 @@
 /**
- * Name: use_active_view
+ * Name: composables/flows/index/use_active_view
  * Purpose: encapsulates the main page's view-picker state — the
  *          `showReadingView` gate (docs/prd/state.md（视图与应用级流程阶段的对应）) that overlays the reading
  *          split / drawer view on top of the divination view, and the

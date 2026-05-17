@@ -44,7 +44,7 @@ app/src/composables/flows/
   - 验收：`grep -rnE "composables/(use_main_stage|use_main_handlers|use_dev_tools|use_active_view|use_header_presentation|use_play_deck_animation)'" app --include=*.ts --include=*.vue | grep -v "flows/index/"`（空）；`npx vue-tsc --noEmit -p app/tsconfig.json`；`node scripts/quality_gate.js full` = exit 0。
   - 影响：1 新目录 + 6 git mv + 6 文件 import + 3 consumer 行。回滚：反向 `git mv` + 还原 import + 删空目录。
 
-- [ ] R2 文件头 Name 对齐 + 全局回归
+- [x] R2 文件头 Name 对齐 + 全局回归
   - 上下文：6 文件头 `Name:` 现为 `use_xxx` 或 `composables/use_play_deck_animation`，惯例为 `composables/flows/<dir>/<name>`（参见同级 flows 文件）。
   - 操作：
     1. 6 文件头 `Name:` 统一为 `composables/flows/index/<文件名去 .ts>`（仅注释，零代码）。
@@ -62,7 +62,7 @@ app/src/composables/flows/
 
 ## 进度
 
-R0–R1 完成。R1：建 flows/index，6 文件 git mv + 内部 import 规则化重写 + 3 consumer（pages/main 2 行、Deck.vue 1 行），grep 旧路径空、vue-tsc、full gate exit 0。R2 进行中。
+R0–R2 全部完成。flows/index 归类结束：根目录 6 个 main 编排/视图文件（use_main_stage/use_main_handlers/use_dev_tools/use_active_view/use_header_presentation/use_play_deck_animation）迁入新建 composables/flows/index/（扁平），与 idle/divination/fallback/reading 平级；idle/divination/fallback/reading 及 shared/core 不动。文件头 Name 统一为 composables/flows/index/<name>。全程纯移动+注释，零逻辑/界面变更。回归：vue-tsc + app/server 全量单测 + eslint + full gate（arch/dead-code/dup/audit）+ H5 prod 构建 perf Δ0.0% 全绿。composables 根目录已无散落 .ts。
 
 ## 搁置问题
 

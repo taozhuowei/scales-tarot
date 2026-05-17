@@ -1,5 +1,5 @@
 /**
- * Name: use_main_stage
+ * Name: composables/flows/index/use_main_stage
  * Purpose: aggregate the main-page orchestration so pages/main/index.vue
  *          stays a pure entry. Owns stores, app phase, responsive width +
  *          resize lifecycle, the CSS-var bridge, the animation + reading

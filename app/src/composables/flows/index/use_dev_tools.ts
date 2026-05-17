@@ -1,5 +1,5 @@
 /**
- * Name: use_dev_tools
+ * Name: composables/flows/index/use_dev_tools
  * Purpose: encapsulates the dev-tools state + event handlers wired into
  *          the main page (DevToolsPanel). Owns the local toggles
  *          (`isDevExpanded`, `showContainerBorders`) and the handlers the

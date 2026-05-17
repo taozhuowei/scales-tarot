@@ -1,5 +1,5 @@
 /**
- * Name: composables/use_play_deck_animation
+ * Name: composables/flows/index/use_play_deck_animation
  * Purpose: drives the single persistent Deck stage-content (idle fan loop +
  *          divination rig). Holds the runtime container, lifecycle wiring,
  *          and the phase-driven state-machine watch; the fan loop, the

@@ -1,5 +1,5 @@
 /**
- * Name: use_header_presentation
+ * Name: composables/flows/index/use_header_presentation
  * Purpose: derive the top header region's variant + ARIA + slide-in style
  *          from the application phase and the animation controller:
  *            - idle      → role=banner, no aria-valuetext, no inline style

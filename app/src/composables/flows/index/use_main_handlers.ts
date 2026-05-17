@@ -1,5 +1,5 @@
 /**
- * Name: state/use_main_handlers
+ * Name: composables/flows/index/use_main_handlers
  * Purpose: extracts the two longest event handlers from `pages/main/index.vue`
  *          (`handleRestart` + `settlePipeline`) so the page SFC can stay
  *          inside the 300-line file cap. Both functions orchestrate
