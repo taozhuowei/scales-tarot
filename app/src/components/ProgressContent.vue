@@ -71,7 +71,7 @@
  *            parent view to the HeaderArea wrapper, not here.
  */
 import { inject } from 'vue'
-import type { UseAnimationControllerReturn } from '../composables/use_animation_controller'
+import type { UseAnimationControllerReturn } from '../composables/flows/divination/use_animation_controller'
 
 const animCtrl = inject<UseAnimationControllerReturn>('animationController')!
 </script>

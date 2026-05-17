@@ -19,7 +19,7 @@
  *          `settlePipeline` can `await` it before promoting to reading.
  */
 import type { useTarotStore } from '../core/store/tarot'
-import type { useAnimationController } from './use_animation_controller'
+import type { useAnimationController } from './flows/divination/use_animation_controller'
 import type { useReadingController } from './flows/reading/use_reading_controller'
 
 export interface UseMainHandlersDeps {

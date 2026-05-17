@@ -79,13 +79,14 @@ app/src/composables/flows/idle/                   （迁入 2 + 新建 3）
   - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "composables/use_reading_controller\|use_reading_panel_controller\|use_result_card_shrink\|composables/result_card_lift_margin" app --include=*.ts --include=*.vue`（仅新路径）；full gate = exit 0。
   - 影响：新建目录 + 4 迁移 + 内外 import。回滚：反向 `git mv` + 还原 import + 删空目录。
 
-- [ ] P3 迁 flows/divination 9 文件 + quality_baseline 联动
+- [x] P3 迁 flows/divination 9 文件 + quality_baseline 联动
   - 上下文：9 文件 [use_phases](../app/src/composables/use_phases.ts) [use_presentation](../app/src/composables/use_presentation.ts) [start](../app/src/composables/start.ts) [pipeline_builder](../app/src/composables/pipeline_builder.ts) [skip_to_reading](../app/src/composables/skip_to_reading.ts) [replay_from_phase](../app/src/composables/replay_from_phase.ts) [use_lifecycle](../app/src/composables/use_lifecycle.ts) [use_lifecycle_types](../app/src/composables/use_lifecycle_types.ts) [use_animation_controller](../app/src/composables/use_animation_controller.ts)；互引（迁后同在 flows/divination，`./xxx` 不变）。`use_animation_controller` import `../config.json`。硬编码：[scripts/quality_baseline.json:4-5](../scripts/quality_baseline.json)（`use_animation_controller`、`use_lifecycle` 路径）。`use_animation_state.ts` 按文件名豁免与本步无关。消费者：`use_animation_controller`←`use_main_handlers`、`use_main_stage`、`divination_rig`、`use_play_deck_animation`、`use_header_presentation`、[ProgressContent.vue](../app/src/components/ProgressContent.vue)、[DeckRig.vue](../app/src/components/DeckRig.vue)、`Deck.vue`（8 处）；其余 8 文件均单一消费者（见 grep）。
   - 操作：
     1. `git mv` 9 文件 → `composables/flows/divination/`。
     2. 改各文件内部 import 相对深度：`../core/X`→`../../../core/X`；`../config.json`→`../../../config.json`；`./shared/animations/X`→`../../shared/animations/X`；`./flows/divination/X`→同目录 `./X`；9 文件互引 `./xxx` 保持。
     3. 改消费者 import：留根的 `use_main_handlers`/`use_main_stage`/`use_header_presentation` 中 `./use_animation_controller`→`./flows/divination/use_animation_controller`、`./use_reading_controller` 已于 P2 处理勿重复；`divination_rig`/`use_play_deck_animation` 中 `./use_animation_controller`→`./flows/divination/use_animation_controller`（P4 还会动，此处先正确）；`ProgressContent.vue`/`DeckRig.vue`/`Deck.vue` 的 `../composables/use_animation_controller`→`../composables/flows/divination/use_animation_controller`。
     4. 改 [scripts/quality_baseline.json:4-5](../scripts/quality_baseline.json)：`app/src/composables/use_animation_controller.ts::useAnimationController`→`app/src/composables/flows/divination/use_animation_controller.ts::useAnimationController`；`use_lifecycle.ts` 同理。
+    5. 测试 consumer 同步（grep `app/test` 实排）：[replay_from_phase.test.ts:18](../app/test/replay_from_phase.test.ts) `../src/composables/replay_from_phase`→`../src/composables/flows/divination/replay_from_phase`（其余 8 文件 app/test 无直接旧路径引用，已 grep 证）。
   - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "composables/use_animation_controller\|composables/use_lifecycle\b\|composables/use_phases\|composables/use_presentation\|composables/start'\|composables/pipeline_builder\|composables/skip_to_reading\|composables/replay_from_phase\|composables/use_lifecycle_types" app --include=*.ts --include=*.vue`（仅 flows/divination 新路径）；`node scripts/quality_gate.js full`（函数大小豁免须命中新路径，exit 0）。
   - 影响：9 迁移 + 内外 import + quality_baseline 2 行。回滚：反向 `git mv` + 还原 import + 还原 baseline。
 
@@ -122,7 +123,7 @@ app/src/composables/flows/idle/                   （迁入 2 + 新建 3）
 
 ## 进度
 
-P0–P2 完成。P1：use_app_phase/use_cards_load_error 迁 core/composables。P2：解读 4 文件迁 flows/reading，10 处 import 改向，full gate exit 0。P3 进行中。
+P0–P3 完成。P1：core/composables 2 文件。P2：flows/reading 4 文件。P3：9 文件迁 flows/divination，内部 import 规则化重写 + 8 外部 consumer + quality_baseline + replay_from_phase.test.ts 同步，full gate exit 0。P4 进行中。
 
 ## 搁置问题
 

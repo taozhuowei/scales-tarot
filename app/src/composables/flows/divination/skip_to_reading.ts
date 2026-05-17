@@ -10,9 +10,9 @@
  */
 
 import type { Ref } from 'vue'
-import { getPhaseSnap } from './flows/divination/phase_manifest'
-import type { PhaseSnapDeps } from './flows/divination/phase_entry_snapshots'
-import type { OverlayPhase } from './shared/animations/contracts'
+import { getPhaseSnap } from './phase_manifest'
+import type { PhaseSnapDeps } from './phase_entry_snapshots'
+import type { OverlayPhase } from '../../shared/animations/contracts'
 
 export interface SkipToReadingCommandDeps {
   interruptCurrentAnimation: () => void

@@ -8,14 +8,14 @@
  */
 
 import type { Ref } from 'vue'
-import { buildShufflePhaseRunner } from './flows/divination/phases/shuffle'
-import { buildCutPhaseRunner } from './flows/divination/phases/cut'
-import { buildDrawPhaseRunner } from './flows/divination/phases/draw'
-import { buildRevealPhaseRunner } from './flows/divination/phases/reveal'
-import { PHASE_MANIFEST } from './flows/divination/phase_manifest'
-import type { PhaseContext, PhaseRunner, OverlayPhase } from './shared/animations/contracts'
-import type { SceneKind, SceneLayout } from '../core/sizing/layout_solver'
-import type { MotionMetrics } from '../core/sizing/overlay_layout/use_overlay_layout'
+import { buildShufflePhaseRunner } from './phases/shuffle'
+import { buildCutPhaseRunner } from './phases/cut'
+import { buildDrawPhaseRunner } from './phases/draw'
+import { buildRevealPhaseRunner } from './phases/reveal'
+import { PHASE_MANIFEST } from './phase_manifest'
+import type { PhaseContext, PhaseRunner, OverlayPhase } from '../../shared/animations/contracts'
+import type { SceneKind, SceneLayout } from '../../../core/sizing/layout_solver'
+import type { MotionMetrics } from '../../../core/sizing/overlay_layout/use_overlay_layout'
 
 export function buildPhaseContext(deps: {
   getDeckCenter: () => { centerX: number; centerY: number }

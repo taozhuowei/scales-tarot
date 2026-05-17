@@ -12,10 +12,10 @@
  */
 
 import { nextTick, type Ref } from 'vue'
-import { getPhaseIndex, getPhaseSnap } from './flows/divination/phase_manifest'
-import type { PhaseSnapDeps } from './flows/divination/phase_entry_snapshots'
-import type { OverlayPhase } from './shared/animations/contracts'
-import type { ProgressModel } from './flows/divination/progress_model'
+import { getPhaseIndex, getPhaseSnap } from './phase_manifest'
+import type { PhaseSnapDeps } from './phase_entry_snapshots'
+import type { OverlayPhase } from '../../shared/animations/contracts'
+import type { ProgressModel } from './progress_model'
 
 export interface ReplayFromPhaseCommandDeps {
   interruptCurrentAnimation: () => void

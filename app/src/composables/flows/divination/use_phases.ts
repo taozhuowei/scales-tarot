@@ -6,9 +6,9 @@
  */
 
 import { ref } from 'vue'
-import { createProgressModel } from './flows/divination/progress_model'
-import type { OverlayPhase } from './shared/animations/contracts'
-import type { ProgressModel } from './flows/divination/progress_model'
+import { createProgressModel } from './progress_model'
+import type { OverlayPhase } from '../../shared/animations/contracts'
+import type { ProgressModel } from './progress_model'
 
 export function usePhases() {
   const phase = ref<OverlayPhase>('shuffling')

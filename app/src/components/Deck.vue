@@ -67,7 +67,7 @@
  */
 import { computed, inject } from 'vue'
 import type { Ref } from 'vue'
-import type { UseAnimationControllerReturn } from '../composables/use_animation_controller'
+import type { UseAnimationControllerReturn } from '../composables/flows/divination/use_animation_controller'
 import { useTarotStore } from '../core/store/tarot'
 import { useThemeStore } from '../core/store/theme'
 import { usePlayDeckAnimation } from '../composables/use_play_deck_animation'

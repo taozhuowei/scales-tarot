@@ -7,9 +7,9 @@
 
 import { computed } from 'vue'
 import type { Ref } from 'vue'
-import { calculatePhaseProgress } from './flows/divination/progress_model'
-import { presentProgressHeader, presentFooter } from './flows/divination/progress_presenter'
-import type { OverlayPhase } from './shared/animations/contracts'
+import { calculatePhaseProgress } from './progress_model'
+import { presentProgressHeader, presentFooter } from './progress_presenter'
+import type { OverlayPhase } from '../../shared/animations/contracts'
 
 export interface UsePresentationOptions {
   phase: Ref<OverlayPhase>

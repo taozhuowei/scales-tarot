@@ -8,10 +8,10 @@
 
 import type { gsap } from 'gsap'
 import type { Ref } from 'vue'
-import { createPhasePipeline, type PipelinePhase } from './shared/animations/pipeline'
-import type { PhaseContext, PhaseRunner, OverlayPhase } from './shared/animations/contracts'
-import type { SceneLayout } from '../core/sizing/layout_solver'
-import type { PipelineSharedDeps } from './flows/divination/pipeline_deps'
+import { createPhasePipeline, type PipelinePhase } from '../../shared/animations/pipeline'
+import type { PhaseContext, PhaseRunner, OverlayPhase } from '../../shared/animations/contracts'
+import type { SceneLayout } from '../../../core/sizing/layout_solver'
+import type { PipelineSharedDeps } from './pipeline_deps'
 import { buildPhaseContext, buildPhaseRunners } from './pipeline_builder'
 
 export interface RunPipelineCommandDeps extends PipelineSharedDeps {

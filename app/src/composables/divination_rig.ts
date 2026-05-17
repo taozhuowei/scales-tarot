@@ -21,7 +21,7 @@
  *            listener.
  */
 
-import type { UseAnimationControllerReturn } from './use_animation_controller'
+import type { UseAnimationControllerReturn } from './flows/divination/use_animation_controller'
 import type { DivinationRig } from './play_deck_runtime_types'
 
 /**
