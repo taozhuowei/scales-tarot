@@ -3,7 +3,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { createPhasePipeline } from '../src/core/animation/pipeline'
 import type { PipelinePhase } from '../src/core/animation/pipeline'
-import type { TimelineOrchestrator } from '../src/core/animation/adapters/gsap'
+import type { TimelineOrchestrator } from '../src/core/gsap/timeline'
 import type { OverlayPhase } from '../src/core/flow/types'
 
 function createMockOrchestrator(): TimelineOrchestrator {
