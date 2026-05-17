@@ -11,7 +11,7 @@
 // function exports (to, timeline, killTweensOf) are not available from
 // gsap-core. Issue mitigated by gsap-core alias.
 import type { gsap } from 'gsap'
-import type { OverlayPhase } from '../../../core/animation/phases/registry'
+import type { OverlayPhase } from './contracts'
 import type { TimelineOrchestrator } from '../../../core/gsap/timeline'
 
 export interface PipelinePhase {

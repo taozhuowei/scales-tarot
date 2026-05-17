@@ -22,14 +22,11 @@ import { usePlayback } from './shared/animations/use_playback'
 import { usePresentation } from './use_presentation'
 import { useLifecycle } from './use_lifecycle'
 import { killAnimationTargets } from '../core/gsap/tween'
-import {
-  calculatePhaseProgress,
-  presentProgressHeader,
-  presentFooter,
-} from '../core/utils/overlay_progress/index'
+import { calculatePhaseProgress } from './flows/divination/progress_model'
+import { presentProgressHeader, presentFooter } from './flows/divination/progress_presenter'
 import type { OverlayPhase } from './shared/animations/contracts'
 import { MAX_CARD_COUNT } from './shared/animations/state'
-import { MAX_CUT_PILES } from '../core/animation/phases/registry'
+import { MAX_CUT_PILES } from './flows/divination/phase_entry_snapshots'
 
 /**
  * Delay between the draw landing and the auto-flip kick-off (ms).

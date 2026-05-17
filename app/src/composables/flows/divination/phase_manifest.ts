@@ -11,12 +11,38 @@
  *          looks up the entry-state setter for replay/skip dispatchers.
  */
 
-import type { OverlayPhase, PhaseStep, PhaseManifest, PhaseSnapDeps } from './phase_types'
+import type { OverlayPhase } from '../../shared/animations/contracts'
+import type { PhaseSnapDeps } from './phase_entry_snapshots'
 import {
   snapToCuttingEntry,
   snapToDrawingEntry,
   snapToRevealingEntry,
-} from './phase_entry_snaps'
+} from './phase_entry_snapshots'
+
+/**
+ * Progress-bar metadata for one phase. Absorbed verbatim from the former
+ * phase_types during the flows refactor.
+ */
+export interface PhaseStep {
+  phase: OverlayPhase
+  label: string
+  activeIcon: string
+  inactiveIcon: string
+}
+
+/**
+ * PhaseManifest — single source of truth for both the progress-bar metadata
+ * and the per-phase entry-state setter. Ordering of this array defines the
+ * pipeline order (consumed by buildPhaseRunners / getPhaseOrder). Absorbed
+ * verbatim from the former phase_types during the flows refactor.
+ */
+export interface PhaseManifest {
+  phase: OverlayPhase
+  label: string
+  activeIcon: string
+  inactiveIcon: string
+  snapToEntryState(deps: PhaseSnapDeps): void
+}
 
 /**
  * Single source of truth for phase ordering and metadata. The pipeline

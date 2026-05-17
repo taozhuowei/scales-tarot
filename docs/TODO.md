@@ -102,7 +102,7 @@ app/src/composables/flows/fallback/
   - 验收：vue-tsc；`vitest --dir app/test` 全量；`grep -rn "core/animation/\(state\|reconciler\|visibility\|initial_states\|use_animation_state\|use_playback\|pipeline\|atoms\)" app`（空）；full gate = exit 0。
   - 影响：9 文件迁移 + 内外 import 链。回滚：反向 `git mv` + 还原 import。
 
-- [ ] P4 迁 flows/divination（删 registry/phase_types/index 壳，解散 core/flow）
+- [x] P4 迁 flows/divination（删 registry/phase_types/index 壳，解散 core/flow）
   - 上下文：[phases/{shuffle,cut,draw,reveal}/builder.ts](../app/src/core/animation/phases/) [draw/draw_timeline.ts](../app/src/core/animation/phases/draw/draw_timeline.ts) [phase_manifest.ts](../app/src/core/animation/phases/phase_manifest.ts) [phase_entry_snaps.ts](../app/src/core/animation/phases/phase_entry_snaps.ts) [phase_types.ts](../app/src/core/animation/phases/phase_types.ts) [registry.ts](../app/src/core/animation/phases/registry.ts) [pipeline_shared_deps.ts](../app/src/core/flow/pipeline_shared_deps.ts) [overlay_progress/](../app/src/core/utils/overlay_progress/)。执行前先 `grep -rn "overlay_progress\|createProgressModel\|phase_progress" app/src --include=*.ts --include=*.vue` 确认 progress 真实消费者并补入本步 importer 清单。
   - 操作：
     1. `git mv`：`phases/shuffle/builder.ts`→`flows/divination/phases/shuffle.ts`；`cut/builder.ts`→`phases/cut.ts`；`draw/builder.ts`→`phases/draw.ts`；`draw/draw_timeline.ts`→`phases/draw_timeline.ts`；`reveal/builder.ts`→`phases/reveal.ts`；`phase_manifest.ts`→`flows/divination/phase_manifest.ts`；`phase_entry_snaps.ts`→`flows/divination/phase_entry_snapshots.ts`；`core/flow/pipeline_shared_deps.ts`→`flows/divination/pipeline_deps.ts`；`overlay_progress/phase_progress_model.ts`→`flows/divination/progress_model.ts`；`phase_progress_presenter.ts`→`progress_presenter.ts`；`overlay_text.ts`→`flows/divination/overlay_text.ts`。
@@ -146,7 +146,7 @@ app/src/composables/flows/fallback/
 
 ## 进度
 
-P0–P3 完成。P4 待开始。
+P0–P4 完成。P5 待开始。
 
 ## 搁置问题
 

@@ -17,7 +17,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { replayFromPhaseCommand } from '../src/composables/replay_from_phase'
 import type { OverlayPhase } from '../src/composables/shared/animations/contracts'
-import { MAX_CUT_PILES, type PhaseSnapDeps } from '../src/core/animation/phases/registry'
+import { MAX_CUT_PILES, type PhaseSnapDeps } from '../src/composables/flows/divination/phase_entry_snapshots'
 import { MAX_CARD_COUNT } from '../src/composables/shared/animations/state'
 import type { SceneLayout } from '../src/core/sizing/layout_solver'
 

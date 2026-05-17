@@ -13,8 +13,48 @@
  *          moves).
  */
 
-import type { PhaseSnapDeps } from './phase_types'
-import { MAX_CUT_PILES } from './phase_types'
+import type { PhaseContext } from '../../shared/animations/contracts'
+import type { DrawCardState } from '../../shared/animations/card_state'
+import type { SceneLayout } from '../../../core/sizing/layout_solver'
+
+/** Maximum number of cut piles the cut animation pre-allocates.
+ *  Absorbed verbatim from the former phase_types during the flows refactor. */
+export const MAX_CUT_PILES = 8
+
+/**
+ * Dependencies required by snapToEntryState helpers.
+ *
+ * The replay / skip commands construct one of these and pass it to the
+ * matching snap helper; each helper writes the minimum shared visual state
+ * its phase's builder *expects to see when run() is called*.
+ *
+ * Style refresh contract: the snap helpers mutate plain objects inside
+ * `cardElements.lefts/rights/piles` and `draws`. The style reconciler
+ * (createStyleReconciler) installs `watch(..., { deep: true })` on every
+ * one of these arrays, so any field write is auto-picked-up on the next
+ * tick — no explicit `refreshLefts/refreshRights/refreshPiles/refreshDraws`
+ * call is required from the snap path. The replay command's `await
+ * nextTick()` before `runPipelineFn` guarantees those reactive updates
+ * have flushed to the DOM before phase builders read element refs.
+ *
+ * `setDrawCardSizes` is the one exception: it ALSO writes to `layoutCard*`
+ * refs (not to `state.draws`), so it must be called explicitly when a snap
+ * needs to set draw sizes (see snapToRevealingEntry). Absorbed verbatim
+ * from the former phase_types during the flows refactor.
+ */
+export interface PhaseSnapDeps {
+  cardElements: PhaseContext['cardElements']
+  visible: PhaseContext['visible']
+  draws: DrawCardState[]
+  deckGeometry: { centerX: number; centerY: number }
+  drawLayout: SceneLayout
+  cardCount: number
+  cutPileCount: number
+  shuffleSpreadX: number
+  cutPileSpacing: number
+  cutAxis: 'horizontal' | 'vertical'
+  setDrawCardSizes(layout: SceneLayout): void
+}
 
 /**
  * Snap to the cutting-phase entry visual state.

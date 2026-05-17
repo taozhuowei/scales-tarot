@@ -14,10 +14,10 @@
  *            orchestration code.
  */
 
-import type { TimelineOrchestrator } from '../gsap/timeline'
-import type { PhaseContext } from '../../composables/shared/animations/contracts'
-import type { SceneKind, SceneLayout } from '../sizing/layout_solver'
-import type { MotionMetrics } from '../sizing/overlay_layout/use_overlay_layout'
+import type { TimelineOrchestrator } from '../../../core/gsap/timeline'
+import type { PhaseContext } from '../../shared/animations/contracts'
+import type { SceneKind, SceneLayout } from '../../../core/sizing/layout_solver'
+import type { MotionMetrics } from '../../../core/sizing/overlay_layout/use_overlay_layout'
 
 /** Shape returned by the `getOverlayLayouts` callback. */
 export interface OverlayLayoutsSnapshot {

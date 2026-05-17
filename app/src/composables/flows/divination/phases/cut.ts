@@ -9,9 +9,9 @@
 // function exports (to, timeline, killTweensOf) are not available from
 // gsap-core. Issue mitigated by gsap-core alias.
 import gsap from 'gsap'
-import type { AnimationTimeline } from '../../../../composables/shared/animations/card_state'
-import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../../composables/shared/animations/contracts'
-import { prefersReducedMotion } from '../../../utils/accessibility'
+import type { AnimationTimeline } from '../../../shared/animations/card_state'
+import type { OverlayPhase, PhaseContext, PhaseRunner } from '../../../shared/animations/contracts'
+import { prefersReducedMotion } from '../../../../core/utils/accessibility'
 
 export interface CutPhaseConfig {
   pileCount: number

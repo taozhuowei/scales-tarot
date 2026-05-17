@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createProgressModel,
   calculatePhaseProgress,
-} from '../src/core/utils/overlay_progress/phase_progress_model'
+} from '../src/composables/flows/divination/progress_model'
 
 describe('overlay_progress/phase_progress_model', () => {
   describe('createProgressModel', () => {

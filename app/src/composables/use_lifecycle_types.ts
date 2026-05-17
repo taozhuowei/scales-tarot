@@ -8,8 +8,8 @@ import type { Ref } from 'vue'
 import type { DrawCardState } from './shared/animations/card_state'
 import type { OverlayPhase } from './shared/animations/contracts'
 import type { SceneKind, SceneLayout } from '../core/sizing/layout_solver'
-import type { ProgressModel } from '../core/utils/overlay_progress/phase_progress_model'
-import type { PipelineSharedDeps } from '../core/flow/pipeline_shared_deps'
+import type { ProgressModel } from './flows/divination/progress_model'
+import type { PipelineSharedDeps } from './flows/divination/pipeline_deps'
 
 export interface LifecycleAnimState {
   bg: { opacity: number }

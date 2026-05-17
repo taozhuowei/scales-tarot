@@ -13,9 +13,9 @@
 // Tree-shaking note: this resolves to gsap-core.js via Vite alias, which is
 // already the minimal build without CSSPlugin/DOM-only APIs.
 import gsap from 'gsap'
-import type { AnimationTimeline } from '../../../../composables/shared/animations/card_state'
-import type { PhaseContext } from '../../../../composables/shared/animations/contracts'
-import { randomInRange } from '../../../utils/secure_random'
+import type { AnimationTimeline } from '../../../shared/animations/card_state'
+import type { PhaseContext } from '../../../shared/animations/contracts'
+import { randomInRange } from '../../../../core/utils/secure_random'
 
 /**
  * Cosmetic jitter (a few degrees of pre-flip rotation per card). Routed
