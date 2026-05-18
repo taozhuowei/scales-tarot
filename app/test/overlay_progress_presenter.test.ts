@@ -6,7 +6,7 @@ import {
   presentFooter,
   presentPositionBadge,
   DEFAULT_OVERLAY_TEXT,
-} from '../src/composables/flows/divination/progress_presenter'
+} from '../src/flows/divination/composables/progress_presenter'
 
 describe('overlay_progress/phase_progress_presenter', () => {
   const mockGetIconAsset = vi.fn((name: string) => `/icons/${name}.png`)

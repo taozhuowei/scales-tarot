@@ -26,8 +26,8 @@
  * Data flow: useBootStatus().isFailed (← boot store ← App.vue.bootstrap)
  *           ──▶ v-if branch.
  */
-import FallbackView from '../components/flows/fallback/FallbackView.vue'
-import MainSurface from '../components/flows/index/MainSurface.vue'
+import FallbackView from '../flows/fallback/components/FallbackView.vue'
+import MainSurface from '../flows/index/components/MainSurface.vue'
 import { useBootStatus } from '../core/composables/use_boot_status'
 
 const { isFailed } = useBootStatus()

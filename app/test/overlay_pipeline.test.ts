@@ -1,10 +1,10 @@
 // @vitest-environment node
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { createPhasePipeline } from '../src/composables/shared/animations/pipeline'
-import type { PipelinePhase } from '../src/composables/shared/animations/pipeline'
+import { createPhasePipeline } from '../src/flows/shared/composables/animations/pipeline'
+import type { PipelinePhase } from '../src/flows/shared/composables/animations/pipeline'
 import type { TimelineOrchestrator } from '../src/core/gsap/timeline'
-import type { OverlayPhase } from '../src/composables/shared/animations/contracts'
+import type { OverlayPhase } from '../src/flows/shared/composables/animations/contracts'
 
 function createMockOrchestrator(): TimelineOrchestrator {
   const timelines: unknown[] = []

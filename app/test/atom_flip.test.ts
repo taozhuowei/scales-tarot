@@ -7,8 +7,8 @@
  */
 import { describe, it, expect } from 'vitest'
 import gsap from 'gsap'
-import { flipAtom } from '../src/composables/shared/animations/flip'
-import type { AtomContext } from '../src/composables/shared/animations/contracts'
+import { flipAtom } from '../src/flows/shared/composables/animations/flip'
+import type { AtomContext } from '../src/flows/shared/composables/animations/contracts'
 
 function makeContext(cardCount = 1): {
   cardElements: { inners: { rotationY: number }[] }
