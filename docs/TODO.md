@@ -39,7 +39,7 @@ app/src/composables/flows/<f>/**             → app/src/flows/<f>/composables/*
 
 > 每步：按操作改 → 验收（命令逐条 exit 0）→ 勾「进度」。一次性迁移，全部步骤通过后单 commit（[pre-commit 门禁](../README.md) 真实跑通）。遇失败即停报告，按「回滚」处置。
 
-- [ ] M1 建目录 + 整目录 git mv + 删空旧树
+- [x] M1 建目录 + 整目录 git mv + 删空旧树
   - 操作：
     1. `mkdir -p app/src/flows/{index,idle,divination,fallback,reading,shared}`。
     2. composables：对 `<f>` 各 `git mv app/src/composables/flows/<f> app/src/flows/<f>/composables`；`git mv app/src/composables/shared app/src/flows/shared/composables`（= composables/animations）。
@@ -48,19 +48,19 @@ app/src/composables/flows/<f>/**             → app/src/flows/<f>/composables/*
   - 验收：`find app/src/flows -type f | wc -l` = 74；`test ! -d app/src/components -a ! -d app/src/composables`；`git status --porcelain` 全为 R（rename）。
   - 影响：74 文件 git mv（此时全断链，预期不可编译）。回滚：`git reset --hard c734759` + `rm -rf app/src/flows`。
 
-- [ ] M2 全量 import 重写 + Name 路径注释对齐
+- [x] M2 全量 import 重写 + Name 路径注释对齐
   - 操作：按「import 重写算法」对 `app/src/flows/**/*.{ts,vue}` + `app/src/pages/index.vue` + `app/test/*.test.ts` 逐条重写相对 import；composables 文件头 `Name:` 旧路径串对齐新路径。批处理用一次性脚本 [`scripts/_migrate_imports.mjs`](../scripts/_migrate_imports.mjs)（解析→映射→relative，确定性），跑后立即 `git rm`/删除该脚本，不留仓内。
   - 验收：`grep -rnE "from '[^']*(composables|components)/(shared|flows)" app/src app/test`（空，无旧两树 import 串）；`npx vue-tsc --noEmit -p app/tsconfig.json` exit 0；脚本文件已删除。
   - 影响：约 200+ import + 若干 Name 注释。回滚：同 M1（未提交，整体 reset）。
 
-- [ ] M3 配套门禁/配置同步
+- [x] M3 配套门禁/配置同步
   - 操作：
     1. [`scripts/quality_baseline.json`](../scripts/quality_baseline.json) 2 条 `app/src/composables/flows/divination/{use_animation_controller,use_lifecycle}.ts` → `app/src/flows/divination/composables/{...}.ts`。
     2. [`config/dependency-cruiser.cjs`](../config/dependency-cruiser.cjs) 262/273/283：把 `^app/src/(composables|components|pages)/`、`^app/src/(core/gsap|composables/shared/animations|composables/flows/(divination|idle|fallback))/`、`^app/src/shared/(components|views)/` 等价改写为新 `app/src/flows/` 结构正则（守卫语义不变，仅路径形态适配）。
   - 验收：`node scripts/quality_gate.js full` exit 0（含 arch:check/dead-code/dup/audit）。
   - 影响：2 配置文件。回滚：同上整体 reset。
 
-- [ ] M4 全局回归 + 单 commit
+- [x] M4 全局回归 + 单 commit
   - 操作：全量回归后单 commit。message：`refactor(structure): unify components+composables into flows/<domain>/{components,composables}`。
   - 验收：`npx vue-tsc --noEmit -p app/tsconfig.json`；`npx tsc --noEmit -p server/tsconfig.json`；`npx vitest run --config app/vitest.config.ts --dir app/test`；`npx vitest run --config server/vitest.config.ts --dir server/test`；`npx eslint app/src/ app/test/ server/src/ server/test/`；`node scripts/quality_gate.js full`；`node scripts/build/index.js --prod --target h5 --skip-quality`（DONE 且 perf Δ0.0%）—— 全 exit 0；pre-commit 真实跑通。
   - 影响：单 commit。回滚：`git revert` 该 commit。
@@ -75,8 +75,8 @@ app/src/composables/flows/<f>/**             → app/src/flows/<f>/composables/*
 
 ## 进度
 
-（未开始）
+M1–M4 完成。components/+composables/ 双树统一为 `app/src/flows/{shared,index,idle,divination,fallback,reading}/{components,composables}`（保留 `animations/`、`phases/` 子层），74 文件 git mv 全 rename。一次性确定性脚本重写 118 处相对 import（绝对路径锚定，用后即删），注释/Name 路径串机械对齐归零。配套：`quality_baseline.json` 2 条、`dependency-cruiser.cjs` core-is-leaf / animation-not-to-reading 规则路径等价改写（守卫不放宽）。回归：vue-tsc + tsc + app/server vitest + eslint + full gate（arch/dead-code/dup/audit/scan）+ H5 prod 构建 perf Δ -0.0% 全绿。纯移动零运行时/模板/样式变更。
 
 ## 搁置问题
 
-（暂无）
+`config/dependency-cruiser.cjs` 的 `store-not-to-ui` 规则 from `^app/src/shared/store/`、to `^app/src/shared/(components|views)/` 指向真实结构中不存在的路径（store 实为 `core/store/`），为本次迁移前既已失效的历史遗留规则，无对应映射，本次未臆改。若要恢复 store→UI 守卫语义需独立评估其目标路径，单列议题。

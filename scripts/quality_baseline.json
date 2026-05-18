@@ -1,8 +1,8 @@
 {
   "fileSize": [],
   "functionSize": [
-    "app/src/composables/flows/divination/use_animation_controller.ts::useAnimationController",
-    "app/src/composables/flows/divination/use_lifecycle.ts::useLifecycle",
+    "app/src/flows/divination/composables/use_animation_controller.ts::useAnimationController",
+    "app/src/flows/divination/composables/use_lifecycle.ts::useLifecycle",
     "app/src/state/use_overlay.ts::useOverlay"
   ],
   "complexity": []

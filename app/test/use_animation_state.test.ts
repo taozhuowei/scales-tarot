@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
-import { useAnimationState } from '../src/composables/shared/animations/use_animation_state'
+import { useAnimationState } from '../src/flows/shared/composables/animations/use_animation_state'
 
 function mountHarness(opts: {
   deckCount: number
